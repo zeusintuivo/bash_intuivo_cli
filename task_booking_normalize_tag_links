@@ -1,0 +1,50 @@
+#!/usr/bin/env bash
+#
+# @author Zeus Intuivo <zeus@intuivo.com>
+#
+
+if [ -z "$1" ] && [ -z "$PIPED" ]
+  then
+    echo "
+          Missing 1st argument
+
+          Sample Usage:    - expects two arguments  *required
+
+              ${THISSCRIPTNAME}    folder_to_insert    --t  for test
+
+
+              sample:
+
+              ${THISSCRIPTNAME}    stylesheets --t
+
+                will result in    inserting stylesheets  and showing testing
+                like so
+                from : v1_form_work_on_chrome_files/utilities.self-490a4aef4893214461e21cf9d5f6d3a427fedb7393896728a01bc11f95aecda4.css :
+                to   : v1_form_work_on_chrome_files/stylesheets/utilities.css                                                          :
+
+
+
+            ";
+    exit
+fi
+task_booking_normalize_stylesheets() {
+    local new_cleanname_folder
+    local new_cleanname_file
+
+    all_links=$(find_all_tag_links)
+
+    for R in  $all_links; do
+    {
+        #echo $R
+        cleanname=$(unuglify_filename "$R")
+        local new_cleanname_folder=$(echo $(dirname "${cleanname}") | sed '/\./d')  # ${IMPLACING##*/}   # get name of directory name without full path in bash,, or last string after last slash /   # REF http://stackoverflow.com/questions/1371261/get-current-directory-name-without-full-path-in-bash-script
+        local new_cleanname_file=$(basename "${cleanname}")                         # ${IMPLACING%/*}    # get only directoy, --or everything before the last slash /                                 # REF http://stackoverflow.com/questions/6121091/get-file-directory-path-from-file-path
+
+        echo ersetzeseo_file_only "$R" "$new_cleanname_folder/${1}/$new_cleanname_file"  ${2}
+        ersetzeseo_file_only "$R" "$new_cleanname_folder/${1}/$new_cleanname_file"  ${2}
+
+    }
+    done
+
+}
+task_booking_normalize_stylesheets "$@"

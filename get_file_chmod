@@ -1,0 +1,195 @@
+#!/bin/bash
+#
+# @author Zeus Intuivo <zeus@intuivo.com>
+#
+
+
+
+# set working directory as the scripts location during the execution of script 
+# cd "$(dirname "$0")"
+
+# CURRENT SCRIPT EXECUTING
+THISSCRIPTNAME=`basename "$0"`
+
+# PIPED ? - START
+
+# Bash: Detect pipe/file input in a shell script
+# REF: https://gist.github.com/davejamesmiller/1966557
+
+# How to detect whether input is from keyboard, a file, or another process.
+# Useful for writing a script that can read from standard input, or prompt the
+# user for input if there is none.
+
+# Source: http://www.linuxquestions.org/questions/linux-software-2/bash-scripting-pipe-input-to-script-vs.-1-570945/
+PIPED="";
+COUNTER=$((COUNTER+1))
+
+# In Bash you can also use test -t to check for a terminal:
+
+if [ -t 0 ]; then
+    # Terminal input (keyboard) - interactive
+    PIPED=""
+else
+    # File or pipe input - non-interactive
+    PIPED="YES"
+    # REF: http://stackoverflow.com/questions/2746553/bash-script-read-values-from-stdin-pipe
+    # read PIPED #TOOD Works on mac osx, pending to test in linux and windows
+    PIPED="" 
+    while read ONEPIPE
+    do
+         PIPED="${PIPED}
+${ONEPIPE}"
+         COUNTER=$((COUNTER+1))
+    done
+    # TEST: echo "COUNTER: ${COUNTER}";echo "PIDED: ${PIPED}"; exit 0;
+fi
+
+# Piped Input 
+#if [ ! -z "$PIPED" ]
+# then
+#   echo "this is pipe..die "
+#   exit 0;
+#fi
+# NOT Piped Input 
+#if [ -z "$PIPED" ]
+# then
+#   echo "this NOT pipe..die "
+#   exit 0;
+#fi
+#echo "PIPED:$PIPED";
+#exit;
+
+# ALTERNATIVE:
+#if readlink /proc/$$/fd/0 | grep -q "^pipe:"; then
+    # Pipe input (echo abc | myscript)
+#    PIPED="YES"
+#elif file $( readlink /proc/$$/fd/0 ) | grep -q "character special"; then
+    # Terminal input (keyboard)
+#    PIPED=""
+#else
+    # File input (myscript < file.txt)
+#    PIPED=""
+
+#fi
+
+# PIPED ? - END
+
+# ARGUMENTS ? - Start
+
+# check to see if I used a message, then it will behave as a put 
+# bash shell script check input argument
+FILENAME=""
+VERBOSE=""
+# Yes argument, not piped 
+if [ ! -z "$1" ] && [ -z "$PIPED" ]
+  then
+  {
+    if [[ "$1" == "-v" ]] ; 
+      then
+        VERBOSE="ON"
+      else
+        FILENAME="$1";
+     fi
+  }
+fi
+# Yes argument, yes piped 
+if [ ! -z "$1" ] && [ ! -z "$PIPED" ]
+  then
+  {
+    if [[ "$1" == "-v" ]] ; 
+      then
+        VERBOSE="ON"
+    fi
+    FILENAME="${PIPED}";
+  }
+fi
+
+# Not argument, yes piped 
+if [ -z "$1" ] && [ ! -z "$PIPED" ]
+  then
+  {
+    FILENAME="${PIPED}";
+  }
+fi
+# Not argument, not Piped
+if [ -z "$1" ] && [ -z "$PIPED" ]
+  then
+  {
+    echo " "
+    echo " 'Get the chmod numerical value for a file' REF: http://unix.stackexchange.com/questions/46915/get-the-chmod-numerical-value-for-a-file"
+    echo "Missing 1st argument "
+    echo " "
+    echo "Sample Usage:    - expects one argument  *required"
+    echo " "
+    echo "    ${THISSCRIPTNAME}    filename [-v] for verbose"
+    echo "    "
+    echo "Pick one: "
+    echo "    "
+    ls 
+    exit 1;
+  }
+fi
+
+# Yes argument, not piped 
+if [ ! -z "$2" ] 
+  then
+  {
+    if [[ "$2" == "-v" ]] ; 
+      then
+        VERBOSE="ON"
+     fi
+  }
+fi
+# ARGUMENTS ? - END
+
+# WHICH SYSTEM AND TAKE ACTION ? - Start 
+# check operation systems 
+(
+  if [[ "$(uname)" == "Darwin" ]] ; then 
+    # Do something under Mac OS X platform    
+    while read -r ONE_FILENAME; do
+      # if not empty
+      PERMISIONS=""
+      if [ ! -z "${ONE_FILENAME}" ] ; then   
+        PERMISIONS=$(stat -f "%OLp" "${ONE_FILENAME}")  
+      fi
+      if [[ "${VERBOSE}" == "ON" ]] ; 
+        then
+          {
+            echo "${PERMISIONS} ${ONE_FILENAME}"
+          }
+        else
+          {
+            echo "${PERMISIONS}"
+          }
+      fi
+    done <<< "${FILENAME}"
+
+  elif [[ "$(expr substr $(uname -s) 1 5)" == "Linux" ]] ; then 
+    # Do something under GNU/Linux platform
+    while read -r ONE_FILENAME; do
+      # if not empty
+      PERMISIONS=""
+      if [ ! -z "${ONE_FILENAME}" ] ; then   
+        PERMISIONS=$(stat --format '%a' "${ONE_FILENAME}")  
+      fi
+      if [[ "${VERBOSE}" == "ON" ]] ; 
+        then
+          {
+            echo "${PERMISIONS} ${ONE_FILENAME}"
+          }
+        else
+          {
+            echo "${PERMISIONS}"
+          }
+      fi
+    done <<< "${FILENAME}"
+  
+  elif [[ "$(expr substr $(uname -s) 1 10)" == "MINGW32_NT" ]] ; then 
+    # Do something under Windows NT platform
+     echo "Not learned yet. nothing"
+    # nothing here
+  fi 
+)
+# WHICH SYSTEM AND TAKE ACTION ? - END
+

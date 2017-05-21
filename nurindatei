@@ -1,0 +1,1190 @@
+#!/bin/bash
+#
+# @author Zeus Intuivo <zeus@intuivo.com>
+#
+#bash shell script check input argument
+
+
+# Bash: Detect pipe/file input in a shell script
+# REF: https://gist.github.com/davejamesmiller/1966557
+
+# How to detect whether input is from keyboard, a file, or another process.
+# Useful for writing a script that can read from standard input, or prompt the
+# user for input if there is none.
+
+# Source: http://www.linuxquestions.org/questions/linux-software-2/bash-scripting-pipe-input-to-script-vs.-1-570945/
+PIPED="";
+COLORED="";
+COUNTER=0;
+# ag -i filefoo /bar/
+# ag [FILE-TYPE] [OPTIONS] PATTERN [PATH]
+# ack [OPTION]... PATTERN [FILES OR DIRECTORIES]
+# sift [OPTIONS] PATTERN [FILE|PATH|tcp://HOST:PORT]...
+#  sift [OPTIONS] [-e PATTERN | -f FILE] [FILE|PATH|tcp://HOST:PORT]...
+#  sift [OPTIONS] --targets [FILE|PATH]...
+#      grep [-abcdDEFGHhIiJLlmnOopqRSsUVvwxZ] [-A num] [-B num] [-C[num]] [-e pattern] [-f file]
+#          [--binary-files=value] [--color[=when]] [--colour[=when]] [--context[=num]]
+#          [--label] [--line-buffered] [--null] [pattern] [file ...]
+# In Bash you can also use test -t to check for a terminal:
+
+if [ -t 0 ]; then
+    # Terminal input (keyboard) - interactive
+    PIPED=""
+else
+    # File or pipe input - non-interactive
+    PIPED="YES"
+    # REF: http://stackoverflow.com/questions/2746553/bash-script-read-values-from-stdin-pipe
+    # read PIPED #TOOD Works on mac osx, pending to test in linux and windows
+    PIPED=""
+    while read ONEPIPE
+    do
+         PIPED="${PIPED}
+${ONEPIPE}"
+         COUNTER=$((COUNTER+1))
+    done
+        if [ $COUNTER -eq 0 ]; then
+          exit
+        fi
+
+    # TEST: echo "COUNTER: ${COUNTER}";echo "PIDED: ${PIPED}"; exit 0;
+fi
+
+# Piped Input
+#if [ ! -z "$PIPED" ]
+#	then
+#	echo "this is pipe..die "
+#	exit 0;
+#fi
+# NOT Piped Input
+#if [ -z "$PIPED" ]
+#	then
+#	echo "this NOT pipe..die "
+#	exit 0;
+#fi
+#echo "PIPED:$PIPED";
+#exit;
+
+# ALTERNATIVE:
+#if readlink /proc/$$/fd/0 | grep -q "^pipe:"; then
+    # Pipe input (echo abc | myscript)
+#    PIPED="YES"
+#elif file $( readlink /proc/$$/fd/0 ) | grep -q "character special"; then
+    # Terminal input (keyboard)
+#    PIPED=""
+#else
+    # File input (myscript < file.txt)
+#    PIPED=""
+
+#fi
+
+
+# CURRENT SCRIPT EXECUTING
+THISSCRIPTNAME=`basename "$0"`
+
+
+if [ -z "$1" ] && [ -z "$PIPED" ]
+  then
+    echo " "
+    echo "Missing 1st argument "
+    echo " "
+    echo "Sample Usage:    - expects one argument  *required"
+    echo " "
+    echo "    ${THISSCRIPTNAME}    seek-this "
+    echo "    ";
+
+		echo "Missing 2nd argument "
+	  echo " "
+		echo "Can be used:    - with two arguments   -optional "
+		echo " "
+		echo "    ${THISSCRIPTNAME}    seek_this      [sift, ack, ./sift, grep, ag, ./ag, ./ack]  -v  for verbose  -h for help"
+		echo "    ";
+		echo "    assuming order or use sift -> ag -> ack -> grep -> local ./ack"
+		echo "    ";
+  exit
+fi
+VERBOSE=0;
+DEFAULTSEEKER="sift"
+FILENAMESONLY=0
+SEEKING="$1";
+
+if [ "$1" == "-h" ] && [ -z "$PIPED" ] ; then
+	{
+		echo " "
+		echo " nur - 'nur' in German means only. Script used to show only parts of code for mac and linux"
+		echo "                                   leveraging from other linux scrips like sift, ack, grep, ag   "
+		echo "Usage: "
+		echo " "
+		echo " ${THISSCRIPTNAME}   seek_this   --nocolor -v -f [sift, ack, grep, ag]"
+    echo " --nocolor   -v verbose -f Files on  "
+		echo " "
+		exit 0;
+	}
+fi
+if [ ! -z "$2" ] ; then
+	{
+    # Second Arguemtn provided is -v and is not PIPED or PIDEd is empty
+		if [[ "$2" == "-v" ]] && [ -z "$PIPED" ] ; then
+			{
+		    	echo "Verbose on";
+		    	VERBOSE=1;
+			}
+		fi
+
+		if [[ "$2" == "sift" || "$2" == "ack" || "$2" == "grep" || "$2" == "ag" || "$2" == "./ag" || "$2" == "./ack" || "$2" == "./sift" ]] ; then
+			{
+	  			DEFAULTSEEKER="$2"
+			}
+		fi
+
+    if [[ "$2" == "--nocolor"  ]] ; then
+      {
+        COLORED="YES";
+      }
+    fi
+
+	}
+fi
+if [ ! -z "$3" ] ; then
+	{
+		if [[ "$3" == "-v" ]] && [ -z "$PIPED" ] ; then
+			{
+		    	echo "Verbose on";
+		    	VERBOSE=1;
+			}
+		fi
+    if [[ "$3" == "-f" ]] && [ -z "$PIPED" ] ; then
+      {
+          echo "Files on";
+          VERBOSE=1;
+      }
+    fi
+	}
+fi
+if [ ! -z "$4" ] ; then
+  {
+    if [[ "$4" == "-v" ]] && [ -z "$PIPED" ] ; then
+      {
+          echo "Verbose on";
+          VERBOSE=1;
+      }
+    fi
+    if [[ "$4" == "-f" ]] && [ -z "$PIPED" ] ; then
+      {
+          if [ $VERBOSE -eq 1 ] ; then
+            echo "Files on";
+          fi
+          FILENAMESONLY=1;
+      }
+    fi
+  }
+fi
+# TEST COLORED AND PIPED
+# echo "$SEEKING"
+#              #  NOT Colored
+#             if [ ! -z "$COLORED" ] ; then
+#               {
+#                  echo "NOT COLORED"
+#                }
+#              else
+#                {
+#                  echo "[38;5;28mCOL[38;5;9mORED[0m"
+#                }
+#              fi
+
+
+
+
+#               #  NOT Piped
+#               if [ -z "$PIPED" ] ; then
+#                 {
+#                   echo "NOT PIPED"
+#                 }
+#               else
+#                 {
+#                   echo "[38;5;28mPI[38;5;9mPED[0m"
+#                   if [[ "$SEEKING" == *""* ]] ; then
+#                     {
+#                       echo "$SEEKING"
+#                       echo "BUT PASSED CHARS HAVE COLOR"
+#                     }
+#                   else
+#                     {
+#                       echo "$SEEKING"
+#                       echo "NO COLOR FROM BEHIND"
+#                     }
+#                   fi
+#                 }
+#               fi
+#               exit
+
+              # Override colored off when piped with not color
+               #  Piped
+              if [ ! -z "$PIPED" ] ; then
+                {
+
+                  WHAT=$(echo "$PIPED" | grep -E "\[")
+                  #echo "$WHAT";
+                  if [ -z "$WHAT" ] ; then
+                    {
+                      #  Colored
+                      COLORED="YES";
+                      #echo "z"
+                    }
+                  else
+                    {
+                      # NOT Colored
+                      COLORED="";
+                      #echo "!z"
+                    }
+                  fi
+                  #}
+                  #| sed 's@\@ESC@'
+                  #exit
+                }
+              fi
+               #  NOT Colored
+#             if [ ! -z "$COLORED" ] ; then
+#                {
+#                  echo "NOT COLORED"
+#                }
+#              else
+#                {
+#                  echo "[38;5;28mCOL[38;5;9mORED[0m"
+#                }
+#              fi
+# #             exit
+
+
+red=`tput setaf 1`
+cyan=`tput setaf 6`
+green=`tput setaf 2`
+reset=`tput sgr0`
+
+BLACK=$(tput setaf 0)
+RED=$(tput setaf 1)
+GREEN=$(tput setaf 2)
+yellow=$(tput setaf 3)
+LIME_YELLOW=$(tput setaf 190)
+POWDER_BLUE=$(tput setaf 153)
+BLUE=$(tput setaf 4)
+MAGENTA=$(tput setaf 5)
+CYAN=$(tput setaf 6)
+WHITE=$(tput setaf 7)
+BRIGHT=$(tput bold)
+NORMAL=$(tput sgr0)
+BLINK=$(tput blink)
+REVERSE=$(tput smso)
+UNDERLINE=$(tput smul)
+
+SEEKER="./ack";
+IGNORE_DIR="ignore";
+FILESCOMMAND="";
+PRINTCOMMAND="-l --print0";
+
+msg_red () {
+    printf "\n${bdr}%s ${off}%s\n" "$@"
+}
+
+msg_green () {
+    printf "\n${bdg}%s ${off}%s\n" "$@"
+}
+
+trap '{ msg_red " KEYBOARD INTERRUPT."; exit 130; }' INT
+
+if command -v sift >/dev/null 2>&1; then
+	{
+
+
+      if [ $VERBOSE -eq 1 ] ; then
+      	{
+            #  NOT Colored
+            if [ ! -z "$COLORED" ] ; then
+                {
+                  echo " sift INSTALLED."
+                }
+              else
+                {
+                  msg_green " sift INSTALLED."
+                }
+              fi
+
+      	}
+      fi
+	    #-i, --ignore-case      case insensitive (default: off) Case sentive by default
+	    #-n, --line-number      show line numbers (default: off)
+	    #-Q, --literal          treat pattern as literal, quote meta characters
+	    #--output-sep=          output separator (default: "\n")
+      #--no-color             disable colored output
+
+	    # NOT PIPED then show line numbers
+	    if [ -z "$PIPED" ] ; then
+        	{
+        	    SEEKER="sift --err-skip-line-length -nQ ";
+        	}
+        fi
+	    #  PIPED then hide line numbers
+	    if [ ! -z "$PIPED" ] ; then
+        	{
+        	    SEEKER="sift --err-skip-line-length -Q ";
+        	}
+      fi
+	    #  NOT Colored
+      if [ ! -z "$COLORED" ] ; then
+          {
+              SEEKER="${SEEKER} --no-color ";
+          }
+      fi
+	    IGNORE_DIR="exclude-dirs";
+	    IGNORE_FILE="exclude-files";
+	    PRINTCOMMAND="-l --output-sep=\"\\x00\"";
+	}
+else
+	{
+
+	if command -v ag >/dev/null 2>&1; then
+		{
+
+
+      if [ $VERBOSE -eq 1 ] ; then
+      	{
+              #  NOT Colored
+              if [ ! -z "$COLORED" ] ; then
+                {
+              		echo " ag INSTALLED."
+                }
+              else
+                {
+                  msg_green " ag INSTALLED."
+                }
+              fi
+      	}
+      fi
+	    # -s  is for case sensitive
+	    #-Q --literal            Don't parse PATTERN as a regular expression
+	    #-0 --null --print0      Separate filenames with null (for 'xargs -0')
+      #--nocolor               Disable colors (Enabled by default)
+	     # NOT PIPED then show line numbers
+	    if [ -z "$PIPED" ] ; then
+        	{
+        	    SEEKER="ag -sQ ";
+        	}
+        fi
+	    #  PIPED then hide line numbers
+	    if [ ! -z "$PIPED" ] ; then
+        	{
+        	    SEEKER="ag --no-numbers -sQ  ";
+        	}
+      fi
+	    #  NOT Colored
+      if [ ! -z "$COLORED" ] ; then
+          {
+              SEEKER="${SEEKER} --nocolor ";
+          }
+      fi
+	    IGNORE_DIR="ignore";
+      IGNORE_FILE="ignore";
+      PRINTCOMMAND="-l --print0";
+		}
+	else
+		{
+
+		#msg_red " NEED TO INSTALL ag."
+	    #msg_red " ENTER SUDO PASSWORD AND PRESS ENTER."
+		#sudo apt-get install silversearcher-ag -fy
+
+		if command -v ack >/dev/null 2>&1; then
+			{
+
+
+        if [ $VERBOSE -eq 1 ] ; then
+        	{
+              #  NOT Colored
+              if [ ! -z "$COLORED" ] ; then
+                {
+              		echo " ack INSTALLED."
+                }
+              else
+                {
+                  msg_green " ack INSTALLED."
+                }
+              fi
+        	}
+        fi
+		    # ack is            case sensitve by default
+			  # --print0          Print null byte as separator between filenames, only works with -f, -g, -l, -L or -c.
+		    # -Q, --literal     Quote all metacharacters; PATTERN is litera
+        # --nocolor         Highlight the matching text (default: on unless --nocolor)
+        #
+		    # Ack DOES NOT SUPPORT HIDDING LINE NUMBERS
+		    # NOT PIPED then show line numbers
+
+        if [ -z "$PIPED" ] ; then
+	        	{
+	        	    SEEKER="ack -Q ";
+	        	}
+	        fi
+		    #  PIPED then hide line numbers
+		    if [ ! -z "$PIPED" ] ; then
+	        	{
+	        	    SEEKER="ack -Q ";
+	        	}
+	      fi
+        # NOT Colored
+        if [ ! -z "$COLORED" ] ; then
+            {
+                SEEKER="${SEEKER} --nocolor ";
+            }
+        fi
+	    	IGNORE_DIR="ignore-dir";
+        IGNORE_FILE="ignore-file";
+        PRINTCOMMAND="-l --print0";
+
+			}
+		else
+			{
+
+			#msg_red " NEED TO INSTALL ack."
+	    	#msg_red " ENTER SUDO PASSWORD AND PRESS ENTER."
+			#sudo apt-get install ack-grep -fy
+
+			ls ./ack  | egrep 'ack' &>/dev/null
+			if [ $? == 0 ]; then
+				{
+
+
+		        if [ $VERBOSE -eq 1 ] ; then
+		        	{
+                 #  NOT Colored
+                if [ ! -z "$COLORED" ] ; then
+                  {
+		        		    echo " ./ack INSTALLED."
+                  }
+                else
+                  {
+                    msg_green " ./ack INSTALLED."
+                  }
+                fi
+		        	}
+		        fi
+		        # Ack DOES NOT SUPPORT HIDDING LINE NUMBERS
+			    # NOT PIPED then show line numbers
+			    if [ -z "$PIPED" ] ; then
+		        	{
+		        	    SEEKER="./ack -Q ";
+		        	}
+		        fi
+			    #  PIPED then hide line numbers
+			    if [ ! -z "$PIPED" ] ; then
+		        	{
+		        	    SEEKER="./ack -Q ";
+		        	}
+		      fi
+  				# NOT Colored
+          if [ ! -z "$COLORED" ] ; then
+              {
+                  SEEKER="${SEEKER} --nocolor ";
+              }
+          fi
+				  IGNORE_DIR="ignore-dir";
+          IGNORE_FILE="ignore-file";
+          PRINTCOMMAND="-l --print0";
+				}
+			else
+				{
+
+				#msg_red " NEED TO INSTALL ./ack "
+		    	#msg_red " ENTER SUDO PASSWORD AND PRESS ENTER."
+				# cp ~/bin/ack .
+
+				if command -v grep >/dev/null 2>&1; then
+					{
+					#-i, --ignore-case
+					# Perform case insensitive matching.  By default, grep is case sensitive.
+					#
+					#-E, --extended-regexp
+					# Interpret pattern as an extended regular expression (i.e. force grep to behave as
+					# egrep).
+					#
+					#-e pattern, --regexp=pattern
+					# Specify a pattern used during the search of the input: an input line is selected if it
+					# matches any of the specified patterns.  This option is most useful when multiple -e
+					# options are used to specify multiple patterns, or when a pattern begins with a dash
+					# (`-').
+					#-F, --fixed-strings
+					# Interpret pattern as a set of fixed strings (i.e. force grep to behave as fgrep).
+          # --color=never     disable color
+
+
+	        if [ $VERBOSE -eq 1 ] ; then
+	        	{
+              #  NOT Colored
+              if [ ! -z "$COLORED" ] ; then
+                {
+	                echo " grep INSTALLED."
+                }
+              else
+                {
+                  msg_green " grep INSTALLED."
+                }
+              fi
+	        	}
+	        fi
+				  # WHEN PIPED then show line numbers
+          if [ -z "$PIPED" ] ; then
+	        	{
+	        	    SEEKER="grep -nrE "
+	        	}
+	        fi
+		      #  PIPED then hide line numbers
+			    if [ ! -z "$PIPED" ] ; then
+	        	{
+	        	    SEEKER="grep -rE "
+	        	}
+		      fi
+          # NOT Colored
+          if [ ! -z "$COLORED" ] ; then
+              {
+                SEEKER="${SEEKER} --color=never ";
+              }
+          fi
+          IGNORE_DIR="exclude-dir";
+          IGNORE_FILE="exclude";
+          FILESCOMMAND=".";
+          PRINTCOMMAND="-l --print0";
+
+					}
+				else
+					{
+            # NOT Colored
+            if [ ! -z "$COLORED" ] ; then
+              {
+      					echo "CANNOT SEARCH ....MISSING SEARCHER SIFT, ACK, AG, ./ACK, ./AG, ./SIFT OR GREP  ";
+                exit 1;
+              } else {
+                echo "${green} ${red} CANNOT SEARCH ....MISSING SEARCHER SIFT, ACK, AG, ./ACK, ./AG, ./SIFT OR GREP  ";
+      					exit 1;
+              }
+            fi
+			    	#msg_red " NEED TO INSTALL grep."
+					}
+				fi
+				}
+			fi
+			}
+		fi
+		}
+	fi
+	}
+fi
+# show hiden chars
+# echo -e "${cyan}" | tr -dc '[:print:]' | od -c ;
+# echo -e "${red}" | tr -dc '[:print:]' ;
+# exit 1;
+
+#CHECK FOR CHOICE FORCE IT
+if command -v ${DEFAULTSEEKER} >/dev/null 2>&1; then
+    {
+        SEEKER="${DEFAULTSEEKER}";
+
+        if [ $VERBOSE -eq 1 ] ; then
+        	{
+             # NOT Colored
+            if [ ! -z "$COLORED" ] ; then
+              {
+                echo "  using chosen option ... ${SEEKER}  ";
+                echo "  INSTALLED."
+              }
+            else
+              {
+                echo "${cyan}  using chosen option ... ${SEEKER}  ";
+                msg_green " ${SEEKER} INSTALLED."
+
+              }
+            fi
+        	}
+        fi
+
+        # make case sentive for local sift
+        if [[ "$DEFAULTSEEKER" == "sift" ]] ; then
+        {
+            # NOT PIPED then show line numbers
+      		  if [ -z "$PIPED" ] ; then
+    	        	{
+    	        	    SEEKER="sift --err-skip-line-length -nQ ";
+    	        	}
+      	    fi
+    		    #  PIPED then hide line numbers
+    		    if [ ! -z "$PIPED" ] ; then
+    	        	{
+    	        	    SEEKER="sift --err-skip-line-length -Q ";
+    	        	}
+    	      fi
+            #  NOT Colored
+            if [ ! -z "$COLORED" ] ; then
+                {
+                    SEEKER="${SEEKER} --no-color ";
+                }
+            fi
+    		    IGNORE_DIR="exclude-dirs";
+    		    IGNORE_FILE="exclude-files"
+    		    PRINTCOMMAND="-l --output-sep=\"\\x00\"";
+	     	}
+        fi
+        # make case sentive for ag
+        if [[ "$DEFAULTSEEKER" == "ag" ]] ; then
+        {
+            # NOT PIPED then show line numbers
+    		    if [ -z "$PIPED" ] ; then
+    	        	{
+    	        	    SEEKER="ag -sQ ";
+    	        	}
+    	      fi
+    		    #  PIPED then hide line numbers
+    		    if [ ! -z "$PIPED" ] ; then
+    	        	{
+    	        	    SEEKER="ag --nonumbers -sQ  ";
+    	        	}
+    	      fi
+            #  NOT Colored
+            if [ ! -z "$COLORED" ] ; then
+                {
+                    SEEKER="${SEEKER} --nocolor ";
+                }
+            fi
+            IGNORE_DIR="ignore";
+            IGNORE_FILE="ignore";
+            PRINTCOMMAND="-l --print0";
+        }
+        fi
+        # make case sentive for ag
+        if [[ "$DEFAULTSEEKER" == "ack" ]] ; then
+        {
+          	# Ack DOES NOT SUPPORT HIDDING LINE NUMBERS
+          	# WHEN PIPED then show line numbers
+              if [ -z "$PIPED" ] ; then
+  	        	{
+  	        	    SEEKER="ack  -Q ";
+  	        	}
+  	        fi
+    		    #  PIPED then hide line numbers
+    		    if [ ! -z "$PIPED" ] ; then
+  	        	{
+  	        	    SEEKER="ack  -Q ";
+  	        	}
+  	        fi
+            # NOT Colored
+            if [ ! -z "$COLORED" ] ; then
+                {
+                    SEEKER="${SEEKER} --nocolor ";
+                }
+            fi
+            IGNORE_DIR="ignore-dir";
+            IGNORE_FILE="ignore-dir";
+            PRINTCOMMAND="-l --print0";
+        }
+        fi
+        # make case sentive for local ./ack
+        if [ -e "./ack" ] && [[ "$DEFAULTSEEKER" == "./ack" ]] ; then
+        {
+          	# Ack DOES NOT SUPPORT HIDDING LINE NUMBERS
+          	# WHEN PIPED then show line numbers
+            if [ -z "$PIPED" ] ; then
+	        	{
+	        	    SEEKER="./ack -Q "
+	        	}
+  	        fi
+    		    #  PIPED then hide line numbers
+    		    if [ ! -z "$PIPED" ] ; then
+  	        	{
+  	        	    SEEKER="./ack -Q "
+  	        	}
+  	        fi
+            # NOT Colored
+            if [ ! -z "$COLORED" ] ; then
+                {
+                    SEEKER="${SEEKER} --nocolor ";
+                }
+            fi
+            IGNORE_DIR="ignore-dir";
+            IGNORE_FILE="ignore-file";
+            PRINTCOMMAND="-l --print0";
+        }
+        fi
+        #use extended expressions
+        if [[ "$DEFAULTSEEKER" == "grep" ]] ; then
+        {
+       		  # WHEN PIPED then show line numbers
+            if [ -z "$PIPED" ] ; then
+  	        	{
+  	        	    SEEKER="grep -rE "
+  	        	}
+  	        fi
+    		    #  PIPED then hide line numbers
+    		    if [ ! -z "$PIPED" ] ; then
+  	        	{
+  	        	    SEEKER="grep -rE "
+  	        	}
+  	        fi
+            # NOT Colored
+            if [ ! -z "$COLORED" ] ; then
+                {
+                    SEEKER="${SEEKER} --color=never ";
+                }
+            fi
+            IGNORE_DIR="exclude-dir";
+            IGNORE_FILE="exclude";
+            FILESCOMMAND=".";
+            PRINTCOMMAND="-l --print0";
+        }
+        fi
+    }
+else
+    {
+	    if [ $VERBOSE -eq 1 ] && [ -z "$PIPED" ] ; then
+        	{
+    			echo "${cyan}  using ...${SEEKER}  "
+        	}
+        fi
+    }
+fi
+
+
+
+#
+# TARGET COMPOSITION
+# IGNORELIST="--${IGNORE_FILE}=composer.phar --${IGNORE_FILE}=phpunit  --${IGNORE_FILE}=ack --${IGNORE_FILE}=dBug.php --${IGNORE_FILE}=bootstrap.php.cache --${IGNORE_FILE}=model --${IGNORE_FILE}=load_insert --${IGNORE_FILE}=generateparams --${IGNORE_FILE}=generatelocations --${IGNORE_FILE}=generateinserts --${IGNORE_FILE}=countalltables --${IGNORE_FILE}=conflicts --${IGNORE_DIR}=AbsoluteUrlBundle --${IGNORE_DIR}=cache --${IGNORE_DIR}=vendor --${IGNORE_DIR}=bower_components  --${IGNORE_DIR}=node_modules --${IGNORE_DIR}=storage/debugbar  --${IGNORE_DIR}=.idea  --${IGNORE_DIR}=.git --${IGNORE_DIR}=storage/logs  --${IGNORE_DIR}=app/Stubs "
+#
+# COMPOSE IGNORE ONELINER - start
+#
+EXCLUDEDIR="--${IGNORE_DIR}="
+EXCLUDEFILE="--${IGNORE_FILE}="
+FILESTOEXCLUDE=".dir_bash_history
+.tutorial
+ack
+bootstrap.php.cache
+conflicts
+composer.phar
+countalltables
+dBug.php
+generateinserts
+generatelocations
+generateparams
+load_insert
+phpunit"
+
+DIRSTOEXCLUDE=".cargo
+.git
+.idea
+.servo
+AbsoluteUrlBundle
+app/Stubs
+bower_components
+cache
+dist
+node_modules
+python
+storage/debugbar
+storage/logs
+target
+tmp
+log
+ports
+var/cache
+var/logs
+var/session
+app/cache
+app/logs
+app/session"
+
+IGNORELIST=""
+
+    while read -r ONE_FILENAME; do
+      # if not empty
+      if [ ! -z "${ONE_FILENAME}" ] ; then
+        IGNORELIST="${IGNORELIST} ${EXCLUDEFILE}${ONE_FILENAME}"
+      fi
+    done <<< "${FILESTOEXCLUDE}"
+    while read -r ONE_DIRNAME; do
+      # if not empty
+      if [ ! -z "${ONE_DIRNAME}" ] ; then
+        IGNORELIST="${IGNORELIST} ${EXCLUDEDIR}${ONE_DIRNAME}"
+      fi
+    done <<< "${DIRSTOEXCLUDE}"
+#
+# COMPOSE IGNORE ONELINER - end
+#
+
+
+#
+# COLORS - Ouput - Start
+#
+        #RESET_PROMPT="[38;5;231m"
+        RESET_PROMPT="[0m"
+#
+# COLORS - Ouput - end
+#
+
+
+
+#If NOT verbose  and # not PIPED
+if [ $VERBOSE -eq 0 ] && [ -z "$PIPED" ] ; then
+	{
+            # NOT Colored
+            if [ ! -z "$COLORED" ] ; then
+              {
+                echo "    ";
+                echo " $SEEKING "
+                echo "    ";
+              }
+            else
+              {
+                msg_green "${cyan} $SEEKING "
+                echo "    ";
+              }
+            fi
+	}
+fi
+
+#If verbose  and # not PIPED
+if [ $VERBOSE -eq 1 ] && [ -z "$PIPED" ] ; then
+	{
+            # NOT Colored
+            if [ ! -z "$COLORED" ] ; then
+              {
+                echo "$Finding $SEEKING                  with  ${SEEKER} ."
+                echo "   ";
+
+                echo "Seek ignoring ${IGNORELIST} with ${SEEKER} -- "
+                echo "   ";
+              }
+            else
+              {
+                echo "${reset} ${green} Finding ${reset} $SEEKING ${green}                 with  ${SEEKER} ."
+                echo "   ";
+
+                echo "${reset} ${green} Seek ignoring ${IGNORELIST} with ${SEEKER} -- "
+                echo "   ";
+              }
+            fi
+
+	}
+fi
+
+# echo "${cyan}  ack  --ignore=vendor --ignore-dir=bower_components  --ignore-dir=node_modules --ignore-dir=storage/debugbar  --ignore-dir=storage/logs  --ignore-dir=app/Stubs \"${SEEKING}\" "
+# echo "${cyan}  ag  --ignore-dir=vendor --ignore-dir=bower_components  --ignore-dir=node_modules --ignore-dir=storage/debugbar  --ignore-dir=storage/logs  --ignore-dir=app/Stubs \"${SEEKING}\" "
+# echo "${cyan}  grep  --exclude-dir=vendor --exclude-dir=bower_components  --exclude-dir=node_modules --exclude-dir=storage/debugbar  --exclude-dir=storage/logs  --exclude-dir=app/Stubs \"${SEEKING}\" "
+
+#If verbose  and # not PIPED
+if [ $VERBOSE -eq 1 ] && [ -z "$PIPED" ]; then
+	{
+		echo "   ";
+	}
+fi
+# THIS IS GREP FOR LINUX
+# ack  --ignore-dir=vendor --ignore-dir=bower_components  --ignore-dir=node_modules --ignore-dir=storage/debugbar  --ignore-dir=storage/logs  --ignore-dir=app/Stubs "$SEEKING"
+# ag  --ignore-dir=vendor --ignore-dir=bower_components  --ignore-dir=node_modules --ignore-dir=storage/debugbar  --ignore-dir=storage/logs  --ignore-dir=app/Stubs "$SEEKING"
+# grep  --exclude-dir=vendor --exclude-dir=bower_components  --exclude-dir=node_modules --exclude-dir=storage/debugbar  --exclude-dir=storage/logs  --exclude-dir=app/Stubs "$SEEKING"
+#THIS IS GREP FOR MAC
+# grep  --exclude-dir=vendor --exclude-dir=bower_components  --exclude-dir=node_modules --exclude-dir=storage/debugbar  --exclude-dir=storage/logs  --exclude-dir=app/Stubs -e "$SEEKING" *
+
+if [[ $SEEKING == *"/"* ]]
+then
+{
+
+    if [ $VERBOSE -eq 1 ] ; then
+    	{
+        # NOT Colored
+        if [ ! -z "$COLORED" ] ; then
+          {
+            echo "   ${SEEKER} \"${SEEKING}\" ${FILESCOMMAND}  ${IGNORELIST}  "
+          }
+        else
+          {
+		        echo "${cyan}   ${SEEKER} \"${SEEKING}\" ${FILESCOMMAND}  ${IGNORELIST}  "
+          }
+        fi
+    	}
+    fi
+    # not PIPED
+		if [ -z "$PIPED" ]; then
+			{
+		        #${SEEKER} "$SEEKING" ${FILESCOMMAND}      ${IGNORELIST}  &>/dev/null
+		        RESULT=$(${SEEKER} "$SEEKING" ${FILESCOMMAND}      ${IGNORELIST} | sed 's\\\\\\g')
+			}
+		else # YES PIPED
+			{
+            # NOT Colored
+            if [ ! -z "$COLORED" ] ; then
+              {
+                echo "$PIPED" | ${SEEKER} "$SEEKING" ${FILESCOMMAND}      ${IGNORELIST}  | sed 's\\\\\\g' | sed s"$SEEKING""$SEEKING"g
+              }
+            else
+              {
+				        echo "$PIPED" | ${SEEKER} "$SEEKING" ${FILESCOMMAND}      ${IGNORELIST}  | sed 's\\\\\\g' | sed s"$SEEKING""[38;5;196m$SEEKING${RESET_PROMPT}"g
+              }
+            fi
+			}
+		fi
+}
+else
+{
+
+
+    if [ $VERBOSE -eq 1 ] ; then
+     	{
+        # NOT Colored
+        if [ ! -z "$COLORED" ] ; then
+          {
+       			echo "   ${SEEKER} \"${SEEKING}\" ${FILESCOMMAND}  ${IGNORELIST}  "
+          }
+        else
+          {
+            echo "${cyan}   ${SEEKER} \"${SEEKING}\" ${FILESCOMMAND}  ${IGNORELIST}  "
+          }
+        fi
+    	}
+    fi
+        # not PIPED
+		if [ -z "$PIPED" ]; then
+			{
+
+		        #${SEEKER} "$SEEKING" ${FILESCOMMAND}      ${IGNORELIST}  &>/dev/null
+		        RESULT=$(${SEEKER} "$SEEKING" ${FILESCOMMAND}      ${IGNORELIST} | sed 's@\\@\\\\@g')
+
+			}
+		else # YES PIPED
+			{
+            # NOT Colored
+            if [ ! -z "$COLORED" ] ; then
+              {
+                echo "$PIPED" | ${SEEKER} "$SEEKING" ${FILESCOMMAND}      ${IGNORELIST} | sed 's@\\@\\\\@g'  | sed s/"$SEEKING"/"$SEEKING"/g
+              }
+            else
+              {
+                echo "$PIPED" | ${SEEKER} "$SEEKING" ${FILESCOMMAND}      ${IGNORELIST} | sed 's@\\@\\\\@g' | sed s/"$SEEKING"/"[38;5;196m$SEEKING${RESET_PROMPT}"/g
+              }
+            fi
+			}
+		fi
+
+}
+fi
+
+# If  | egrep "$SEEKING" &>/dev/null | returned an error....so it was... it was found/not found say it and stop execution for not found
+if [ $? -eq 0 ]
+then
+	{
+
+
+        # not PIPED
+		if [ -z "$PIPED" ]; then
+			{
+
+        # rm /tmp/tmp1.txt
+        # rm /tmp/tmp2.txt
+        # rm /tmp/tmp4.txt
+        # rm /tmp/tmp4.txt
+        # rm /tmp/tmp6.txt
+        # rm /tmp/tmp8.txt
+        # rm /tmp/tmp10.txt
+        # rm /tmp/tmp12.txt
+        # rm /tmp/tmp14.txt
+        # rm /tmp/tmp16.txt
+        # rm /tmp/tmp18.txt
+        #
+        # rm /tmp/temp1.txt
+        # rm /tmp/temp2.txt
+        # rm /tmp/tomp4.txt
+        # rm /tmp/temp4.txt
+        # rm /tmp/temp6.txt
+        # rm /tmp/temp8.txt
+        # rm /tmp/temp10.txt
+        # rm /tmp/temp12.txt
+        # rm /tmp/temp14.txt
+        # rm /tmp/temp16.txt
+        # rm /tmp/temp18.txt
+        #
+        # rm /tmp/temp3.txt
+        # rm /tmp/temp5.txt
+        # rm /tmp/temp7.txt
+        # rm /tmp/temp9.txt
+        # rm /tmp/temp11.txt
+        # rm /tmp/temp13.txt
+        # rm /tmp/temp15.txt
+        # rm /tmp/temp17.txt
+        # rm /tmp/temp19.txt
+        # Count ":" occurences  REF: http://stackoverflow.com/questions/16679369/count-occurrences-of-char-in-string-using-bash
+        #$OCCURENCES=$(grep -o ":" <<<  "$RESULT" | wc -l)
+        # Filename
+				cut -f1 -d":" <<< "$RESULT" > /tmp/tmp1.txt #filename     or      'binary file matches'
+				# File linenumber
+				cut -f2 -d":" <<< "$RESULT" > /tmp/tmp2.txt #line number  or 'filename' with ^ the above
+        cut -f3 -d":" <<< "$RESULT" | sed 's^ *g' | sed 's^\t*g' > /tmp/tmp4.txt #first results
+
+        #RESULT=$(cat /tmp/tmp4.txt)
+        cut -f4 -d":" <<< "$RESULT" > /tmp/tmp6.txt
+        cut -f5 -d":" <<< "$RESULT" > /tmp/tmp8.txt
+				cut -f6 -d":" <<< "$RESULT" > /tmp/tmp10.txt
+				cut -f7 -d":" <<< "$RESULT" > /tmp/tmp12.txt
+				cut -f8 -d":" <<< "$RESULT" > /tmp/tmp14.txt
+				cut -f9 -d":" <<< "$RESULT" > /tmp/tmp16.txt
+				cut -f10 -d":" <<< "$RESULT" > /tmp/tmp18.txt
+
+        # NOT Colored
+        if [ ! -z "$COLORED" ] ; then
+          {
+            # Filename
+            awk '{print $0}' /tmp/tmp1.txt > /tmp/temp1.txt   # pink    #filename
+            # File linenumber
+            awk '{print $0}'  /tmp/tmp2.txt > /tmp/temp2.txt # green     #line number
+            #  reset color ---mm nothing to reset hehe.
+            awk '{print $0}' /tmp/tmp4.txt > /tmp/tomp4.txt #reset color  # first results
+
+            # the rest of the results
+            cat /tmp/tomp4.txt | sed s"$SEEKING""$SEEKING"g > /tmp/temp4.txt   #first results
+            cat /tmp/tmp6.txt  | sed s"$SEEKING""$SEEKING"g > /tmp/temp6.txt
+            cat /tmp/tmp8.txt  | sed s"$SEEKING""$SEEKING"g > /tmp/temp8.txt
+            cat /tmp/tmp10.txt | sed s"$SEEKING""$SEEKING"g > /tmp/temp10.txt
+            cat /tmp/tmp12.txt | sed s"$SEEKING""$SEEKING"g > /tmp/temp12.txt
+            cat /tmp/tmp14.txt | sed s"$SEEKING""$SEEKING"g > /tmp/temp14.txt
+            cat /tmp/tmp16.txt | sed s"$SEEKING""$SEEKING"g > /tmp/temp16.txt
+            cat /tmp/tmp18.txt | sed s"$SEEKING""$SEEKING"g > /tmp/temp18.txt
+          }
+        else
+          {
+            # Filename
+            awk '{print "[38;5;13m" $0}' /tmp/tmp1.txt > /tmp/temp1.txt   # pink    #filename
+            #awk '{print $0}' /tmp/tmp1.txt > /tmp/temp1.txt # nocolor
+            # File linenumber
+            awk '{print "[38;5;28m" $0}'  /tmp/tmp2.txt > /tmp/temp2.txt # green     #line number
+            #awk '{print $0}'  /tmp/tmp2.txt > /tmp/temp2.txt  #      #line number
+            #awk '{print $0}'  /tmp/tmp2.txt > /tmp/temp2.txt  # nocolor
+            #  reset color
+            #awk '{print "[38;5;231m" $0}' /tmp/tmp4.txt > /tmp/tomp4.txt #reset color  # first results
+
+            awk '{print "[0m" $0}' /tmp/tmp4.txt  > /tmp/tomp4.txt #reset color  # first results
+
+            # the rest of the results
+            cat /tmp/tomp4.txt | sed s"$SEEKING""[38;5;9m$SEEKING${RESET_PROMPT}"g > /tmp/temp4.txt
+            cat /tmp/tmp6.txt  | sed s"$SEEKING""[38;5;9m$SEEKING${RESET_PROMPT}"g > /tmp/temp6.txt
+            cat /tmp/tmp8.txt  | sed s"$SEEKING""[38;5;9m$SEEKING${RESET_PROMPT}"g > /tmp/temp8.txt
+            cat /tmp/tmp10.txt | sed s"$SEEKING""[38;5;9m$SEEKING${RESET_PROMPT}"g > /tmp/temp10.txt
+            cat /tmp/tmp12.txt | sed s"$SEEKING""[38;5;9m$SEEKING${RESET_PROMPT}"g > /tmp/temp12.txt
+            cat /tmp/tmp14.txt | sed s"$SEEKING""[38;5;9m$SEEKING${RESET_PROMPT}"g > /tmp/temp14.txt
+            cat /tmp/tmp16.txt | sed s"$SEEKING""[38;5;9m$SEEKING${RESET_PROMPT}"g > /tmp/temp16.txt
+            cat /tmp/tmp18.txt | sed s"$SEEKING""[38;5;9m$SEEKING${RESET_PROMPT}"g > /tmp/temp18.txt
+          }
+        fi
+
+				# Check is a file is empty first
+				# REF: http://stackoverflow.com/questions/9964823/how-to-check-if-a-file-is-empty-in-bash-shell
+
+				$(paste -d':' /tmp/temp1.txt /tmp/temp2.txt   > /tmp/temp3.txt)   #filename:linenumber
+				#if [ ! -s /tmp/temp4.txt ] ; then
+          # Frist results after line number
+					$(paste -d' ' /tmp/temp3.txt /tmp/temp4.txt   > /tmp/temp5.txt) #(#filename:linenumber):# first results
+				#fi
+				#if [ ! -s /tmp/temp6.txt ] ; then
+					$(paste -d':' /tmp/temp5.txt /tmp/temp6.txt   > /tmp/temp7.txt) #(f:l):fr:# second results
+				#fi
+				#if [ ! -s /tmp/temp8.txt ] ; then
+					$(paste -d':' /tmp/temp7.txt /tmp/temp8.txt   > /tmp/temp9.txt)
+				#fi
+				#if [ ! -s /tmp/temp10.txt ] ; then
+					$(paste -d':' /tmp/temp9.txt /tmp/temp10.txt  > /tmp/temp11.txt)
+				#fi
+				#if [ ! -s /tmp/temp12.txt ] ; then
+					$(paste -d':' /tmp/temp11.txt /tmp/temp12.txt > /tmp/temp13.txt)
+				#fi
+				#if [ ! -s /tmp/temp14.txt ] ; then
+					$(paste -d':' /tmp/temp13.txt /tmp/temp14.txt > /tmp/temp15.txt)
+				#fi
+				#if [ ! -s /tmp/temp16.txt ] ; then
+					$(paste -d':' /tmp/temp15.txt /tmp/temp16.txt > /tmp/temp17.txt)
+				#else
+        #  echo "" > /tmp/temp17.txt
+        #fi
+        #ALT!echo -e "${reset}Results:\n" > /tmp/temp19.txt
+        if [ ! -s /tmp/temp18.txt ] ; then
+          #ALT!$(paste -d' ' /tmp/temp17.txt /tmp/temp18.txt >> /tmp/temp19.txt)
+					$(paste -d':' /tmp/temp17.txt /tmp/temp18.txt > /tmp/temp19.txt)
+				else
+          #ALT!cat /tmp/temp17.txt >>  /tmp/temp19.txt
+					cp /tmp/temp17.txt  /tmp/temp19.txt
+				fi
+				#TEMP19=$(</tmp/temp19.txt)
+        #echo -e "${TEMP19}"
+        #cat /tmp/temp19.txt # This cat was leading errors in display  ...notice the missing chars before "uiload"
+        # Fixed cat version
+        cat /tmp/temp19.txt | sed 's^:g' | sed 's:$g' | sed 's:.$g' | sed 's:.$g'  | sed 's.$g'
+        #        ➜  en ü download_and_write
+        #
+        # download_and_write
+        #
+        #      uiload/configVictimHost.inc:3 $GLOBALS['download_and_write'] = true;
+        #      ntuiload/bajar.inc:12     if ($GLOBALS['download_and_write']) {
+        #     ntuiload/guardar.inc:12     if ($GLOBALS['download_and_write'])  return file_put_contents($filename, $file_contents_string);
+        #      ntui
+
+        #while read line; do
+           #echo "=========================="
+           # echo $line   | hexdump -C
+           # echo $line   | xargs -I {} echo -en {}
+           #echo "--------------------------"
+            #echo $line  | sed 's^:g' | sed 's:$g' | sed 's:.$g' | sed 's:.$g'  | sed 's.$g'
+            #echo $line
+           # echo $line  | sed 's^:g' | sed 's:$g' | sed 's:.$g' | sed 's:.$g'  | sed 's.$g' | hexdump -C
+           #echo "=========================="
+        #done < /tmp/temp19.txt
+				rm /tmp/tmp1.txt /tmp/tmp2.txt /tmp/tmp4.txt /tmp/tmp6.txt /tmp/tmp8.txt /tmp/tmp10.txt /tmp/tmp12.txt /tmp/tmp14.txt /tmp/tmp16.txt /tmp/tmp18.txt /tmp/temp1.txt /tmp/temp2.txt /tmp/tomp4.txt /tmp/temp4.txt /tmp/temp6.txt /tmp/temp8.txt /tmp/temp10.txt /tmp/temp12.txt /tmp/temp14.txt /tmp/temp16.txt /tmp/temp18.txt /tmp/temp3.txt /tmp/temp5.txt /tmp/temp7.txt /tmp/temp9.txt /tmp/temp11.txt /tmp/temp13.txt /tmp/temp15.txt /tmp/temp17.txt /tmp/temp19.txt
+			}
+		fi
+
+
+        if [ $VERBOSE -eq 1 ] ; then
+        	{
+            # NOT Colored
+            if [ ! -z "$COLORED" ] ; then
+              {
+				        echo " FOUND !"
+              }
+            else
+              {
+                msg_green "${green} FOUND !"
+              }
+            fi
+        	}
+        fi
+	}
+else
+	{
+		if [ -z "$PIPED" ] ; then    # not PIPED
+	      	{
+            # NOT Colored
+            if [ ! -z "$COLORED" ] ; then
+              {
+				        echo " SORRY NO OCCURENCES FOUND !"
+                echo "    ";
+                exit 1;
+              }
+            else
+              {
+                msg_red "${red} SORRY NO OCCURENCES FOUND !"
+                echo "    ";
+                exit 1;
+              }
+            fi
+	      	}
+	  fi
+		exit 0;
+	}
+fi
+# not PIPED
+if [ -z "$PIPED" ]; then
+	{
+		echo "   ";
+	}
+fi
+
+
+

@@ -1,0 +1,50 @@
+#!/usr/bin/env bash
+#
+# @author Zeus Intuivo <zeus@intuivo.com>
+#
+task_find_all_tag_links() {
+    local WHERE_TO_FIND=""
+    local contents=""
+    if [[ ! -z "${1}" ]];  then
+        WHERE_TO_FIND="${1}"
+        contents=$(cat "${WHERE_TO_FIND}" | sed -e :a -re 's/<!--.*?-->//g;/<!--/N;//ba')     # load contents and detele everything between <!-- -->
+        RESULTS=$(echo "${contents}" | ag \<link --nocolor | nur \>  | nur css  | nur href\=  ) #| sed -e "s/href/\nhref/g" | sed -e "s/rel/\nrel/g"  | sed -e "s/type/\ntype/g")
+        #RESULTS=$(ag \<link --nocolor "${WHERE_TO_FIND}" | nur \>  | nur css  | nur href\=  ) #| sed -e "s/href/\nhref/g" | sed -e "s/rel/\nrel/g"  | sed -e "s/type/\ntype/g")
+    else
+        RESULTS=$(nur \<link --nocolor | nur \>  | nur css  | nur href\=  ) #| sed -e "s/href/\nhref/g" | sed -e "s/rel/\nrel/g"  | sed -e "s/type/\ntype/g")
+    fi
+
+
+    while read -r R; do
+      # if not empty
+      if [ ! -z "${R}" ] ; then
+          output=$(echo $R)
+          output="${output#*\<link}"             # bash expressions retain the part after " <link "
+          output="${output#*href=}"              # bash expressions retain the part after " href= "
+          #output="${output%\<*}"                # bash expressions retain the part before " where "
+          output="${output%\>*}"                 # bash expressions retain the part before " where "
+          output="${output#*\'}"                 # bash expressions retain the part after " src "
+          output="${output#*\"}"                 # bash expressions retain the part after " src "
+          output="${output%\'*}"                 # bash expressions retain the part before " where "
+          output="${output%\"*}"                 # bash expressions retain the part before " where "
+
+          echo "$output" | sed 's/^\.\///g' | cut -d'"' -f1 | cut -d"'" -f1
+      fi
+    done <<< "${RESULTS}"
+
+
+} # end task_find_all_tag_links
+
+
+WHERE_TO_FIND=""
+if [[ ! -z "${1}" ]];  then
+    WHERE_TO_FIND="${1}"
+fi
+
+
+RESULTS=$( task_find_all_tag_links "${WHERE_TO_FIND}" | sed '/^text\/css/d' | sed '/rel\=/d'  | sed '/media\=/d' | sed '/type\=/d' | sort | uniq)
+for R in  $RESULTS; do
+{
+  echo $R
+}
+done

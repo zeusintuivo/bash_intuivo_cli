@@ -1,0 +1,290 @@
+#!/bin/bash
+#
+# @author Zeus Intuivo <zeus@intuivo.com>
+#
+
+# check to see if I used a message, then it will behave as a put
+#bash shell script check input argument
+
+# set working directory as the scripts location during the execution of script
+# cd "$(dirname "$0")"
+
+# REF: Sorting files according to size recursively http://unix.stackexchange.com/questions/88065/sorting-files-according-to-size-recursively
+ACTION=`basename "$0"`
+
+
+                          function trim_start_space() {
+                              sed -e 's/^[[:space:]]*//' | sed 's/^\ //g' | sed 's/^\t//g'
+                          }
+                          function trim_end_space() {
+                              sed -e 's/[[:space:]]*$//' | sed 's/\ $//g' | sed 's/\t$//g'
+                          }
+                          function trim() {
+                              trim_start_space | trim_end_space
+                          }
+                          function delete_empty_lines() {
+                              sed '/^\s*$/d'
+                          }
+                          function remove_subfolder_and_repeated() {
+                            # remove lines with containing        # remove lines enting with
+                            #   /./                /../           #      /.               /..
+                            sed '/\/\.\//d' | sed '/\/\.\.\//d' | sed '/\/\.$/d' | sed '/\/\.\.$/d'
+                          }
+
+function get_size(){
+  local size="${1}"
+  echo "$size"
+}
+function show_files_mac(){
+    local absolute_filepaths_with_size_sorted=$(ls -Rds1 $PWD/*.* | trim |  sed "/^total/d")   # get sorted list with bites sizes in current folder only
+
+    local part_two_absolute_filepaths_with_size_sorted=$(ls -Rds1 $PWD/**/* | trim |  sed "/^total/d")   # get sorted list with  bites sizes in subfolder
+absolute_filepaths_with_size_sorted="${absolute_filepaths_with_size_sorted}
+${part_two_absolute_filepaths_with_size_sorted}"     # join both lists
+    absolute_filepaths_with_size_sorted=$(sort -n <<< "${absolute_filepaths_with_size_sorted}")   # resort
+    # DEBUG TEST assert list of names in order
+    #echo "${absolute_filepaths_with_size_sorted}"
+    local one_line=""
+    local name=""
+    local size=""
+    local ret=""
+    local one_result=""
+    while read -r one_line; do
+      if [ ! -z "${one_line}" ] ; then       # if not empty
+        size=$(get_size  ${one_line})
+        name=$(sed 's/^'${size}'//g' <<< ${one_line})
+        name=$(echo "$name" | trim )
+        #echo "$name"
+        du -ah """${name}"""
+        #one_result=$(du -ah "${name}")
+        #ret="${ret}
+#${one_result}"
+      fi
+    done <<< "${absolute_filepaths_with_size_sorted}"
+    echo "${ret}"
+}
+
+function has_subdirectories(){
+  local subdirectories=$(find * -maxdepth 1 -type d)
+  if [[ -z "${subdirectories}" ]] ; then # is emtpy
+  {
+    return 1
+  }
+  fi
+  return 0
+}
+
+function has_simple_files(){
+  # REF: http://stackoverflow.com/questions/91368/checking-from-shell-script-if-a-directory-contains-files
+  #shopt -s nullglob dotglob     # To include hidden files
+  #local files=(./*)
+  #if [ ${#files[@]} -gt 0 ]; then echo "huzzah"; fi
+  local list_of_files=$(find * -maxdepth 0 -type f >/dev/null 2>&1) # suppress stdln and errln output
+  if [[ -z "${list_of_files}" ]] ; then # is emtpy
+  {
+    return 1
+  }
+  fi
+  return 0
+}
+function has_files_with_extensions(){
+  local list_of_files=$(find *.* -maxdepth 0 -type f >/dev/null 2>&1)  # suppress stdln and errln output
+  if [[ -z "${list_of_files}" ]] ; then # is emtpy
+  {
+    return 1
+  }
+  fi
+  return 0
+}
+function has_simple_softlinks(){
+  local list_of_links=$(find * -maxdepth 0 -type l >/dev/null 2>&1) # suppress stdln and errln output
+  if [[ -z "${list_of_links}" ]] ; then # is emtpy
+  {
+    return 1
+  }
+  fi
+  return 0
+}
+function has_softlinks_with_extensions(){
+  local list_of_links=$(find *.* -maxdepth 0 -type l >/dev/null 2>&1)  # suppress stdln and errln output
+  if [[ -z "${list_of_links}" ]] ; then # is emtpy
+  {
+    return 1
+  }
+  fi
+  return 0
+}
+function has_simple_hiddensoftlinks(){
+  local list_of_links=$(find .* -maxdepth 0 -type l >/dev/null 2>&1) # suppress stdln and errln output
+  if [[ -z "${list_of_links}" ]] ; then # is emtpy
+  {
+    return 1
+  }
+  fi
+  return 0
+}
+function has_hiddensoftlinks_with_extensions(){
+  local list_of_links=$(find .*.* -maxdepth 0 -type l >/dev/null 2>&1)  # suppress stdln and errln output
+  if [[ -z "${list_of_links}" ]] ; then # is emtpy
+  {
+    return 1
+  }
+  fi
+  return 0
+}
+function has_simple_hiddenfiles(){
+  local list_of_links=$(find .* -maxdepth 0 -type f >/dev/null 2>&1) # suppress stdln and errln output
+  if [[ -z "${list_of_links}" ]] ; then # is emtpy
+  {
+    return 1
+  }
+  fi
+  return 0
+}
+function has_hiddenfiles_with_extensions(){
+  local list_of_links=$(find .*.* -maxdepth 0 -type f >/dev/null 2>&1)  # suppress stdln and errln output
+  if [[ -z "${list_of_links}" ]] ; then # is emtpy
+  {
+    return 1
+  }
+  fi
+  return 0
+}
+
+# GROUPS
+# has_simple_softlinks_or_files
+# has_softlinks_or_files_with_extensions
+
+# Softlinke or files *
+function has_simple_softlinks_or_files(){
+  if ( has_simple_files || has_simple_softlinks ) ; then
+  {
+    return 1
+  }
+  fi
+  return 0
+}
+
+# Soft links or files *.*
+
+function has_softlinks_or_files_with_extensions(){
+  if ( has_files_with_extensions || has_softlinks_with_extensions ) ; then
+  {
+    return 1
+  }
+  fi
+  return 0
+}
+
+# Hidden softlinks or files .*
+function has_simple_hiddensoftlinks_or_hiddenfiles(){
+  if ( has_simple_hiddenfiles || has_simple_hiddensoftlinks ) ; then
+  {
+    return 1
+  }
+  fi
+  return 0
+}
+
+# Hidden softlinks or files *.*
+function has_hiddensoftlinks_or_hiddenfiles_with_extensions(){
+  if ( has_hiddenfiles_with_extensions || has_hiddensoftlinks_with_extensions ) ; then
+  {
+    return 1
+  }
+  fi
+  return 0
+}
+
+# Compile all lists
+function show_files_linux(){
+    local absolute_filepaths_with_size_sorted=""
+    if ( has_hiddensoftlinks_or_hiddenfiles_with_extensions ); then
+    {
+    local part_two_absolute_filepaths_with_size_sorted=$(ls -Rds1 $PWD/.*.* | trim |  sed "/^total/d")   # get sorted list with bites sizes in current folder only
+    #local part_two_absolute_filepaths_with_size_sorted=$(ls -Rds1 **/*} | trim |  sed "/^total/d")   # get sorted list with  bites sizes in subfolder
+absolute_filepaths_with_size_sorted="${absolute_filepaths_with_size_sorted}
+${part_two_absolute_filepaths_with_size_sorted}"     # join both lists
+    }
+    fi
+
+    if ( has_simple_hiddensoftlinks_or_hiddenfiles ); then
+    {
+    local part_two_absolute_filepaths_with_size_sorted=$(ls -Rds1 $PWD/.* | trim |  sed "/^total/d")   # get sorted list with bites sizes in current folder only
+    #local part_two_absolute_filepaths_with_size_sorted=$(ls -Rds1 **/*} | trim |  sed "/^total/d")   # get sorted list with  bites sizes in subfolder
+absolute_filepaths_with_size_sorted="${absolute_filepaths_with_size_sorted}
+${part_two_absolute_filepaths_with_size_sorted}"     # join both lists
+    }
+    fi
+
+    if ( has_simple_softlinks_or_files ); then
+    {
+    local part_two_absolute_filepaths_with_size_sorted=$(ls -Rds1 $PWD/* | trim |  sed "/^total/d")   # get sorted list with bites sizes in current folder only
+    #local part_two_absolute_filepaths_with_size_sorted=$(ls -Rds1 **/*} | trim |  sed "/^total/d")   # get sorted list with  bites sizes in subfolder
+absolute_filepaths_with_size_sorted="${absolute_filepaths_with_size_sorted}
+${part_two_absolute_filepaths_with_size_sorted}"     # join both lists
+    }
+    fi
+
+    if ( has_softlinks_or_files_with_extensions ); then
+    {
+    local part_two_absolute_filepaths_with_size_sorted=$(ls -Rds1 $PWD/*.* | trim |  sed "/^total/d")   # get sorted list with bites sizes in current folder only
+    #local part_two_absolute_filepaths_with_size_sorted=$(ls -Rds1 **/*} | trim |  sed "/^total/d")   # get sorted list with  bites sizes in subfolder
+absolute_filepaths_with_size_sorted="${absolute_filepaths_with_size_sorted}
+${part_two_absolute_filepaths_with_size_sorted}"     # join both lists
+    }
+    fi
+
+    if ( has_subdirectories ); then
+    {
+    local part_two_absolute_filepaths_with_size_sorted=$(ls -Rds1 $PWD/**/* | trim |  sed "/^total/d")   # get sorted list with  bites sizes in subfolder
+    #local part_two_absolute_filepaths_with_size_sorted=$(ls -Rds1 **/*} | trim |  sed "/^total/d")   # get sorted list with  bites sizes in subfolder
+absolute_filepaths_with_size_sorted="${absolute_filepaths_with_size_sorted}
+${part_two_absolute_filepaths_with_size_sorted}"     # join both lists
+    }
+    fi
+    absolute_filepaths_with_size_sorted=$(sort -n <<< "${absolute_filepaths_with_size_sorted}" | uniq | delete_empty_lines | remove_subfolder_and_repeated)   # resort
+    # DEBUG TEST assert list of names in order
+    #echo "${absolute_filepaths_with_size_sorted}"
+    local one_line=""
+    local name=""
+    local size=""
+    local ret=""
+    local one_result=""
+    while read -r one_line; do
+      if [ ! -z "${one_line}" ] ; then       # if not empty
+
+        size=$(get_size  ${one_line})
+        name=$(sed 's/^'${size}'//g' <<< ${one_line})
+        name=$(echo "$name" | trim )
+        #echo "$name"
+        if [ ! -z "${name}" ] ; then       # if not empty
+          # du -ah """${name}"""
+          # one_result=$(du -ah "${name}")
+          one_result=$(du -ah """${name}""")
+        fi
+        ret="${ret}
+${one_result}"
+      fi
+    done <<< "${absolute_filepaths_with_size_sorted}"
+    echo "${ret}" | delete_empty_lines
+}
+# check operation systems
+(
+  if [[ "$(uname)" == "Darwin" ]] ; then
+    # Do something under Mac OS X platform
+    # du -ah  | grep -v "/$" | sort -r
+    show_files_mac
+
+  elif [[ "$(expr substr $(uname -s) 1 5)" == "Linux" ]] ; then
+    # Do something under GNU/Linux platform
+    #du -ah  | grep -v "/$" | sort -rh
+    show_files_linux
+    # ls -Rds1 $PWD/**/* |  sort  | sed "/^total/d"
+
+  elif [[ "$(expr substr $(uname -s) 1 10)" == "MINGW32_NT" ]] ; then
+    # Do something under Windows NT platform
+     echo "WINDOWS NEEDS TO LEARN"
+
+  fi
+)

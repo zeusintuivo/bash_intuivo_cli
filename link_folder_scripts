@@ -1,0 +1,152 @@
+#!/bin/bash
+#
+# @author Zeus Intuivo <zeus@intuivo.com>
+#
+#
+sudo echo "Starting"
+
+load_execute_command(){
+    # : Execute "${@}"
+    #
+    # !!! ¡ ☠ Say error "${@}" and exit
+    #
+    # - Anounce "${@}"
+    # · • Say "${@}"
+    # “ Comment "${@}"
+    #
+    local URL=""
+    local EXECOMCLI=""
+    local provider=""
+    [ -d "/_/clis/execute_command_intuivo_cli/" ] &&  provider="file:///_/clis/execute_command_intuivo_cli/"
+    [ ! -d "/_/clis/execute_command_intuivo_cli/" ] && provider="https://raw.githubusercontent.com/zeusintuivo/execute_command_intuivo_cli/master/"
+    local BASH_SCRIPTS="
+execute_command
+"
+#struct_testing
+    while read -r ONE_SCRIPT; do
+        # if not empty
+        if [ ! -z "${ONE_SCRIPT}" ] ; then
+            URL="${provider}${ONE_SCRIPT}"
+            EXECOMCLI=$(curl $URL  2>/dev/null )   # suppress only curl download messages, but keep curl output for variable
+            eval """${EXECOMCLI}"""
+            anounce $URL Loaded
+
+        fi
+    done <<< "${BASH_SCRIPTS}"
+    unset URL
+    unset EXECOMCLI
+    unset ONE_SCRIPT
+    unset BASH_SCRIPTS
+    unset provider
+} # end function load_execute_command
+load_execute_command
+
+remove_all_starting_with_journal_get(){
+  sed  '/^journal_get_/d'
+}
+
+THIS_SCRIPT_NAME=`basename "$0"`
+
+
+heading Reads all \#\!\/bin\/bash  scripts and links it to /usr/local/bin/ as a softlink from this current folder
+
+# Add virianten of bash hashbans
+
+FILES_BASH=$(grep -l  \#\!\/bin\/bash $(find  * -maxdepth 0 -type f ))                   #!/bin/bash   get all files that have this string at the start of the contents
+LIST_OF_BASH_SCRIPTS="${FILES_BASH}"
+
+FILES_ENV_BASH=$(grep -l  \#\!\/bin\/env\ bash $(find  * -maxdepth 0 -type f ))          #!/bin/env bash
+LIST_OF_BASH_SCRIPTS="${LIST_OF_BASH_SCRIPTS}
+${FILES_ENV_BASH}"
+
+FILES_BIN_ENV_BASH=$(grep -l  \#\!\/usr\/bin\/env\ bash $(find  * -maxdepth 0 -type f ))  #!/usr/bin/env bash
+LIST_OF_BASH_SCRIPTS="${LIST_OF_BASH_SCRIPTS}
+${FILES_BIN_ENV_BASH}"
+
+FILES_BIN_ENV_BASH=$(grep -l  \#\!\/usr\/bin\/env\ ruby $(find  * -maxdepth 0 -type f ))  #!/usr/bin/env ruby
+LIST_OF_BASH_SCRIPTS="${LIST_OF_BASH_SCRIPTS}
+${FILES_BIN_ENV_BASH}"
+
+FILES_BIN_ENV_BASH=$(grep -l  \#\!\/usr\/bin\/env\ php $(find  * -maxdepth 0 -type f ))  #!/usr/bin/env php
+LIST_OF_BASH_SCRIPTS="${LIST_OF_BASH_SCRIPTS}
+${FILES_BIN_ENV_BASH}"
+
+FILES_BIN_ENV_BASH=$(grep -l  \#\!\/usr\/bin\/env\ python $(find  * -maxdepth 0 -type f ))  #!/usr/bin/env python
+LIST_OF_BASH_SCRIPTS="${LIST_OF_BASH_SCRIPTS}
+${FILES_BIN_ENV_BASH}"
+
+FILES_BIN_ENV_BASH=$(grep -l  \#\!\/bin\/zsh $(find  * -maxdepth 0 -type f ))             #!/bin/zsh zshrc
+LIST_OF_BASH_SCRIPTS="${LIST_OF_BASH_SCRIPTS}
+${FILES_BIN_ENV_BASH}"
+
+FILES_BIN_ENV_BASH=$(grep -l  \#\!\/bin\/sh $(find  * -maxdepth 0 -type f ))             #!/bin/sh sh
+LIST_OF_BASH_SCRIPTS="${LIST_OF_BASH_SCRIPTS}
+${FILES_BIN_ENV_BASH}"
+
+FILES_BIN_ENV_BASH=$(grep -l  \#\!\/bin\/dash $(find  * -maxdepth 0 -type f ))             #!/bin/dash dash
+LIST_OF_BASH_SCRIPTS="${LIST_OF_BASH_SCRIPTS}
+${FILES_BIN_ENV_BASH}"
+
+FILES_BIN_ENV_BASH=$(grep -l  \#\!\/bin\/rbash $(find  * -maxdepth 0 -type f ))             #!/bin/rbash rbash
+LIST_OF_BASH_SCRIPTS="${LIST_OF_BASH_SCRIPTS}
+${FILES_BIN_ENV_BASH}"
+
+
+if [[ "$(uname)" == "Darwin" ]] ; then
+  # Do something under Mac OS X platform
+FILES_ALL_EXECUTABLE=$(find * -maxdepth 0 -perm +111  -type f)   # version inclusive 4.5.12  and up
+#FILES_ALL_EXECUTABLE=$(find * -maxdepth 0 -perm /111  -type f)   # version exclusive 4.5.12  and down
+LIST_OF_BASH_SCRIPTS="${LIST_OF_BASH_SCRIPTS}
+${FILES_ALL_EXECUTABLE}"                                                                 #Find All executable files
+
+elif [[ "$(expr substr $(uname -s) 1 5)" == "Linux" ]] ; then
+  # Do something under GNU/Linux platform
+  # ubuntu lsb_release -i | sed 's/Distributor\ ID://g' = \tUbuntu\n
+FILES_ALL_EXECUTABLE=$(find * -maxdepth 0 -executable -type f)
+LIST_OF_BASH_SCRIPTS="${LIST_OF_BASH_SCRIPTS}
+${FILES_ALL_EXECUTABLE}"                                                                 #Find All executable files
+
+elif [[ "$(expr substr $(uname -s) 1 10)" == "MINGW32_NT" ]] ; then
+  # Do something under Windows NT platform
+FILES_ALL_EXECUTABLE=$(find * -maxdepth 0 -executable -type f)
+LIST_OF_BASH_SCRIPTS="${LIST_OF_BASH_SCRIPTS}
+${FILES_ALL_EXECUTABLE}"                                                                 #Find All executable files
+
+  # nothing here
+fi
+
+
+FILES_ALL_L_TO_EXES=$(find * -maxdepth 0 -type l -exec test -x {} \; -print  | xargs -I {} ls "{}")  #Find All softlinks that point to an executable file
+LIST_OF_BASH_SCRIPTS="${LIST_OF_BASH_SCRIPTS}
+${FILES_ALL_L_TO_EXES}"
+
+LIST_OF_BASH_SCRIPTS=$(echo "${LIST_OF_BASH_SCRIPTS}" | sort | uniq | remove_all_starting_with_journal_get | delete_empty_lines)
+
+get_current_folder_path_and_name
+
+anounce Re-linking now
+
+if [ ! -d "/usr/local" ] || [ ! -d "/usr/local/bin" ]; then
+  {
+    sudo mkdir -p /usr/local/bin
+    sudo chown -R $USER:$USER /usr/local/bin
+  }
+fi
+
+BLANK_SPACE="${lightpurple} +-- ${lightblue} "
+while read -r SCRIPT_NAME; do
+
+  if [ ! -z "${SCRIPT_NAME}" ]  && [ ! -d "${SCRIPT_NAME}" ] ; then   # Not empty and is not a directory
+    {
+      anounce_command chmod +x "${CURRENT_PATH}/${SCRIPT_NAME}"
+      target_link="/usr/local/bin/${SCRIPT_NAME}"
+      if [[ -e "${target_link}" ]] && [[ -L "${target_link}" ]]; then # Symlink softlink exists REF: http://stackoverflow.com/questions/5767062/how-to-check-if-symlink-exists
+        {
+          anounce_command sudo unlink "${target_link}"
+        }
+      fi
+      anounce_command sudo ln -sf "${CURRENT_PATH}/${SCRIPT_NAME}" "${target_link}"
+    }
+  fi
+done <<< "${LIST_OF_BASH_SCRIPTS}"
+

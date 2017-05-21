@@ -1,0 +1,61 @@
+#!/usr/bin/env bash
+#!/bin/bash
+#
+
+
+if [[ -z "$1"  ]] || [[ -z "$2"  ]] ; then   # empty value
+  echo "
+
+This copies Linux Ubuntu 14.04  Gnome 3 setup from one user to another , You need to be root
+
+
+ thiscript   from_path   to_path
+  "
+    exit 0
+fi
+
+load_execute_command(){
+    EXECOMCLI=$(wget --quiet --no-check-certificate https://raw.githubusercontent.com/zeusintuivo/execute_command_intuivo_cli/master/execute_command -O -  2>/dev/null )   # suppress only curl download messages, but keep curl output for variable
+    eval """${EXECOMCLI}"""
+    ( ( ! command -v type passed >/dev/null 2>&1; ) && echo -e "\n \n  ERROR! Loading execute_command \n \n " && exit 130; )
+} # end function load_execute_command
+load_execute_command
+
+
+
+
+copy_using_rsync() {
+    local FROMPATH="${1}"
+    local TOPATH="${2}"
+    anounce Copy Batch
+    # sed -i  -e s"$SEEKING""$IMPLACING"g  sed -e "$FROMPATH"d sed 's@http://www.velophil.de@@' sed -e s"$FROMPATH"g
+    #                        --exclude=.DS_Store \
+    #                        --exclude=.git \
+    #                        --exclude=.idea \
+    #                        --exclude=apps/kx/cache \
+    #                        --exclude=apps/oauthserver/cache \
+    #                        --exclude=docker \
+    #                        --exclude=qa \
+    #                        --exclude=build \
+    #                        --exclude=.dir_bash_history \
+
+    all_files=$(find "$FROMPATH" -maxdepth 1 | sed s"$FROMPATH"/g | sed 's/\.\///g' | sed '/^\.$/d' )
+    #anounce  Found:"${all_files}"
+    #exit
+    while read -r one_item; do
+    {
+        if [ ! -z "${one_item}" ] && [[ "${FROMPATH}/${one_item}" != "${FROMPATH}/${FROMPATH}" ]]; then
+        {
+            local filename=$(escape_spaces <<< "${one_item}")
+            [ -d "${FROMPATH}/${filename}/" ] && mkdir -p "${TOPATH}/${filename}"
+            anounce "${filename}"
+            anounce_command rsync -av "${FROMPATH}/${filename}" "${TOPATH}/"
+        }
+        fi
+    }
+    done <<< "${all_files}"
+}
+
+
+copy_using_rsync "${1}" "${2}"
+

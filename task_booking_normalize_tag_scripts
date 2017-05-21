@@ -1,0 +1,51 @@
+#!/usr/bin/env bash
+#
+# @author Zeus Intuivo <zeus@intuivo.com>
+#
+
+if [ -z "$1" ] && [ -z "$PIPED" ]
+  then
+    echo "
+          Missing 1st argument
+
+          Sample Usage:    - expects two arguments  *required
+
+              ${THISSCRIPTNAME}    folder_to_insert    --t  for test
+
+
+              sample:
+
+              ${THISSCRIPTNAME}    javascripts --t
+
+                will result in    inserting javascripts  and showing testing
+                like so
+                from : v1_form_work_on_chrome_files/json2.self-356614d2260c69b92680d59e99601dcd5e068f761756f22fb959b5562b9a7d62.js :
+                to   : v1_form_work_on_chrome_files/javascripts/json2.js                                                        :
+
+
+
+            ";
+    exit
+fi
+
+task_booking_normalize_javascripts() {
+    local new_cleanname_folder
+    local new_cleanname_file
+
+    all_scripts=$(find_all_tag_scripts)
+
+    for R in  $all_scripts; do
+    {
+        #echo $R
+        cleanname=$(unuglify_filename "$R")
+        local new_cleanname_folder=$(echo $(dirname "${cleanname}") | sed '/\./d')  # ${IMPLACING##*/}   # get name of directory name without full path in bash,, or last string after last slash /   # REF http://stackoverflow.com/questions/1371261/get-current-directory-name-without-full-path-in-bash-script
+        local new_cleanname_file=$(basename "${cleanname}")                         # ${IMPLACING%/*}    # get only directoy, --or everything before the last slash /                                 # REF http://stackoverflow.com/questions/6121091/get-file-directory-path-from-file-path
+
+        echo ersetzeseo_file_only "$R" "$new_cleanname_folder/${1}/$new_cleanname_file"  ${2}
+        ersetzeseo_file_only "$R" "$new_cleanname_folder/${1}/$new_cleanname_file"  ${2}
+
+    }
+    done
+
+}
+task_booking_normalize_javascripts "$@"

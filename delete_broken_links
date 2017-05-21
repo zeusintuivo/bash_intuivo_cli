@@ -1,0 +1,28 @@
+#!/bin/bash
+#
+# @author Zeus Intuivo <zeus@intuivo.com>
+#
+#
+
+PIPED="";
+COLORED="";
+COUNTER=0;
+
+if [ -t 0 ]; then
+    PIPED=""
+    find * -type l ! -exec test -e {} \; -print  | xargs -I {} rm "{}"
+else
+    PIPED="YES"
+    PIPED=""
+    while read ONEPIPE
+    do
+         PIPED="${PIPED}
+${ONEPIPE}"
+         COUNTER=$((COUNTER+1))
+    done
+    if [ $COUNTER -eq 0 ]; then
+      exit
+    fi
+    find * -type l ! -exec test -e {} \; -print
+
+fi

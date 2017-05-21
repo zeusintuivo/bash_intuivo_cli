@@ -1,0 +1,24 @@
+#!/bin/bash
+#
+# @author Zeus Intuivo <zeus@intuivo.com>
+#
+#
+
+# check operation systems
+(
+  if [[ "$(uname)" == "Darwin" ]] ; then
+    # Do something under Mac OS X platform
+      [[ "$(uname -m)" == "x86_64" ]] && sift_mac_64 "$@"
+      [[ "$(uname -m)" == "i686"   ]] && sift_mac_32 "$@"
+  elif [[ "$(expr substr $(uname -s) 1 5)" == "Linux" ]] ; then
+    # Do something under GNU/Linux platform
+    # ubuntu lsb_release -i | sed 's/Distributor\ ID://g' = \tUbuntu\n
+      [[ "$(uname -i)" == "x86_64" ]] && sift_linux_64 "$@"
+      [[ "$(uname -i)" == "i686"   ]] && sift_linux_32 "$@"
+  elif [[ "$(expr substr $(uname -s) 1 10)" == "MINGW32_NT" ]] ; then
+    # Do something under Windows NT platform
+    sift_win_64 "$*"
+    # nothing here
+  fi
+)
+

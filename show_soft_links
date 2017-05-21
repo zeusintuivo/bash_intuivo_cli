@@ -1,0 +1,12 @@
+#!/bin/bash
+#
+# @author Zeus Intuivo <zeus@intuivo.com>
+#
+
+MAXDEPTH="1"
+if [ ! -z "${1}" ] ;  then
+    MAXDEPTH="${1}"
+fi
+
+
+find . -maxdepth ${MAXDEPTH} -type l -ls | sed 's/\.\///g'

@@ -1,0 +1,194 @@
+#!/usr/bin/env bash
+#
+# @author Zeus Intuivo <zeus@intuivo.com>
+#
+# CURRENT SCRIPT EXECUTING
+THISSCRIPTNAME=`basename "$0"`
+
+
+if [ -z "$1" ] && [ -z "$PIPED" ]
+  then
+    echo " "
+    echo "Missing 1st argument "
+    echo " "
+    echo "Sample Usage:    - expects two arguments  *required"
+    echo " "
+    echo "    ${THISSCRIPTNAME}    term-to-find    replace-with-this"
+    echo "    "
+    echo "    "
+    echo "    sample:    "
+    echo "        "
+    echo "    ${THISSCRIPTNAME}    TREEHOUSE.jpg     trees_gmbh_asa_sa_de_cv_logo.jpg"
+    echo "    ";
+    echo "       term-to-find        - is in concept the filename like TREEHOUSE.jpg ";
+    echo "        ";
+    echo "       replace-with-this   - is the new name 'trees_gmbh_asa_sa_de_cv_logo.jpg'  ";
+    echo "    ";
+    echo "     • Replace in all files .... it will look for the term    TREEHOUSE.jpg    and replace with   trees_gmbh_asa_sa_de_cv_logo.jpg  ";
+    echo "     • Rename file          .... it will rename the filename  TREEHOUSE.jpg       to              trees_gmbh_asa_sa_de_cv_logo.jpg ";
+    echo "  ";
+  exit
+fi
+
+fail_if_file_already_exists(){
+    if [ -f "${1}" ] ; then
+    {
+        echo "${THISSCRIPTNAME}: cannot rename to target '${1}': File exists"
+        exit 130;
+    }
+    fi
+    if [ -L "${1}" ] ; then
+    {
+        echo "${THISSCRIPTNAME}: cannot rename to target '${1}': Softlink exists"
+        exit 130;
+    }
+    fi
+
+}
+
+fail_if_target_already_exists(){
+
+    fail_if_file_already_exists "${1}"
+    if [ -d "${1}/" ] ; then
+    {
+        echo "${THISSCRIPTNAME}: cannot rename to target '${1}': Directory exists"
+        exit 130;
+    }
+    fi
+    if [ -e "${1}" ] ; then
+    {
+        echo "${THISSCRIPTNAME}: cannot rename to target '${1}': Target exists in some form, not a softlink, not a directory, and not a regular file."
+        exit 130;
+    }
+    fi
+}
+
+delete_if_folder_empty() {
+  local CURR_DIR=$(pwd)
+  cd "${1}"
+  local TEMP_NAMES=$(ö .)
+  (( $THINKING_MACHINE )) && [[ -z "${TEMP_NAMES}" ]] && echo "  +-- delete dir : ${1} : because is empty"
+  (( ! $THINKING_MACHINE ))&& [[ -z "${TEMP_NAMES}" ]] && cd "${CURR_DIR}" && rm -rf "${1}"
+  cd "${CURR_DIR}"
+}
+
+rename_all_found_files() {
+  local SEEKING="$1";
+  local IMPLACING="$2";
+
+
+  # Getting the source directory of a Bash script from within       REF: https://stackoverflow.com/questions/3362920/get-just-the-filename-from-a-path-in-a-bash-script
+  # Get just the filename from a path in a Bash script [duplicate]  REF: https://stackoverflow.com/questions/59895/getting-the-source-directory-of-a-bash-script-from-within
+
+  local NEW_IMPLACING_FOLDER=$(echo $(dirname "${IMPLACING}") | sed '/\./d')  # ${IMPLACING##*/}   # get name of directory name without full path in bash,, or last string after last slash /   # REF http://stackoverflow.com/questions/1371261/get-current-directory-name-without-full-path-in-bash-script
+  local NEW_IMPLACING_FILE=$(basename "${IMPLACING}")                         # ${IMPLACING%/*}    # get only directoy, --or everything before the last slash /                                 # REF http://stackoverflow.com/questions/6121091/get-file-directory-path-from-file-path
+
+  local OLD_SEEKING_FOLDER=$(echo $(dirname "${SEEKING}") | sed '/\./d')      # ${SEEKING##*/}      # get name of directory name without full path in bash,, or last string after last slash /   # REF http://stackoverflow.com/questions/1371261/get-current-directory-name-without-full-path-in-bash-script
+  local OLD_SEEKING_FILE=$(basename "${SEEKING}")                             # ${SEEKING%/*}       # get only directoy, --or everything before the last slash /                                 # REF http://stackoverflow.com/questions/6121091/get-file-directory-path-from-file-path
+
+  (( $THINKING_MACHINE )) && echo "Provided information: .......................................... - START"
+  (( $THINKING_MACHINE )) && echo "NEW FOLDER: ${NEW_IMPLACING_FOLDER}"
+  (( $THINKING_MACHINE )) && echo "  NEW FILE: ${NEW_IMPLACING_FILE}"
+
+  (( $THINKING_MACHINE )) && echo "OLD_FOLDER: ${OLD_SEEKING_FOLDER}"
+  (( $THINKING_MACHINE )) && echo "  OLD FILE: ${OLD_SEEKING_FILE}"
+
+  (( $THINKING_MACHINE )) && echo "Provided information: .......................................... - END "
+  local FIND_FILENAMES=$(ö "${SEEKING}")
+
+  # 1 Rename file
+  # Determine if the new file has SUBDIRECTORIES
+  # ö "${SEEKING}" | xargs -I {} | mv "${SEEKING}" "${IMPLACING}"   # Deprecated - Simple file replace
+
+  local ONELINE_FOLDER
+  local ONELINE_FILE
+  (( $THINKING_MACHINE )) && [[ -z "${FIND_FILENAMES}" ]] && echo "# 1 Rename file - mmm no Files Found named : ${SEEKING} :"
+  for ONELINE in ${FIND_FILENAMES}; do
+  {
+      if [ ! -z "${ONELINE}" ] ; then # not empty
+      {
+
+          ONELINE_FOLDER=$(echo $(dirname "${ONELINE}") | sed '/\./d')      # ${ONELINE##*/}      # get name of directory name without full path in bash,, or last string after last slash /   # REF http://stackoverflow.com/questions/1371261/get-current-directory-name-without-full-path-in-bash-script
+          ONELINE_FILE=$(basename "${ONELINE}")                             # ${ONELINE%/*}       # get only directoy, --or everything before the last slash /                                 # REF http://stackoverflow.com/questions/6121091/get-file-directory-path-from-file-path
+          (( $THINKING_MACHINE )) && echo " "
+          (( $THINKING_MACHINE )) && echo "      Working : .............................. ${ONELINE_FILE} ............ - START "
+          (( $THINKING_MACHINE )) && echo " "
+
+
+          #if [[ ! -z "${ONELINE_FOLDER}" ]] ; then
+          #{
+          #    (( $THINKING_MACHINE )) && echo "create mkdir -p  : ${ONELINE_FOLDER}/${NEW_IMPLACING_FOLDER} :"
+          #    (( ! $THINKING_MACHINE )) && fail_if_file_already_exists "${ONELINE_FOLDER}/${NEW_IMPLACING_FOLDER}"
+          #    (( ! $THINKING_MACHINE )) && mkdir -p "${ONELINE_FOLDER}/${NEW_IMPLACING_FOLDER}"
+          #}
+          #fi
+          if [[ ! -z "${NEW_IMPLACING_FOLDER}" ]] && [[ -z "${ONELINE_FOLDER}" ]]; then
+          {
+              (( $THINKING_MACHINE )) && echo "create mkdir -p : ${NEW_IMPLACING_FOLDER} :"
+              (( ! $THINKING_MACHINE )) && fail_if_file_already_exists "${NEW_IMPLACING_FOLDER}"
+              (( ! $THINKING_MACHINE )) && mkdir -p "${NEW_IMPLACING_FOLDER}"
+          }
+          fi
+          #(( $THINKING_MACHINE )) && echo "rename from : ${ONELINE} :  to  : ${ONELINE_FOLDER}/${IMPLACING} :"
+          #fail_if_target_already_exists "${ONELINE_FOLDER}/${IMPLACING}"
+
+          #(( ! $THINKING_MACHINE )) &&  mv "${ONELINE}" "${ONELINE_FOLDER}/${IMPLACING}"
+          #replace_in_all_files  "${SEEKING}"  "${ONELINE_FOLDER}/${IMPLACING}"
+
+          (( $THINKING_MACHINE )) &&                                        echo "# 1 Rename file  : ${ONELINE} :         to          : ${IMPLACING} :"
+          fail_if_target_already_exists "${IMPLACING}"
+
+          (( $THINKING_MACHINE )) && [[ ! -d "${NEW_IMPLACING_FOLDER}/" ]] && echo "  +-- create dir : ${NEW_IMPLACING_FOLDER} :"
+          fail_if_file_already_exists "${NEW_IMPLACING_FOLDER}"
+          (( ! $THINKING_MACHINE )) && [[ ! -d "${NEW_IMPLACING_FOLDER}/" ]] && mkdir -p "${NEW_IMPLACING_FOLDER}"
+
+          (( ! $THINKING_MACHINE )) &&  mv "${ONELINE}" "${IMPLACING}"
+
+          delete_if_folder_empty "${OLD_SEEKING_FOLDER}"
+
+          replace_in_all_files  "${SEEKING}"  "${IMPLACING}"
+
+          (( $THINKING_MACHINE )) && echo " "
+          (( $THINKING_MACHINE )) && echo "      Working : .............................. ${ONELINE_FILE} ............ - END "
+          (( $THINKING_MACHINE )) && echo " "
+      }
+      fi
+  }
+  done
+
+}
+
+replace_in_all_files() {
+  local SEEKING="$1";
+  local IMPLACING="$2";
+
+  # Replace in all files
+  # 2 Replace word :SEEKING: inside all files
+  (( $THINKING_MACHINE )) && echo "# 2 Replace word : $SEEKING : inside all files to : $IMPLACING :"
+  (( $THINKING_MACHINE )) && echo "# 2.1 nur results:---- start "
+  (( $THINKING_MACHINE )) && nur "${SEEKING}"
+  (( $THINKING_MACHINE )) && echo "# 2.1 nur results:---- end "
+  #(( $THINKING_MACHINE )) && sift -nQ  --blocksize 50M "${SEEKING}"  -l  --output-sep="\x00"
+  (( ! $THINKING_MACHINE )) && äö "${SEEKING}" "${IMPLACING}"
+  #(( ! $THINKING_MACHINE )) && find .* * *.* *. -type f 2> /dev/null  | sift -nQ  --blocksize 50M "${SEEKING}"  -l  --output-sep="\x00" |  xargs -I {} sed -i -e s"${SEEKING}""${IMPLACING}"g "{}" # 2> /dev/null  suppress stderr messages in a bash script REF: https://unix.stackexchange.com/questions/184804/suppress-stderr-messages-in-a-bash-script
+
+}
+
+log_this_action() {
+  (( ! $THINKING_MACHINE )) && [ ! -f renaming.log ] && touch renaming.log
+  (( ! $THINKING_MACHINE )) && echo "${*}" >> renaming.log
+}
+
+
+THINKING_MACHINE=0
+[[ "${@}" == *"--thinking-machine"* ]] && THINKING_MACHINE=1
+[[ "${@}" == *"--t"* ]] && THINKING_MACHINE=1
+
+
+
+rename_all_found_files "${@}"
+replace_in_all_files "${@}"
+(( $THINKING_MACHINE )) && echo "# 3 Log action inside a file for repetition purposes "
+log_this_action "${THISSCRIPTNAME} ${*}"
+
+(( $THINKING_MACHINE )) && echo "...end "

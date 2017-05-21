@@ -1,0 +1,12 @@
+#!/bin/sh
+# 
+# @author Zeus Intuivo <zeus@intuivo.com>
+#
+#
+# sed '
+# /WORD/ c\
+# Replace the current line with the line
+# '
+sed "/${1}/ c\\
+${2}
+"

@@ -1,0 +1,148 @@
+#!/usr/bin/env bash
+#
+# @author Zeus Intuivo <zeus@intuivo.com>
+#
+#bash shell script check input argument
+
+
+# Bash: Detect pipe/file input in a shell script
+# REF: https://gist.github.com/davejamesmiller/1966557
+
+# How to detect whether input is from keyboard, a file, or another process.
+# Useful for writing a script that can read from standard input, or prompt the
+# user for input if there is none.
+
+# Source: http://www.linuxquestions.org/questions/linux-software-2/bash-scripting-pipe-input-to-script-vs.-1-570945/
+PIPED="";
+COLORED="";
+COUNTER=0;
+# ag -i filefoo /bar/
+# ag [FILE-TYPE] [OPTIONS] PATTERN [PATH]
+# ack [OPTION]... PATTERN [FILES OR DIRECTORIES]
+# sift [OPTIONS] PATTERN [FILE|PATH|tcp://HOST:PORT]...
+#  sift [OPTIONS] [-e PATTERN | -f FILE] [FILE|PATH|tcp://HOST:PORT]...
+#  sift [OPTIONS] --targets [FILE|PATH]...
+#      grep [-abcdDEFGHhIiJLlmnOopqRSsUVvwxZ] [-A num] [-B num] [-C[num]] [-e pattern] [-f file]
+#          [--binary-files=value] [--color[=when]] [--colour[=when]] [--context[=num]]
+#          [--label] [--line-buffered] [--null] [pattern] [file ...]
+# In Bash you can also use test -t to check for a terminal:
+
+if [ -t 0 ]; then
+    # Terminal input (keyboard) - interactive
+    PIPED=""
+else
+    # File or pipe input - non-interactive
+    PIPED="YES"
+    # REF: http://stackoverflow.com/questions/2746553/bash-script-read-values-from-stdin-pipe
+    # read PIPED #TOOD Works on mac osx, pending to test in linux and windows
+    PIPED=""
+    while read ONEPIPE
+    do
+         PIPED="${PIPED}
+${ONEPIPE}"
+         COUNTER=$((COUNTER+1))
+    done
+        if [ $COUNTER -eq 0 ]; then
+          exit
+        fi
+
+    # TEST: echo "COUNTER: ${COUNTER}";echo "PIDED: ${PIPED}"; exit 0;
+fi
+
+# Piped Input
+#if [ ! -z "$PIPED" ]
+# then
+# echo "this is pipe..die "
+# exit 0;
+#fi
+# NOT Piped Input
+#if [ -z "$PIPED" ]
+# then
+# echo "this NOT pipe..die "
+# exit 0;
+#fi
+#echo "PIPED:$PIPED";
+#exit;
+
+# ALTERNATIVE:
+#if readlink /proc/$$/fd/0 | grep -q "^pipe:"; then
+    # Pipe input (echo abc | myscript)
+#    PIPED="YES"
+#elif file $( readlink /proc/$$/fd/0 ) | grep -q "character special"; then
+    # Terminal input (keyboard)
+#    PIPED=""
+#else
+    # File input (myscript < file.txt)
+#    PIPED=""
+
+#fi
+
+
+# CURRENT SCRIPT EXECUTING
+THISSCRIPTNAME=`basename "$0"`
+
+
+if [ -z "$1" ] && [ -z "$PIPED" ]
+  then
+    echo "
+          Missing 1st argument
+
+          Sample Usage:    - expects two arguments  *required
+
+              ${THISSCRIPTNAME}    filename_to_un-uglify
+
+
+              sample:
+
+              ${THISSCRIPTNAME}    v1_form_work_on_chrome_files/utilities.self-490a4aef4893214461e21cf9d5f6d3a427fedb7393896728a01bc11f95aecda4.css
+
+                will result in    v1_form_work_on_chrome_files/utilities.css
+
+              sample:
+
+             echo 'v2_form_work_on_chrome_files/utilities.self-490a4aef4893214461e21cf9d5f6d3a427fedb7393896728a01bc11f95aecda4.css'  |  ${THISSCRIPTNAME}
+
+                will result in    v2_form_work_on_chrome_files/utilities.css
+
+
+            ";
+    exit
+fi
+
+                # output="${tester_one#* set }"                             # bash expressions retain the part after " set "
+                # output="${output% where *}"                               # bash expressions retain the part before " where "
+                # echo "${${t#* set }% where *}"                            # bash expressions string between " set " and " where
+ # not PIPED
+proceed_to_cut_css() {
+    output="${1#*self}"
+    output="${output%\.css*}"
+    output=$(echo "$1"  |  sed -e "s.self${output}g")
+    echo $output
+}
+
+proceed_to_cut_js() {
+    output="${1#*self}"
+    output="${output%\.js*}"
+    output=$(echo "$1"  |  sed -e "s.self${output}g")
+    echo $output
+}
+
+if [ -z "$PIPED" ] && [ ! -z "$1" ]; then
+  {
+    for one in $@; do
+    {
+      [[ "${one}" == *".css" ]] && proceed_to_cut_css $one
+      [[ "${one}" == *".js" ]] && proceed_to_cut_js $one
+    }
+    done
+  }
+else # YES PIPED
+  {
+    for one in $PIPED; do
+    {
+      [[ "${one}" == *".css" ]] && proceed_to_cut_css $one
+      [[ "${one}" == *".js" ]] && proceed_to_cut_js $one
+    }
+    done
+  }
+fi

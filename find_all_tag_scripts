@@ -1,0 +1,49 @@
+#!/usr/bin/env bash
+#
+# @author Zeus Intuivo <zeus@intuivo.com>
+#
+task_find_all_tag_scripts() {
+    local WHERE_TO_FIND=""
+    local contents=""
+    if [[ ! -z "${1}" ]];  then
+        WHERE_TO_FIND="${1}"
+        contents=$(cat "${WHERE_TO_FIND}" | sed -e :a -re 's/<!--.*?-->//g;/<!--/N;//ba')     # load contents and detele everything between <!-- -->
+        RESULTS=$(echo "${contents}" | ag \<script --nocolor | nur \<\/script  | nur js  | nur src\= | sed -e "s/src/\nsrc/g" )
+        #RESULTS=$(ag \<script --nocolor "${WHERE_TO_FIND}" | nur \<\/script  | nur js  | nur src\= | sed -e "s/src/\nsrc/g" )
+    else
+        RESULTS=$(nur \<script --nocolor  | nur \<\/script  | nur js  | nur src\= | sed -e "s/src/\nsrc/g" )
+    fi
+
+    while read -r R; do
+      # if not empty
+      if [ ! -z "${R}" ] ; then
+          output=$(echo $R)
+          output="${output#*\<script}"               # bash expressions retain the part after " <script "
+          output="${output#*src=}"                   # bash expressions retain the part after " src= "
+          output="${output%\<\/script*}"             # bash expressions retain the part before " </script "
+          output="${output%\>*}"                     # bash expressions retain the part before " > "
+          output="${output#*\'}"                     # bash expressions retain the part after " ' "
+          output="${output#*\"}"                     # bash expressions retain the part after ' "  '
+          output="${output%\'*}"                     # bash expressions retain the part before " ' "
+          output="${output%\"*}"                     # bash expressions retain the part before ' "  '
+
+          echo "$output" | sed 's/^\.\///g' | cut -d'"' -f1 | cut -d"'" -f1
+      fi
+    done <<< "${RESULTS}"
+
+
+} # end task_find_all_tag_scripts
+
+
+WHERE_TO_FIND=""
+if [[ ! -z "${1}" ]];  then
+    WHERE_TO_FIND="${1}"
+fi
+
+
+RESULTS=$( task_find_all_tag_scripts "${1}" | sed '/^text\/javascript/d' | sort | uniq)
+for R in  $RESULTS; do
+{
+  echo $R
+}
+done

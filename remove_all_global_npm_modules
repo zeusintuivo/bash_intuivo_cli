@@ -1,0 +1,25 @@
+#!/bin/bash
+# 
+# @author Zeus Intuivo <zeus@intuivo.com>
+#
+#
+
+
+# if everything else -- 
+ 
+# check operation systems 
+(
+  if [[ "$(uname)" == "Darwin" ]] ; then 
+    # Do something under Mac OS X platform    
+    npm ls -gp --depth=0 | awk -F/ '/node_modules/ && !/\/npm$/ {print $NF}' | xargs npm -g rm  
+  elif [[ "$(expr substr $(uname -s) 1 5)" == "Linux" ]] ; then 
+    # Do something under GNU/Linux platform
+    npm ls -gp --depth=0 | awk -F/ '/node_modules/ && !/\/npm$/ {print $NF}' | xargs npm -g rm
+  
+  elif [[ "$(expr substr $(uname -s) 1 10)" == "MINGW32_NT" ]] ; then 
+    # Do something under Windows NT platform
+    sed 's/'"""${SEEKING}"""'//g' ;
+    # nothing here
+  fi 
+)
+ 

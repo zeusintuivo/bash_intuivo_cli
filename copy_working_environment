@@ -1,0 +1,167 @@
+#!/usr/bin/env bash
+#!/bin/bash
+#
+
+
+if [[ -z "$1"  ]] || [[ -z "$2"  ]] ; then   # empty value
+  echo "
+
+This copies Linux Ubuntu 14.04  Gnome 3 setup from one user to another , You need to be root
+
+
+ thiscript   fromusername   tousername
+  "
+    exit 0
+fi
+
+load_execute_command(){
+    EXECOMCLI=$(wget --quiet --no-check-certificate https://raw.githubusercontent.com/zeusintuivo/execute_command_intuivo_cli/master/execute_command -O -  2>/dev/null )   # suppress only curl download messages, but keep curl output for variable
+    eval """${EXECOMCLI}"""
+    ( ( ! command -v type passed >/dev/null 2>&1; ) && echo -e "\n \n  ERROR! Loading execute_command \n \n " && exit 130; )
+} # end function load_execute_command
+load_execute_command
+
+FROMUSER="${1}"
+TOUSER="${2}"
+
+
+copy_rubmine() {
+    anounce ruby mine work dir
+
+    anounce_command cp -Rrf  /home/${FROMUSER}/.RubyMine*.* /home/${TOUSER}/
+    cd /home/${TOUSER}/
+    mine_folders=$(find . -maxdepth 1 -name ".RubyMine*.*" -type d | sed 's/\.\///g')
+    for one_min_folder in  "${mine_folders}"; do
+        cd /home/${TOUSER}/${one_min_folder}
+        äö ${FROMUSER} ${TOUSER}
+        anounce_command chown -R ${TOUSER}:${TOUSER}  /home/${TOUSER}/${one_min_folder}
+    done
+}
+
+copy_gnome_shell_extensions(){
+    anounce gnome 3 shell extensions
+
+    mkdir -p /home/${TOUSER}/.local/share/gnome-shell/
+    anounce_command cp -Rrf /home/${FROMUSER}/.local/share/gnome-shell/extensions /home/${TOUSER}/.local/share/gnome-shell/
+    anounce_command cp -Rrf /home/${FROMUSER}/.local/share/gnome-shell/quicklaunch /home/${TOUSER}/.local/share/gnome-shell/
+    anounce_command chown -R ${TOUSER}:${TOUSER}   /home/${TOUSER}/.local/share/gnome-shell/
+
+    anounce_command cp -Rrf /home/${FROMUSER}/.config/dconf /home/${TOUSER}/.config/dconf
+    cd /home/${TOUSER}/.config/dconf
+    äö ${FROMUSER} ${TOUSER}
+    anounce_command chown -R ${TOUSER}:${TOUSER}  /home/${TOUSER}/.config/dconf
+}
+
+copy_sublime_settings() {
+    anounce sublime-text-3
+
+    anounce_command cp -Rrf /home/${FROMUSER}/.config/sublime-text-3 /home/${TOUSER}/.config/
+    anounce_command chown -R ${TOUSER}:${TOUSER} /home/${TOUSER}/.config/sublime-text-3
+    cd /home/${TOUSER}/.config/sublime-text-3
+    äö "/home/${FROMUSER}" "/home/${TOUSER}"
+}
+
+copy_soft_links_setup() {
+    anounce build common shared folder
+
+    anounce_command ln -sf /_/cache         /home/${TOUSER}/.cache
+    anounce_command ln -sf /_/rvm           /home/${TOUSER}/.rvm
+    anounce_command ln -sf /_/pyenv         /home/${TOUSER}/.pyenv
+    anounce_command ln -sf /_/phpbrew       /home/${TOUSER}/.phpbrew
+    anounce_command ln -sf /_/vagrantd      /home/${TOUSER}/.vagrant.d
+    anounce_command ln -sf /_/oh-my-zsh     /home/${TOUSER}/.oh-my-zsh
+    anounce_command ln -sf /_/npm           /home/${TOUSER}/.npm
+    anounce_command ln -sf /_/VirtualBoxVMs /home/${TOUSER}/VirtualBox\ VMs
+}
+
+copy_auto_starts() {
+    anounce gnome 3 autostarts
+
+    mkdir -p /home/${TOUSER}/.config/
+    anounce_command cp -Rrf  /home/${FROMUSER}/.config/autostart /home/${TOUSER}/.config/
+    cd /home/${TOUSER}/.config/autostart
+    ö .desktop
+    äö ${FROMUSER} ${TOUSER}
+    anounce_command chown -R ${TOUSER}:${TOUSER} /home/${TOUSER}/.config/autostart
+
+}
+
+copy_chromium_settings(){
+    anounce -N O T copying chromium #or Mozila
+
+    anounce_command cp -Rrf /home/${FROMUSER}/.config/chromium /home/${TOUSER}/.config/
+    anounce_command chown -R ${TOUSER}:${TOUSER} /home/${TOUSER}/.config/chromium
+    cd /home/${TOUSER}/.config/chromium
+    äö "/home/${FROMUSER}" "/home/${TOUSER}"
+    # anounce_command rm -rf /home/${TOUSER}/.config/chromium
+}
+
+copy_mozilla_settings() {
+
+    anounce Mozila Firefox
+
+    anounce_command cp -Rrf /home/${FROMUSER}/.mozilla /home/${TOUSER}/
+    anounce_command chown -R ${TOUSER}:${TOUSER}  /home/${TOUSER}/.mozilla
+    # anounce_command rm -rf /home/${TOUSER}/.mozilla
+    cd /home/${TOUSER}/.mozilla
+    äö "/home/${FROMUSER}" "/home/${TOUSER}"
+}
+
+copy_bcompare_settings() {
+    anounce bcompare
+
+    anounce_command cp -Rrf /home/${FROMUSER}/.config/bcompare /home/${TOUSER}/.config/
+    anounce_command chown -R ${TOUSER}:${TOUSER} /home/${TOUSER}/.config/bcompare
+    cd /home/${TOUSER}/.config/bcompare
+    äö "/home/${FROMUSER}" "/home/${TOUSER}"
+}
+
+copy_sets_all_chown_folders() {
+    anounce Set all permisions for working folders
+
+    anounce_command chown -R ${TOUSER}:${TOUSER} /_/clis /_/boxes/branced_weise.box /_/weise /_/weise2 /_/journals /_/guake /_/rubymine
+}
+
+copy_ssh_keys() {
+    anounce SSH KEYS
+
+    anounce_command cp -Rrf /home/${FROMUSER}/.ssh  /home/${TOUSER}/
+    anounce_command chown -R ${TOUSER}:${TOUSER} /home/${TOUSER}/.ssh
+    anounce_command sshswitchkey ${TOUSER}
+}
+
+copy_visual_studio_code(){
+    anounce Code
+
+    anounce_command cp -Rrf /home/${FROMUSER}/.config/Code /home/${TOUSER}/.config/
+    anounce_command chown -R ${TOUSER}:${TOUSER} /home/${TOUSER}/.config/Code
+    cd /home/${TOUSER}/.config/Code
+    äö "/home/${FROMUSER}" "/home/${TOUSER}"
+}
+
+copy_builds_guake() {
+    anounce Build guake
+
+    anounce_command cd /_/guake
+    anounce_command chown -R ${TOUSER}:${TOUSER}  /_/guake
+    cd /_/guake
+    anounce_command python --version
+    python --version
+    pull
+    anounce_command sudo /_/guake/dev.sh --install &
+}
+
+
+#copy_rubmine                 ${FROMUSER} ${TOUSER}
+#copy_gnome_shell_extensions  ${FROMUSER} ${TOUSER}
+#copy_sublime_settings        ${FROMUSER} ${TOUSER}
+#copy_soft_links_setup        ${FROMUSER} ${TOUSER}
+#copy_auto_starts             ${FROMUSER} ${TOUSER}
+#copy_chromium_settings       ${FROMUSER} ${TOUSER}
+#copy_mozilla_settings        ${FROMUSER} ${TOUSER}
+#copy_bcompare_settings       ${FROMUSER} ${TOUSER}
+copy_sets_all_chown_folders  ${FROMUSER} ${TOUSER}
+#copy_ssh_keys                ${FROMUSER} ${TOUSER}
+#copy_visual_studio_code      ${FROMUSER} ${TOUSER}
+#copy_builds_guake            ${FROMUSER} ${TOUSER}
+#

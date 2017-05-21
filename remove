@@ -1,0 +1,99 @@
+#!/bin/bash
+# @author Zeus Intuivo <zeus@intuivo.com>
+#
+THISSCRIPTNAME=`basename "$0"`
+#bash shell script check input argument
+if [ -z "$1" ]
+  then
+    echo "Removes all finds found by 'find' command find . -name \"*SEEKING*\"  "
+    echo " "
+    echo "Missing 1st argument "
+    echo " "
+  echo "Sample Usage:    - expects one argument "
+  echo " "
+  echo "    ${THISSCRIPTNAME} seek-this "
+  echo "    ";
+  exit
+fi
+SEEKING="$1";
+
+#echo $0=./replace
+echo -e "\033[38;5;147m "
+echo " "
+echo "Find a filename using 'find' from linux/mac and 'xargs'  and moved it to temp"
+echo -e "Locating  \033[38;5;214m  $SEEKING   \033[38;5;147m and moving recursively  "
+echo " "
+echo " ";
+
+function escape_spaces {
+    sed 's/\ /\\\ /g'
+}
+function escape_doublequotes {
+    sed 's/\"/\\\"/g'
+}
+
+# Using mv
+#
+#   or
+# REF: http://stackoverflow.com/questions/7190965/how-to-move-and-overwrite-all-files-from-one-directory-to-another
+# It's also possible by using rsync, for example:
+#
+# rsync -va --delete-after src/ dst/
+# where:
+#
+# -v, --verbose: increase verbosity
+# -a, --archive: archive mode; equals -rlptgoD (no -H,-A,-X)
+# --delete-after: delete files on the receiving side be done after the transfer has completed
+# If you've root privileges, prefix with sudo to override potential permission issues.
+
+
+    CURCOMMAND="find . -name \"*${SEEKING}*\" -print0  | xargs -0 -I {} mv {} /tmp/ "
+    # dotglob:
+    #      If set, Bash includes filenames beginning with a ‘.’ in the results of filename expansion.
+    shopt -s dotglob
+    echo -e "\033[38;5;27m ====   \033[38;5;214m $(echo "${CURCOMMAND}")       \033[38;5;27m      ====\n";
+    #find . -name "*${SEEKING}*" -print0 | xargs -0 rm
+    FILESFOUND=$(find . -name "*${SEEKING}*" | cut -c 3-)
+    if [ ! -z "${FILESFOUND}" ] ; then
+      echo -e "\033[38;5;147m "
+      echo "${FILESFOUND} "
+      echo -e "\n"
+      #find . -name "*${SEEKING}*" -print0  | xargs -0 -I {} mv {} /tmp/
+
+      while read -r ONE_FULLPATH_FILENAME; do
+        # if not empty
+        if [ ! -z "${ONE_FULLPATH_FILENAME}" ] ; then
+          JUST_FILENAME=$(basename "${ONE_FULLPATH_FILENAME}")
+          echo -e "\033[38;5;27m ..copying...  \033[38;5;214m $(echo "cp -Rrf ${ONE_FULLPATH_FILENAME} /tmp/")       \033[38;5;27m      ";
+          cp -Rrf "${ONE_FULLPATH_FILENAME}" /tmp/
+          echo -e "\033[38;5;27m ..cleaning..  \033[38;5;214m $(echo "rm -rf ${ONE_FULLPATH_FILENAME} ")       \033[38;5;27m      ";
+          rm -rf "${ONE_FULLPATH_FILENAME}"
+          #echo -e "\033[38;5;27m ..removing..   \033[38;5;214m $(echo "rm -rf ${ONE_FULLPATH_FILENAME}")       \033[38;5;27m      ";
+          #rm -rf """${ONE_FULLPATH_FILENAME}"""
+        fi
+      done <<< "${FILESFOUND}"
+    fi
+# check operation systems
+
+  if [[ "$(uname)" == "Darwin" ]] ; then
+    # Do something under Mac OS X platform
+    echo " ";
+
+  elif [[ "$(expr substr $(uname -s) 1 5)" == "Linux" ]] ; then
+    # Do something under GNU/Linux platform
+    echo " ";
+
+  elif [[ "$(expr substr $(uname -s) 1 10)" == "MINGW32_NT" ]] ; then
+    # Do something under Windows NT platform
+    echo " ";
+
+    # nothing here
+  fi
+
+
+
+echo -e "\033[38;5;27m  and moved to /tmp/           \033[38;5;214m";
+echo " ";
+
+
+echo " "
