@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
 #!/bin/bash
 #
-
+# @author Zeus Intuivo <zeus@intuivo.com>
+#
+THISSCRIPTNAME=`basename "$0"`
 
 if [[ -z "$1"  ]] || [[ -z "$2"  ]] ; then   # empty value
   echo "
@@ -10,7 +12,7 @@ From one folder to another  using batch in subfolders, you don't gets stoped whi
 using rsync which is suppoused to be faster at the time I did this (2017)
 
 
- thiscript   from_path   to_path
+${THISSCRIPTNAME}   from_path   to_path
   "
     exit 0
 fi

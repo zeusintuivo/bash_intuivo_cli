@@ -1,15 +1,17 @@
 #!/usr/bin/env bash
 #!/bin/bash
 #
+# @author Zeus Intuivo <zeus@intuivo.com>
+#
+THISSCRIPTNAME=`basename "$0"`
 
-
-if [[ -z "$1"  ]] || [[ -z "$2"  ]] ; then   # empty value
+if [[ -z "$1"  ]] ; then   # empty value
   echo "
 
 Deletes Directories in a recursive way.
 
 
- thiscript   from_path   to_path
+ ${THISSCRIPTNAME}    from_path
   "
     exit 0
 fi
