@@ -6,8 +6,7 @@
 if [[ -z "$1"  ]] || [[ -z "$2"  ]] ; then   # empty value
   echo "
 
-From one folder to another  using batch in subfolders, you don't gets stoped while the computer 'builds' a list
-using rsync which is suppoused to be faster at the time I did this (2017)
+Deletes Directories in a recursive way.
 
 
  thiscript   from_path   to_path
@@ -25,10 +24,10 @@ load_execute_command
 
 
 
-copy_using_rsync() {
+delete_with_subfolders() {
     local FROMPATH="${1}"
-    local TOPATH="${2}"
-    anounce Copy Batch
+
+    anounce Delete Batch
     # sed -i  -e s"$SEEKING""$IMPLACING"g  sed -e "$FROMPATH"d sed 's@http://www.velophil.de@@' sed -e s"$FROMPATH"g
     #                        --exclude=.DS_Store \
     #                        --exclude=.git \
@@ -47,10 +46,14 @@ copy_using_rsync() {
     {
         if [ ! -z "${one_item}" ] && [[ "${FROMPATH}/${one_item}" != "${FROMPATH}/${FROMPATH}" ]]; then
         {
-            local filename=$(escape_spaces <<< "${one_item}")
-            [ -d "${FROMPATH}/${filename}/" ] && mkdir -p "${TOPATH}/${filename}"
-            anounce "${filename}"
-            anounce_command rsync -av "${FROMPATH}/${filename}" "${TOPATH}/"
+            local filename=$(escape_spaces <<< "${FROMPATH}/${filename}")
+            if [ -d "${filename}/" ] ; then
+            {
+                anounce_command delete_with_subfolders "${filename}" # recursion inside the folder
+            }
+            fi
+            # onces out then also delete the folder
+            anounce_command rm -rf "${filename}"
         }
         fi
     }
@@ -58,5 +61,5 @@ copy_using_rsync() {
 }
 
 
-copy_using_rsync "${1}" "${2}"
+delete_with_subfolders "${1}"
 
