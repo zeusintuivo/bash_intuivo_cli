@@ -29,7 +29,7 @@ load_execute_command
 delete_with_subfolders() {
     local FROMPATH="${1}"
 
-    anounce Delete Batch
+    anounce ${orange209} Delete Batch ${FROMPATH}
     # sed -i  -e s"$SEEKING""$IMPLACING"g  sed -e "$FROMPATH"d sed 's@http://www.velophil.de@@' sed -e s"$FROMPATH"g
     #                        --exclude=.DS_Store \
     #                        --exclude=.git \
@@ -49,13 +49,15 @@ delete_with_subfolders() {
         if [ ! -z "${one_item}" ] && [[ "${FROMPATH}/${one_item}" != "${FROMPATH}/${FROMPATH}" ]]; then
         {
             local filename=$(escape_filename <<< "${FROMPATH}/${one_item}")
+            anounce "${orange209}${filename}${reset}"
             if [ -d "${filename}/" ] ; then
             {
                 anounce_command delete_with_subfolders "${filename}" # recursion inside the folder
             }
             fi
             # onces out then also delete the folder
-            anounce_command rm -rf "${filename}"
+            anounce ${lightblue} rm -rf "${filename}"
+            rm -rf """${filename}"""
         }
         fi
     }
