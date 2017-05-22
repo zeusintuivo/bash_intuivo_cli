@@ -49,7 +49,7 @@ copy_using_rsync() {
     {
         if [ ! -z "${one_item}" ] && [[ "${FROMPATH}/${one_item}" != "${FROMPATH}/${FROMPATH}" ]]; then
         {
-            local filename=$(escape_spaces <<< "${one_item}")
+            local filename=$(escape_filename <<< "${one_item}")
             [ -d "${FROMPATH}/${filename}/" ] && mkdir -p "${TOPATH}/${filename}"
             anounce "${filename}"
             anounce_command rsync -av "${FROMPATH}/${filename}" "${TOPATH}/"

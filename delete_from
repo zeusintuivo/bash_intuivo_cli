@@ -48,7 +48,7 @@ delete_with_subfolders() {
     {
         if [ ! -z "${one_item}" ] && [[ "${FROMPATH}/${one_item}" != "${FROMPATH}/${FROMPATH}" ]]; then
         {
-            local filename=$(escape_spaces <<< "${FROMPATH}/${filename}")
+            local filename=$(escape_filename <<< "${FROMPATH}/${one_item}")
             if [ -d "${filename}/" ] ; then
             {
                 anounce_command delete_with_subfolders "${filename}" # recursion inside the folder
