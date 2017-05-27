@@ -1,0 +1,18 @@
+#!/bin/bash
+THISSCRIPTNAME=`basename "$0"`
+# COLORS ONLY
+GRAYEDOUT="\\033[01;30m"
+RED="\\033[01;31m"
+GREEN="\\033[01;32m"
+YELLOW="\\033[01;33m"
+DARKBLUE="\\033[01;34m"
+PURPLE="\\033[01;35m"
+CYAN="\\033[01;36m"
+WHITEBOLD="\\033[01;37m"
+CERO="\\033[01;0m"
+
+echo -e "${DARKBLUE}${1}${CYAN}
+"
+cat  "${1}"
+echo -e "${CERO}
+"
