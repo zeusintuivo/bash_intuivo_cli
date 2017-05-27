@@ -145,26 +145,24 @@ while read -r SCRIPT_NAME; do
           anounce_command sudo unlink "${target_link}"
         }
       fi
-      if [[ "cuet|loeschen_seo_nur_datei|aeoe|oe|oeue|crossedo|ue|middleminidot" == *"${SCRIPT_NAME}"* ]] ; then
+      if [[ "cuet|loeschen_seo_nur_datei|aeoe|oe|oeue|crossedo|ue|middleminidot|ü|cüt|löschen_seo_nur_datei|äö|ö|öü|ø|≠|crossequal|•" == *"${SCRIPT_NAME}"* ]] ; then
       {
-        ln -s "${CURRENT_PATH}/ue" /usr/local/bin/ü
+        # patch_utf8
+        [[ "${SCRIPT_NAME}" == "ue"   ]] || [[ "${SCRIPT_NAME}" == "ü"   ]] && ln -s "${CURRENT_PATH}/ue"   /usr/local/bin/ü
+        [[ "${SCRIPT_NAME}" == "cuet" ]] || [[ "${SCRIPT_NAME}" == "cüt" ]] && ln -s "${CURRENT_PATH}/cuet" /usr/local/bin/cüt
+        [[ "${SCRIPT_NAME}" == "loeschen_seo_nur_datei" ]] || [[ "${SCRIPT_NAME}" == "löschen_seo_nur_datei" ]] && ln -s "${CURRENT_PATH}/loeschen_seo_nur_datei" /usr/local/bin/löschen_seo_nur_datei
+        [[ "${SCRIPT_NAME}" == "aeoe" ]] || [[ "${SCRIPT_NAME}" == "äö" ]] && ln -s "${CURRENT_PATH}/aeoe" /usr/local/bin/äö
+        [[ "${SCRIPT_NAME}" == "oe" ]] || [[ "${SCRIPT_NAME}" == "ö" ]] && ln -s "${CURRENT_PATH}/oe" /usr/local/bin/ö
+        [[ "${SCRIPT_NAME}" == "oeue" ]] || [[ "${SCRIPT_NAME}" == "öü" ]] && ln -s "${CURRENT_PATH}/oeue" /usr/local/bin/öü
+        [[ "${SCRIPT_NAME}" == "crossedo" ]] || [[ "${SCRIPT_NAME}" == "ø" ]] && ln -s "${CURRENT_PATH}/crossedo" /usr/local/bin/ø
+        [[ "${SCRIPT_NAME}" == "crossequal" ]] || [[ "${SCRIPT_NAME}" == "≠" ]] && ln -s "${CURRENT_PATH}/crossequal" /usr/local/bin/≠
+        [[ "${SCRIPT_NAME}" == "middleminidot" ]] || [[ "${SCRIPT_NAME}" == "•" ]] && ln -s "${CURRENT_PATH}/middleminidot" /usr/local/bin/•
       }
       else
       {
-
+        anounce_command sudo ln -sf "${CURRENT_PATH}/${SCRIPT_NAME}" "${target_link}"
       }
       fi
-      anounce_command sudo ln -sf "${CURRENT_PATH}/${SCRIPT_NAME}" "${target_link}"
-      # patch_utf8
-      # cuet
-      [[ "${SCRIPT_NAME}" == "cüt" ]] &&
-      ln -s "${BASHCRMCLI}/cüt" /usr/local/cuet
-      ln -s "${BASHCRMCLI}/löschen_seo_nur_datei" /usr/local/loeschen_seo_nur_datei
-      ln -s "${BASHCRMCLI}/äö" /usr/local/aeoe
-      ln -s "${BASHCRMCLI}/ö" /usr/local/oe
-      ln -s "${BASHCRMCLI}/öü" /usr/local/oeue
-      ln -s "${BASHCRMCLI}/ø" /usr/local/crossedo
-      ln -s "${BASHCRMCLI}/•" /usr/local/middleminidot
     }
   fi
 done <<< "${LIST_OF_BASH_SCRIPTS}"
