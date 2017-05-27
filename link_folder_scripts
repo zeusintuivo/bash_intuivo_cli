@@ -136,7 +136,7 @@ fi
 BLANK_SPACE="${lightpurple} +-- ${lightblue} "
 while read -r SCRIPT_NAME; do
 
-  if [ ! -z "${SCRIPT_NAME}" ]  && [ ! -d "${SCRIPT_NAME}" ] ; then   # Not empty and is not a directory
+  if [ ! -z "${SCRIPT_NAME}" ]  && [ ! -d "${SCRIPT_NAME}/" ] ; then   # Not empty and is not a directory
     {
       anounce_command chmod +x "${CURRENT_PATH}/${SCRIPT_NAME}"
       target_link="/usr/local/bin/${SCRIPT_NAME}"
@@ -145,7 +145,26 @@ while read -r SCRIPT_NAME; do
           anounce_command sudo unlink "${target_link}"
         }
       fi
+      if [[ "cuet|loeschen_seo_nur_datei|aeoe|oe|oeue|crossedo|ue|middleminidot" == *"${SCRIPT_NAME}"* ]] ; then
+      {
+        ln -s "${CURRENT_PATH}/ue" /usr/local/bin/ü
+      }
+      else
+      {
+
+      }
+      fi
       anounce_command sudo ln -sf "${CURRENT_PATH}/${SCRIPT_NAME}" "${target_link}"
+      # patch_utf8
+      # cuet
+      [[ "${SCRIPT_NAME}" == "cüt" ]] &&
+      ln -s "${BASHCRMCLI}/cüt" /usr/local/cuet
+      ln -s "${BASHCRMCLI}/löschen_seo_nur_datei" /usr/local/loeschen_seo_nur_datei
+      ln -s "${BASHCRMCLI}/äö" /usr/local/aeoe
+      ln -s "${BASHCRMCLI}/ö" /usr/local/oe
+      ln -s "${BASHCRMCLI}/öü" /usr/local/oeue
+      ln -s "${BASHCRMCLI}/ø" /usr/local/crossedo
+      ln -s "${BASHCRMCLI}/•" /usr/local/middleminidot
     }
   fi
 done <<< "${LIST_OF_BASH_SCRIPTS}"
