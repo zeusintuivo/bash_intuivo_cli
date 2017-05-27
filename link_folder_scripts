@@ -145,25 +145,42 @@ while read -r SCRIPT_NAME; do
           anounce_command sudo unlink "${target_link}"
         }
       fi
-      if [[ "cuet|loeschen_seo_nur_datei|aeoe|oe|oeue|crossedo|ue|middleminidot|ü|cüt|löschen_seo_nur_datei|äö|ö|öü|ø|≠|crossequal|•" == *"${SCRIPT_NAME}"* ]] ; then
-      {
-        # patch_utf8
-        [[ "${SCRIPT_NAME}" == "ue"   ]] || [[ "${SCRIPT_NAME}" == "ü"   ]] && ln -s "${CURRENT_PATH}/ue"   /usr/local/bin/ü
-        [[ "${SCRIPT_NAME}" == "cuet" ]] || [[ "${SCRIPT_NAME}" == "cüt" ]] && ln -s "${CURRENT_PATH}/cuet" /usr/local/bin/cüt
-        [[ "${SCRIPT_NAME}" == "loeschen_seo_nur_datei" ]] || [[ "${SCRIPT_NAME}" == "löschen_seo_nur_datei" ]] && ln -s "${CURRENT_PATH}/loeschen_seo_nur_datei" /usr/local/bin/löschen_seo_nur_datei
-        [[ "${SCRIPT_NAME}" == "aeoe" ]] || [[ "${SCRIPT_NAME}" == "äö" ]] && ln -s "${CURRENT_PATH}/aeoe" /usr/local/bin/äö
-        [[ "${SCRIPT_NAME}" == "oe" ]] || [[ "${SCRIPT_NAME}" == "ö" ]] && ln -s "${CURRENT_PATH}/oe" /usr/local/bin/ö
-        [[ "${SCRIPT_NAME}" == "oeue" ]] || [[ "${SCRIPT_NAME}" == "öü" ]] && ln -s "${CURRENT_PATH}/oeue" /usr/local/bin/öü
-        [[ "${SCRIPT_NAME}" == "crossedo" ]] || [[ "${SCRIPT_NAME}" == "ø" ]] && ln -s "${CURRENT_PATH}/crossedo" /usr/local/bin/ø
-        [[ "${SCRIPT_NAME}" == "crossequal" ]] || [[ "${SCRIPT_NAME}" == "≠" ]] && ln -s "${CURRENT_PATH}/crossequal" /usr/local/bin/≠
-        [[ "${SCRIPT_NAME}" == "middleminidot" ]] || [[ "${SCRIPT_NAME}" == "•" ]] && ln -s "${CURRENT_PATH}/middleminidot" /usr/local/bin/•
-      }
-      else
-      {
-        anounce_command sudo ln -sf "${CURRENT_PATH}/${SCRIPT_NAME}" "${target_link}"
-      }
-      fi
+      anounce_command sudo ln -sf "${CURRENT_PATH}/${SCRIPT_NAME}" "${target_link}"
     }
   fi
 done <<< "${LIST_OF_BASH_SCRIPTS}"
+
+patch_utf_names(){
+  # Sample use
+  #       patch_utf_names "${PROVIDED_USER}" "${BASHCRMCLI}" >/dev/null 2>&1 # suppress output
+  PROVIDED_USER="vagrant"
+  if [ ! -z "${1}" ] ;  then
+      PROVIDED_USER="${1}"
+  fi
+
+  TARGET_DIRECTORY="/_/clis"
+  if [ ! -z "${2}" ] ;  then
+      TARGET_DIRECTORY="${2}"
+  fi
+
+  [ ! -d "${TARGET_DIRECTORY}/"   ] && return 0
+  [ ! -d "/usr/local/bin/"  ] && return 0
+
+  anounce Patching UTF-8 Filenames
+  anounce_command sudo ln -sf  "${TARGET_DIRECTORY}/cüt" /usr/local/cuet
+  anounce_command sudo ln -sf  "${TARGET_DIRECTORY}/löschen_seo_nur_datei" /usr/local/loeschen_seo_nur_datei
+  anounce_command sudo ln -sf  "${TARGET_DIRECTORY}/äö" /usr/local/aeoe
+  anounce_command sudo ln -sf  "${TARGET_DIRECTORY}/ö" /usr/local/oe
+  anounce_command sudo ln -sf  "${TARGET_DIRECTORY}/öü" /usr/local/oeue
+  anounce_command sudo ln -sf  "${TARGET_DIRECTORY}/ø" /usr/local/crossedo
+  anounce_command sudo ln -sf  "${TARGET_DIRECTORY}/≠" /usr/local/crossedo
+  anounce_command sudo ln -sf  "${TARGET_DIRECTORY}/ue" /usr/local/bin/ü
+  anounce_command sudo ln -sf  "${TARGET_DIRECTORY}/•" /usr/local/middleminidot
+} # end patch_utf_names
+[ -d "/_/clis/bash_intuivo_cli/"   ] && patch_utf_names "${USER}" "/_/clis/bash_intuivo_cli"
+
+
+
+
+
 
