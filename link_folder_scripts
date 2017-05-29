@@ -167,15 +167,26 @@ patch_utf_names(){
   [ ! -d "/usr/local/bin/"  ] && return 0
 
   anounce Patching UTF-8 Filenames
-  anounce_command sudo ln -sf  "${TARGET_DIRECTORY}/cüt" /usr/local/cuet
-  anounce_command sudo ln -sf  "${TARGET_DIRECTORY}/löschen_seo_nur_datei" /usr/local/loeschen_seo_nur_datei
-  anounce_command sudo ln -sf  "${TARGET_DIRECTORY}/äö" /usr/local/aeoe
-  anounce_command sudo ln -sf  "${TARGET_DIRECTORY}/ö" /usr/local/oe
-  anounce_command sudo ln -sf  "${TARGET_DIRECTORY}/öü" /usr/local/oeue
-  anounce_command sudo ln -sf  "${TARGET_DIRECTORY}/ø" /usr/local/crossedo
-  anounce_command sudo ln -sf  "${TARGET_DIRECTORY}/≠" /usr/local/crossedo
+  anounce_command sudo ln -sf  "${TARGET_DIRECTORY}/cuet" /usr/local/bin/cüt
+  anounce_command sudo ln -sf  "${TARGET_DIRECTORY}/loeschen_seo_nur_datei" /usr/local/bin/löschen_seo_nur_datei
+  anounce_command sudo ln -sf  "${TARGET_DIRECTORY}/aeoe" /usr/local/bin/äö
+  anounce_command sudo ln -sf  "${TARGET_DIRECTORY}/oe" /usr/local/bin/ö
+  anounce_command sudo ln -sf  "${TARGET_DIRECTORY}/oeue" /usr/local/bin/öü
+  anounce_command sudo ln -sf  "${TARGET_DIRECTORY}/crossedo" /usr/local/bin/ø
+  anounce_command sudo ln -sf  "${TARGET_DIRECTORY}/crossequal" /usr/local/bin/≠
+  anounce_command sudo ln -sf  "${TARGET_DIRECTORY}/middleminidot" /usr/local/bin/•
   anounce_command sudo ln -sf  "${TARGET_DIRECTORY}/ue" /usr/local/bin/ü
-  anounce_command sudo ln -sf  "${TARGET_DIRECTORY}/•" /usr/local/middleminidot
+
+  anounce_command sudo unlink  /usr/local/bin/cuet
+  anounce_command sudo unlink  /usr/local/bin/loeschen_seo_nur_datei
+  anounce_command sudo unlink  /usr/local/bin/aeoe
+  anounce_command sudo unlink  /usr/local/bin/oe
+  anounce_command sudo unlink  /usr/local/bin/oeue
+  anounce_command sudo unlink  /usr/local/bin/crossedo
+  anounce_command sudo unlink  /usr/local/bin/crossequal
+  anounce_command sudo unlink  /usr/local/bin/middleminidot
+  anounce_command sudo unlink  /usr/local/bin/ue
+
 } # end patch_utf_names
 [ -d "/_/clis/bash_intuivo_cli/"   ] && patch_utf_names "${USER}" "/_/clis/bash_intuivo_cli"
 
