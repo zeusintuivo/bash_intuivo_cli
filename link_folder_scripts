@@ -188,7 +188,7 @@ patch_utf_names(){
   anounce_command sudo unlink  /usr/local/bin/ue
 
 } # end patch_utf_names
-[ -d "/_/clis/bash_intuivo_cli/"   ] && patch_utf_names "${USER}" "/_/clis/bash_intuivo_cli"
+[[ "${PWD}" == *"bash_intuivo_cli"* ]] && [ -d "${PWD}/"  ] && patch_utf_names "${USER}" "/_/clis/bash_intuivo_cli"
 
 
 
