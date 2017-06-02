@@ -1,0 +1,69 @@
+#!/usr/bin/env bash
+#!/bin/bash
+#
+# @author Zeus Intuivo <zeus@intuivo.com>
+#
+THISSCRIPTNAME=`basename "$0"`
+
+if [[ -z "$1"  ]] || [[ -z "$2"  ]] ; then   # empty value
+  echo "
+
+From one folder to another  using batch in subfolders, you don't gets stoped while the computer 'builds' a list
+using rsync which is suppoused to be faster at the time I did this (2017)
+
+
+${THISSCRIPTNAME}   from_path   to_path   number_of_blocks
+  "
+    exit 0
+fi
+
+load_execute_command(){
+    EXECOMCLI=$(wget --quiet --no-check-certificate https://raw.githubusercontent.com/zeusintuivo/execute_command_intuivo_cli/master/execute_command -O -  2>/dev/null )   # suppress only curl download messages, but keep curl output for variable
+    eval """${EXECOMCLI}"""
+    ( ( ! command -v type passed >/dev/null 2>&1; ) && echo -e "\n \n  ERROR! Loading execute_command \n \n " && exit 130; )
+} # end function load_execute_command
+load_execute_command
+
+
+
+
+divide_using_rsync() {
+    local FROMPATH="${1}"
+    local TOPATH="${2}"
+    anounce Copy Batch
+    # sed -i  -e s"$SEEKING""$IMPLACING"g  sed -e "$FROMPATH"d sed 's@http://www.velophil.de@@' sed -e s"$FROMPATH"g
+    #                        --exclude=.DS_Store \
+    #                        --exclude=.git \
+    #                        --exclude=.idea \
+    #                        --exclude=apps/kx/cache \
+    #                        --exclude=apps/oauthserver/cache \
+    #                        --exclude=docker \
+    #                        --exclude=qa \
+    #                        --exclude=build \
+    #                        --exclude=.dir_bash_history \
+
+    local all_files=$(find "$FROMPATH" -maxdepth 1 | sed s"$FROMPATH"/g | sed 's/\.\///g' | sed '/^\.$/d' )
+    #anounce  Found:"${all_files}"
+    #exit
+    local COUNTER=${3}
+    local BLOCKS=0
+    while read -r one_item; do
+    {
+        [[ $COUNTER -gt $BLOCKS ]] && (( BLOCKS++ ))
+        if [ ! -z "${one_item}" ] && [[ "${FROMPATH}/${one_item}" != "${FROMPATH}/${FROMPATH}" ]]; then
+        {
+            local filename=$(escape_filename <<< "${one_item}")
+            [ -d "${FROMPATH}/${filename}/" ] && mkdir -p "${TOPATH}/${BLOCKS}/${filename}"
+            anounce "${filename}" moving to "${TOPATH}/${BLOCKS}/"
+            anounce_command rsync -av "${FROMPATH}/${filename}" "${TOPATH}/${BLOCKS}/"
+            anounce rm "${FROMPATH}/${filename}"
+        }
+        fi
+        (( COUNTER++ )) # if (( $COUNTER > 37 )) ; then
+    }
+    done <<< "${all_files}"
+}
+
+
+divide_using_rsync "${1}" "${2}"  "${3}"
+

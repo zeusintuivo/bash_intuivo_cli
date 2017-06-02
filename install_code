@@ -90,7 +90,7 @@ install_windows_lastest_studio_code_32() {
     wait
 } # end install_windows_lastest_studio_code_32
 
-verify_equality "1" "1"
+check_equality "1" "1"
 get_lastest_studio_code_version
 exit
 # check operation systems
