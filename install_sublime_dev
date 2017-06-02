@@ -3,18 +3,18 @@
 # @author Zeus Intuivo <zeus@intuivo.com>
 #
 #
-load_struct_testing_wget(){
-    local provider="/_/clis/execute_command_intuivo_cli/struct_testing"
-    [   -e "${provider}"  ] && source "${provider}"
-    [ ! -e "${provider}"  ] && eval """$(wget --quiet --no-check-certificate  https://raw.githubusercontent.com/zeusintuivo/execute_command_intuivo_cli/master/struct_testing -O -  2>/dev/null )"""   # suppress only wget download messages, but keep wget output for variable
-    ( ( ! command -v type passed >/dev/null 2>&1; ) && echo -e "\n \n  ERROR! Loading struct_testing \n \n " && exit 69; )
-} # end load_struct_testing_wget
-load_struct_testing_wget
+#load_struct_testing_wget(){
+#    local provider="/_/clis/execute_command_intuivo_cli/struct_testing"
+#    [   -e "${provider}"  ] && source "${provider}"
+#    [ ! -e "${provider}"  ] && eval """$(wget --quiet --no-check-certificate  https://raw.githubusercontent.com/zeusintuivo/execute_command_intuivo_cli/master/struct_testing -O -  2>/dev/null )"""   # suppress only wget download messages, but keep wget output for variable
+#    ( ( ! command -v type passed >/dev/null 2>&1; ) && echo -e "\n \n  ERROR! Loading struct_testing \n \n " && exit 69; )
+#} # end load_struct_testing_wget
+#load_struct_testing_wget
 
 get_lastest_sublime_version() {
-    local SUBLIMEDEVLASTESTBUILD=$(curl -L https://www.sublimetext.com/3dev | grep 'Text 3 dev build is ....' | cut -c44-47)
+    local SUBLIMEDEVLASTESTBUILD=$(curl -L https://www.sublimetext.com/3dev  2>/dev/null | grep 'Text 3 dev build is ....' | cut -c44-47)  # suppress only wget download messages, but keep wget output for variable
     wait
-    assert not empty "${SUBLIMEDEVLASTESTBUILD}"
+    #assert not empty "${SUBLIMEDEVLASTESTBUILD}"
     echo "${SUBLIMEDEVLASTESTBUILD}"
 }
 install_darwin_lastest_sublime_64() {
@@ -82,12 +82,12 @@ install_windows_lastest_sublime_32() {
 if [[ "$(uname)" == "Darwin" ]] ; then
   # Do something under Mac OS X platform
     [[ "$(uname -m)" == "x86_64" ]] && install_darwin_lastest_sublime_64 "$@"
-    [[ "$(uname -m)" == "i686"   ]] && install_darwin_lastest_sublime_32 "$@"
+    [[ "$(uname -m)" == "i686"   ]] && install_darwin_lastest_sublime_64 "$@"
 elif [[ "$(expr substr $(uname -s) 1 5)" == "Linux" ]] ; then
   # Do something under GNU/Linux platform
   # ubuntu lsb_release -i | sed 's/Distributor\ ID://g' = \tUbuntu\n
     [[ "$(uname -i)" == "x86_64" ]] && install_linux_lastest_sublime_64 "$@"
-    [[ "$(uname -i)" == "i686"   ]] && install_linux_lastest_sublime_64 "$@"
+    [[ "$(uname -i)" == "i686"   ]] && install_linux_lastest_sublime_32 "$@"
 elif [[ "$(expr substr $(uname -s) 1 10)" == "MINGW32_NT" ]] ; then
   # Do something under Windows NT platform
     [[ "$(uname -i)" == "x86_64" ]] && install_windows_lastest_sublime_64 "$*"
