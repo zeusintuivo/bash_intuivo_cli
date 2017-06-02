@@ -29,37 +29,31 @@ load_execute_command
 
 divide_using_rsync() {
     local FROMPATH="${1}"
-    local TOPATH="${2}"
+    local BASEPATH="${2}"
+    local TOPATH
     anounce Copy Batch
-    # sed -i  -e s"$SEEKING""$IMPLACING"g  sed -e "$FROMPATH"d sed 's@http://www.velophil.de@@' sed -e s"$FROMPATH"g
-    #                        --exclude=.DS_Store \
-    #                        --exclude=.git \
-    #                        --exclude=.idea \
-    #                        --exclude=apps/kx/cache \
-    #                        --exclude=apps/oauthserver/cache \
-    #                        --exclude=docker \
-    #                        --exclude=qa \
-    #                        --exclude=build \
-    #                        --exclude=.dir_bash_history \
 
     local all_files=$(find "$FROMPATH" -maxdepth 1 | sed s"$FROMPATH"/g | sed 's/\.\///g' | sed '/^\.$/d' )
-    #anounce  Found:"${all_files}"
+    anounce  Found:"${all_files}"
     #exit
     local COUNTER=${3}
-    local BLOCKS=0
+    local BLOCKS=1
     while read -r one_item; do
     {
-        [[ $COUNTER -gt $BLOCKS ]] && (( BLOCKS++ ))
+
         if [ ! -z "${one_item}" ] && [[ "${FROMPATH}/${one_item}" != "${FROMPATH}/${FROMPATH}" ]]; then
         {
+            TOPATH="${TOPATH}/${BLOCKS}"
             local filename=$(escape_filename <<< "${one_item}")
-            [ -d "${FROMPATH}/${filename}/" ] && mkdir -p "${TOPATH}/${BLOCKS}/${filename}"
+            [ -d "${FROMPATH}/${filename}/" ] && mkdir -p "${TOPATH}/${filename}"
+            [ ! -e "${FROMPATH}/${filename}/" ] && mkdir -p "${TOPATH}/"
             anounce "${filename}" moving to "${TOPATH}/${BLOCKS}/"
-            anounce_command rsync -av "${FROMPATH}/${filename}" "${TOPATH}/${BLOCKS}/"
+            anounce_command rsync -av "${FROMPATH}/${filename}" "${TOPATH}/"
             anounce rm "${FROMPATH}/${filename}"
         }
         fi
         (( COUNTER++ )) # if (( $COUNTER > 37 )) ; then
+        [ $COUNTER -gt $BLOCKS ] && (( BLOCKS++ ))
     }
     done <<< "${all_files}"
 }
