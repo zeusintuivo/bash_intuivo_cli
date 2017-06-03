@@ -24,23 +24,10 @@ load_execute_command(){
 } # end function load_execute_command
 load_execute_command
 
-
-
-
 copy_using_rsync() {
     local FROMPATH="${1}"
     local TOPATH="${2}"
     anounce Copy Batch
-    # sed -i  -e s"$SEEKING""$IMPLACING"g  sed -e "$FROMPATH"d sed 's@http://www.velophil.de@@' sed -e s"$FROMPATH"g
-    #                        --exclude=.DS_Store \
-    #                        --exclude=.git \
-    #                        --exclude=.idea \
-    #                        --exclude=apps/kx/cache \
-    #                        --exclude=apps/oauthserver/cache \
-    #                        --exclude=docker \
-    #                        --exclude=qa \
-    #                        --exclude=build \
-    #                        --exclude=.dir_bash_history \
 
     all_files=$(find "$FROMPATH" -maxdepth 1 | sed s"$FROMPATH"/g | sed 's/\.\///g' | sed '/^\.$/d' )
     #anounce  Found:"${all_files}"

@@ -12,7 +12,7 @@ From one folder to another  using batch in subfolders, you don't gets stoped whi
 using rsync which is suppoused to be faster at the time I did this (2017)
 
 
-${THISSCRIPTNAME}   from_path   to_path   number_of_blocks
+${THISSCRIPTNAME}   from_path   to_path   number_per_block
   "
     exit 0
 fi
@@ -24,36 +24,69 @@ load_execute_command(){
 } # end function load_execute_command
 load_execute_command
 
+check_path(){
+    local cwd=$(pwd)
+    local result
+    # Find paths
+    if [ -e "${2}" ] ; then
+        result="${2}"
+    elif [ -e "${cwd}/${2}" ] ; then
+        result="${cwd}/${2}"
+    else
+        !!! "${1} PATH Not found: ${2}"
+    fi
+    echo "${result}"
+} # end check_path
 
-
+get_all_files(){
+    local all_files=$(find "${1}" -maxdepth 1 | sed s"${1}"/g | sed 's/\.\///g' | sed '/^\.$/d' )
+    #anounce Found:"${all_files}"
+    #exit
+    echo "${all_files}"
+} #edn get_all_files
 
 divide_using_rsync() {
-    local FROMPATH="${1}"
-    local BASEPATH="${2}"
-    local TOPATH
-    anounce Copy Batch
+    local from_path=$(check_path "FROM" "${1}")
+    local base_path=$(check_path "FROM" "${2}")
+    local backup_path="${from_path}/original"
+    local GOAL=${3}
+    local to_path
+    local all_files=$(get_all_files "${from_path}")
+    local counter=1
+    local blocks=1
 
-    local all_files=$(find "$FROMPATH" -maxdepth 1 | sed s"$FROMPATH"/g | sed 's/\.\///g' | sed '/^\.$/d' )
-    anounce  Found:"${all_files}"
-    #exit
-    local COUNTER=${3}
-    local BLOCKS=1
+    anounce Copy Batch
+    anounce Found:"${all_files}"
+    anounce Found from_path:"${from_path}"
+    anounce Found base_path:"${base_path}"
+    anounce Found backup_path:"${base_path}"
+
+    [ ! -d "${backup_path}/" ] && mkdir -p "${backup_path}/"
+
+
     while read -r one_item; do
     {
 
-        if [ ! -z "${one_item}" ] && [[ "${FROMPATH}/${one_item}" != "${FROMPATH}/${FROMPATH}" ]]; then
+        if [ ! -z "${one_item}" ] && [[ "${from_path}/${one_item}" != "${from_path}/${from_path}" ]]; then
         {
-            TOPATH="${TOPATH}/${BLOCKS}"
+            to_path="${base_path}/${blocks}"
+            anounce base_path:"${to_path}"
             local filename=$(escape_filename <<< "${one_item}")
-            [ -d "${FROMPATH}/${filename}/" ] && mkdir -p "${TOPATH}/${filename}"
-            [ ! -e "${FROMPATH}/${filename}/" ] && mkdir -p "${TOPATH}/"
-            anounce "${filename}" moving to "${TOPATH}/${BLOCKS}/"
-            anounce_command rsync -av "${FROMPATH}/${filename}" "${TOPATH}/"
-            anounce rm "${FROMPATH}/${filename}"
+            [ -d "${from_path}/${filename}/" ] && [ ! -d "${to_path}/${filename}/" ] && mkdir -p "${to_path}/${filename}"
+            anounce "\\033[38;5;30m${filename} \\033[38;5;242mmoving to \\033[38;5;30m${to_path}/"
+            rsync -av "${from_path}/${filename}" "${to_path}/"
+            rsync -av "${from_path}/${filename}" "${backup_path}/"
+            # DEBUG anounce rsync -av "${from_path}/${filename}" "${to_path}/"
+            # DEBUG anounce rm "${from_path}/${filename}"
+            [ -e "${to_path}/${filename}" ] && [ -e "${backup_path}/${filename}" ]  && anounce_command rm "${from_path}/${filename}"
+            # DEBUG echo "$GOAL...$blocks:$counter"
+            (( counter++ )) # if (( $counter > 37 )) ; then
+            if [ $counter -gt $GOAL ] ; then
+                counter=1
+                (( blocks++ ))
+            fi
         }
         fi
-        (( COUNTER++ )) # if (( $COUNTER > 37 )) ; then
-        [ $COUNTER -gt $BLOCKS ] && (( BLOCKS++ ))
     }
     done <<< "${all_files}"
 }

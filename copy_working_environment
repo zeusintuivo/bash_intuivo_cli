@@ -1,15 +1,14 @@
 #!/usr/bin/env bash
 #!/bin/bash
 #
-
+THISSCRIPTNAME=`basename "$0"`
 
 if [[ -z "$1"  ]] || [[ -z "$2"  ]] ; then   # empty value
   echo "
 
 This copies Linux Ubuntu 14.04  Gnome 3 setup from one user to another , You need to be root
 
-
- thiscript   fromusername   tousername
+ ${THISSCRIPTNAME}   fromusername   tousername
   "
     exit 0
 fi
