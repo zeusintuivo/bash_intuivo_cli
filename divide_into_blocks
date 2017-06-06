@@ -25,7 +25,7 @@ load_execute_command(){
 load_execute_command
 
 check_path(){
-    local path=$(echo "${2}" | sed 's/\/$//g')
+    local path=$(echo "${2}" | sed 's/\/$//g') # remove last slash
     local cwd=$(pwd)
     local result
     # Find paths
