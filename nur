@@ -831,6 +831,8 @@ load_insert
 phpunit"
 
 DIRSTOEXCLUDE=".cargo
+.ecryptfs
+.gvfs
 .git
 .vagrant
 .idea

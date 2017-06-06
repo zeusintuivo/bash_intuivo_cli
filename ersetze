@@ -423,6 +423,8 @@ FILESTOEXCLUDE=".dir_bash_history
 composer.phar"
 
 DIRSTOEXCLUDE=".git
+.ecryptfs
+.gvfs
 .idea
 .vagrant
 .vscode
