@@ -64,7 +64,6 @@ divide_using_rsync() {
 
     [ ! -d "${backup_path}/" ] && mkdir -p "${backup_path}/"
 
-
     while read -r one_item; do
     {
 
@@ -90,8 +89,7 @@ divide_using_rsync() {
         fi
     }
     done <<< "${all_files}"
-}
-
+} # end divide_using_rsync
 
 divide_using_rsync "${1}" "${2}"  "${3}"
 
