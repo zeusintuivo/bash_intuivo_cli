@@ -25,6 +25,7 @@ load_execute_command(){
 load_execute_command
 
 check_path(){
+    local path=$(echo "${2}" | sed 's/\/$//g')
     local cwd=$(pwd)
     local result
     # Find paths
@@ -80,7 +81,7 @@ divide_using_rsync() {
             # DEBUG anounce rm "${from_path}/${filename}"
             [ -e "${to_path}/${filename}" ] && [ -e "${backup_path}/${filename}" ]  && anounce_command rm "${from_path}/${filename}"
             # DEBUG echo "$GOAL...$blocks:$counter"
-            (( counter++ )) # if (( $counter > 37 )) ; then
+            (( counter++ ))
             if [ $counter -gt $GOAL ] ; then
                 counter=1
                 (( blocks++ ))
