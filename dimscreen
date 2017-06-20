@@ -4,5 +4,5 @@
 #
 #
 BRIGHTNESS=.7
-[ "${1}" ]       ||  BRIGHTNESS="${1}"
+[ ! -z "${1}" ]  &&  BRIGHTNESS="${1}"
 xrandr --current --verbose | grep " connected" | cut -d" " -f1 | xargs -I {} xrandr --output {}   --brightness "${BRIGHTNESS}"
