@@ -395,6 +395,22 @@ _git_log_prettily () {
     fi
     subl $FINAL_DEST
  }
+ find_git() {
+    local PROJECT_ROOT="${PWD}"
+    local FINAL_DEST="."
+    while [[ $PROJECT_ROOT != "/" && ! -d "$PROJECT_ROOT/.git" ]]; do
+    {
+        PROJECT_ROOT=$(dirname $PROJECT_ROOT)
+    }
+    done
+    if [[ $PROJECT_ROOT != "/" ]] ;  then
+    {
+        echo $PROJECT_ROOT
+        return 
+    }
+    fi
+    return 
+}
  alias stp=find_project
  alias stt='st .'
  alias which-command=whence
@@ -432,6 +448,7 @@ _git_log_prettily () {
  R_E_D="31m"
  G_R_E_E_N="32m"
  Y_E_LL_O_W="33m"
+ Y_E_202_O_W="202m"
  D_A_R_K_B_L_U_E="34m"
  P_U_R_P_L_E="35m"
  C_Y_A_N="36m"
@@ -478,13 +495,93 @@ _git_log_prettily () {
         
         # here using an interpreted version of \033 executed by "double quotes" in "echo -e"
         #printf "%*s" $COLUMNS "[$YELLOW$(git branch 2>/dev/null | grep '^*' | sed s/..//)[01;$CYAN$(date +%H:%M:%S)" #WORKS 
-        printf "%*s" $(( COLUMNS + 10)) "[$Y_E_LL_O_W$(git branch 2>/dev/null | grep '^*' | sed s/..//)[01;$C_Y_A_N $(date +%H:%M:%S)" #WORKS 
+        if [ find_git ] ; then 
+        { 
+            local _is_branch_dirty=$(is_branch_dirty_)
+            # printf "%*s" $(( COLUMNS + 10 )) "$_is_branch_dirty [$Y_E_LL_O_W$(git branch 2>/dev/null | grep '^*' | sed s/..//)[01;$C_Y_A_N $(date +%H:%M:%S)" #WORKS 
+            local _right_sentecce="$_is_branch_dirty [$Y_E_LL_O_W$(git branch 2>/dev/null | grep '^*' | sed s/..//)[01;$C_Y_A_N $(date +%H:%M:%S)"
+            local _right_sentence_length="${#_right_sentecce}"   # get string length
+            local _left_sentence="${_user}@${_current_folder}${_prompt_char}"
+            local _left_sentence_length="${#_left_sentence}"   # get string length
+            local _total_length=$(( _left_sentence_length + _right_sentence_length ))
+            local _columns=$(( COLUMNS + _total_length ))
+
+            
+            local calculation=$(( COLUMNS ))
+            #local calculation=$(( calculation - ${#_right_sentecce} ))
+            #local calculation=$(( calculation - ${#_left_sentence} ))
+            local compensation_for_colors_invisible_chars=30
+            local calculation=$(( calculation + compensation_for_colors_invisible_chars ))
+
+            #printf "%*s" $(( COLUMNS )) "$_right_sentence_length+$_left_sentence_length=$_total_length.$COLUMNS.$_columns$_right_sentecce" #WORKS 
+            # DEBUG printf "%*s" $(( calculation )) "$calculation.$_right_sentecce.$calculation." #WORKS 
+            printf "%*s" $(( calculation )) "$_right_sentecce" 
+            # TODO calculation of espacing is off needs fixing 
+        } 
+        else 
+        {
+            local _is_branch_dirty=$(is_branch_dirty_)
+            # printf "%*s" $(( COLUMNS + 10 )) "$_is_branch_dirty [$Y_E_LL_O_W$(git branch 2>/dev/null | grep '^*' | sed s/..//)[01;$C_Y_A_N $(date +%H:%M:%S)" #WORKS 
+            local _right_sentecce="$_is_branch_dirty [$Y_E_LL_O_W$(git branch 2>/dev/null | grep '^*' | sed s/..//)[01;$C_Y_A_N $(date +%H:%M:%S)"
+            local _right_sentence_length="${#_right_sentecce}"   # get string length
+            local _left_sentence="${_user}@${_current_folder}${_prompt_char}"
+            local _left_sentence_length="${#_left_sentence}"   # get string length
+            local _total_length=$(( _left_sentence_length + _right_sentence_length ))
+            local _columns=$(( COLUMNS + _total_length ))
+
+            
+            local calculation=$(( COLUMNS ))
+            #local calculation=$(( calculation - ${#_right_sentecce} ))
+            #local calculation=$(( calculation - ${#_left_sentence} ))
+            local compensation_for_colors_invisible_chars=30
+            local calculation=$(( calculation + compensation_for_colors_invisible_chars ))
+
+            #printf "%*s" $(( COLUMNS )) "$_right_sentence_length+$_left_sentence_length=$_total_length.$COLUMNS.$_columns$_right_sentecce" #WORKS 
+            # DEBUG printf "%*s" $(( calculation )) "$calculation.$_right_sentecce.$calculation." #WORKS 
+            printf "%*s" $(( calculation )) "$_right_sentecce" 
+            # TODO calculation of espacing is off needs fixing 
+        }
+        fi 
     }
     fi
  }
- 
+rightprompt2()
+ {
+        local _is_branch_dirty=""
+        [ find_git ] && _is_branch_dirty=$(is_branch_dirty_)
+        local _right_sentecce="$_is_branch_dirty [$Y_E_LL_O_W$(git branch 2>/dev/null | grep '^*' | sed s/..//)[01;$C_Y_A_N $(date +%H:%M:%S)"
+        echo "$_right_sentecce" 
+
+ }
+ parse_git_dirty () {
+	local STATUS='' 
+	local FLAGS
+    local YELLOW_OVER_DARKBLUE2=$(echo -e "\033[38;5;11m\033[48;5;18m")
+    local LIGHTYELLOW=$(echo -e "\033[38;5;227m")
+	FLAGS=('--porcelain') 
+	if [[ "$(command git config --get oh-my-zsh.hide-dirty)" != "1" ]]
+	then
+		if [[ $POST_1_7_2_GIT -gt 0 ]]
+		then
+			FLAGS+='--ignore-submodules=dirty' 
+		fi
+		if [[ "$DISABLE_UNTRACKED_FILES_DIRTY" = "true" ]]
+		then
+			FLAGS+='--untracked-files=no' 
+		fi
+		STATUS=$(command git status ${FLAGS} 2> /dev/null | tail -n1) 
+	fi
+	if [[ -n $STATUS ]]
+	then
+	   printf "$LIGHTYELLOW✘$reset_color"
+	else
+	   printf  ""
+	fi
+}
+
  is_branch_dirty_(){
-gray242="\\033[38;5;242m"
+local gray242=$(echo -e "\033[38;5;242m")
+local reset_color=$(echo -e "\033[00m")
  # Fetch to obtain a current status for remote
     #git fetch   >/dev/null 2>&1 # suppress stdln and errln output
 
@@ -496,7 +593,7 @@ function git_prompt_info() {
   if [[ "$(command git config --get oh-my-zsh.hide-status 2>/dev/null)" != "1" ]]; then
     ref=$(command git symbolic-ref HEAD 2> /dev/null) || \
     ref=$(command git rev-parse --short HEAD 2> /dev/null) || return 0
-    echo "$ZSH_THEME_GIT_PROMPT_SUFFIX$gray242${ref#refs/heads/}"
+    echo "$reset_color$gray242${ref#refs/heads/}"
   fi
 };git_prompt_info)
 		this_ex=$(# @Overwrite of $HOME/.oh-my-zsh/lib/git.zsh
@@ -538,27 +635,140 @@ branch_ahead_and_or_behind() {
   done
 };branch_ahead_and_or_behind)
 
-
+local CYAN=$(echo -e "\033[01;36m")
 		#eval "echo -e \"$(git_prompt_info)${ret_status##*➜} $fg[cyan]${PWD##*/}$reset_color \"" | sed 's@%@\\@g' | sed 's@\\{@\\@g' | sed 's@\\}@\\@g' | sed -e 's@\\@@g' | tr -d '()' |  sed 's:(::;s:)::'
 		#eval "echo -e \"${ret_status##*➜} $fg[cyan]${PWD##*/}$reset_color $(git_prompt_info)\"" sed 's:(::;s:)::'
 		#eval "echo -e \"$PS1\""  | sed 's@%@\\@g' | sed 's@\\{@\\@g' | sed 's@\\}@\\@g' | sed -e 's@\\@@g'
-		echo -e $this_prompt ${ret_status##*➜} $fg[cyan]${PWD##*/}$reset_color$this_ex$gray242 $this_ahead | sed 's@%@\\@g' | sed 's@\\{@\\@g' | sed 's@\\}@\\@g' | sed -e 's@\\@@g' | tr -d '()' |  sed 's:(::;s:)::'
+		# echo -e $this_prompt ${ret_status##*➜} $CYAN${PWD##*/}$this_ex$gray242 $this_ahead | sed 's@%@\\@g' | sed 's@\\{@\\@g' | sed 's@\\}@\\@g' | sed -e 's@\\@@g' | tr -d '()' |  sed 's:(::;s:)::'
+		echo $this_ex 
  }
-   
+#!/bin/bash
+# _options=$(shopt -op); set -exu # Save and set shell options for testing
+##################
+# Set the prompt #    Sourced from .bashrc
+##################
 
- PS1='\[$(tput sc; rightprompt; tput rc)\]'
- export PS1="$PS1${_user}@${_current_folder}${_prompt_char}"
- 
- 
+# Select git info displayed, see /usr/lib/git-core/git-sh-prompt for more
+export GIT_PS1_SHOWCOLORHINTS=1           # Make pretty colours inside $PS1
+export GIT_PS1_SHOWDIRTYSTATE=1           # '*'=unstaged, '+'=staged
+export GIT_PS1_SHOWSTASHSTATE=1           # '$'=stashed
+export GIT_PS1_SHOWUNTRACKEDFILES=1       # '%'=untracked
+export GIT_PS1_SHOWUPSTREAM="verbose"     # 'u='=no difference, 'u+1'=ahead by 1 commit
+export GIT_PS1_STATESEPARATOR=''          # No space between branch and index status
+export GIT_PS1_DESCRIBE_STYLE="describe"  # Detached HEAD style:
+#  describe      relative to older annotated tag (v1.6.3.1-13-gdd42c2f)
+#  contains      relative to newer annotated tag (v1.6.3.2~35)
+#  branch        relative to newer tag or branch (master~4)
+#  default       exactly eatching tag
 
- #loadkeys /lib/kbd/keymaps/i386/qwerty/no-latin1.map 
+
+# Sets prompt like:
+# ravi@boxy:~/prj/sample_app[exit]$                   master*% u= | 30 Apr 22:27
+_set_bash_prompt() {
+  # Set left hand side of the prompt
+  PS1="\u@\h:\w\$ "
+
+  #
+  # Git status
+  #
+
+  # Save current state of user shopt settings promptvars and extglob
+  local user_shopt
+  user_shopt=$(shopt -p promptvars extglob)
+  # __git_ps1 usually returns literal text "${__git_ps1_branch_name}" rather
+  # than the contained branch name, eg "master". This prevents calculating
+  # the length of the printable characers in the RHS string (used to move the
+  # cursor that many columns left from the terminal's right edge.) However if
+  # "shopt promptvars" is unset, __git_ps1 it will include the dereferenced
+  # branch name instead.
+  shopt -qu promptvars
+  # extglob is required for the ${variable//@(pattern)/} replacements
+  shopt -qs extglob
+
+  # Allow disabling git status and no error if __git_ps1 undefined
+  if [[ ! -v _disable_git_prompt && $(type -t __git_ps1 2>/dev/null) == function ]]; then
+    # __git_ps1 will only make pretty colours inside $PS1
+    local old_PS1=$PS1
+    __git_ps1 "" "" "%s" # force colour; no default round bracket (decorations)
+
+    # Strip "\[" and "\[": non-printable character markers. __git_ps1 outputs
+    # them however the whole of the RHS prompt needs to be included in these
+    # markers, and they can't be nested.
+    git=${PS1//@(\\@(\[|\]))/}
+    PS1=$old_PS1
+  fi
+
+  #
+  # Right hand side of prompt
+  #
+  local rhs="" # String to be printed on the right hand side of terminal
+
+  # Create a string like: "25 Apr 13:15"
+  local date_time
+  printf -v date_time "%(%e %b %H:%M)T" -1 # -1 is current time
+
+  # Format the RHS prompt
+  [[ -n $git ]] && rhs="$git | " #"
+  rhs+="\e[0;1;31m${date_time}"
+  # Strip ANSI CSI commands (eg colours) to enble counting the length of
+  # printable characters, giving offset of cursor from terminal RHS edge (from
+  # https://www.commandlinefu.com/commands/view/12043/remove-color-special-escape-ansi-codes-from-text-with-sed)
+  # Neither bash not sed support lookbehind zero-length assertions, so it's not
+  # possible to ignore "\\e", (ie a literal '\' followed by a literal 'e'), yet
+  # still remove "\e" (ie ESC)
+  local rhs_printable=${rhs//@(\\@(\[|]|[Ee]\[*([0-9;])[a-zA-Z]))/}
+  local _rightprompt2=$(rightprompt2)
+rhs="$_rightprompt2"
+  local rhs_printable=${rhs//@(\\@(\[|]|[Ee]\[*([0-9;])[a-zA-Z]))/}
+  # or, in using sed (but requires exec):
+  # local rhs_printable=$(sed -e 's,\\[][]\|\\[Ee]\[\([0-9;]\)*[A-Za-z],,g' <<< "$rhs")
+
+  # Reference: https://en.wikipedia.org/wiki/ANSI_escape_code
+  local Save='\e[s' # Save cursor position
+  local Rest='\e[u' # Restore cursor to save point
+
+  # Save cursor position, jump to (right hand edge minus N columns) where N is
+  # the length of the printable RHS string. Print the RHS string, then return
+  # to the saved position and print the LHS prompt.
+
+  # Note: "\[" and "\]" are used so that bash can calculate the number of
+  # printed characters so that the prompt doesn't do strange things when
+  # command line editing/browsing/completion. Ensure that these are not nested.
+    PS1="${_user}@${_current_folder}${_prompt_char}"
+    local calculation=$(( COLUMNS - ${#rhs_printable} ))
+    local compensation_for_colors_invisible_chars=30
+    local calculation=$(( calculation + compensation_for_colors_invisible_chars ))
+  
+    #DEBUG export PS1="\[\e[0m${Save}\e[$(( calculation ))G${calculation}.${rhs}${Rest}\]${PS1}"
+    export PS1="\[\e[0m${Save}\e[$(( calculation ))G${rhs}${Rest}\]${PS1}"
+
+ 
+  eval "$user_shopt"
+
+}
+# end _set_bash_prompt
+
+
+
+# eval "$_options"; unset _options # Restore previous shell options from line 2
+        
+# TODO calculation of espacing is off needs fixing 
+PS1='\[$(tput sc; rightprompt; tput rc)\]'
+export PS1="$PS1${_user}@${_current_folder}${_prompt_char}"
+  
+# THIS WORKS with correct spacing but git does not update when changing folders 
+#_set_bash_prompt
+
+
+ # Keymap keyboard fix for Norwegian Keyboard
+ [ -e /lib/kbd/keymaps/i386/qwerty/no-latin1.map ] && loadkeys /lib/kbd/keymaps/i386/qwerty/no-latin1.map 
 
  
 #END 
  
  
 # PYENV
-export PATH="~/.pyenv/bin:$PATH"
-eval "$(pyenv init -)"
-eval "$(pyenv virtualenv-init -)"
+[ -e  ~/.pyenv/bin  ]  && export PATH="~/.pyenv/bin:$PATH"
+( command -v pyenv >/dev/null 2>&1; ) &&  eval "$(pyenv init -)"
+( command -v pyenv >/dev/null 2>&1; ) && eval "$(pyenv virtualenv-init -)"
  
