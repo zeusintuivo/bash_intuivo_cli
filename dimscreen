@@ -1,0 +1,8 @@
+#!/bin/bash
+#
+# @author Zeus Intuivo <zeus@intuivo.com>
+#
+#
+BRIGHTNESS=.7
+[ "${1}" ]       ||  BRIGHTNESS="${1}"
+xrandr --current --verbose | grep " connected" | cut -d" " -f1 | xargs -I {} xrandr --output {}   --brightness "${BRIGHTNESS}"
