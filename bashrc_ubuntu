@@ -3,11 +3,14 @@
 # for examples
 
 # If not running interactively, don't do anything
-[ -z "$PS1" ] && return
+case $- in
+    *i*) ;;
+      *) return;;
+esac
 
-# don't put duplicate lines in the history. See bash(1) for more options
-# ... or force ignoredups and ignorespace
-HISTCONTROL=ignoredups:ignorespace
+# don't put duplicate lines or lines starting with space in the history.
+# See bash(1) for more options
+HISTCONTROL=ignoreboth
 
 # append to the history file, don't overwrite it
 shopt -s histappend
@@ -20,11 +23,15 @@ HISTFILESIZE=2000
 # update the values of LINES and COLUMNS.
 shopt -s checkwinsize
 
+# If set, the pattern "**" used in a pathname expansion context will
+# match all files and zero or more directories and subdirectories.
+#shopt -s globstar
+
 # make less more friendly for non-text input files, see lesspipe(1)
 [ -x /usr/bin/lesspipe ] && eval "$(SHELL=/bin/sh lesspipe)"
 
 # set variable identifying the chroot you work in (used in the prompt below)
-if [ -z "$debian_chroot" ] && [ -r /etc/debian_chroot ]; then
+if [ -z "${debian_chroot:-}" ] && [ -r /etc/debian_chroot ]; then
     debian_chroot=$(cat /etc/debian_chroot)
 fi
 
@@ -82,6 +89,10 @@ alias ll='ls -alF'
 alias la='ls -A'
 alias l='ls -CF'
 
+# Add an "alert" alias for long running commands.  Use like so:
+#   sleep 10; alert
+alias alert='notify-send --urgency=low -i "$([ $? = 0 ] && echo terminal || echo error)" "$(history|tail -n1|sed -e '\''s/^\s*[0-9]\+\s*//;s/[;&|]\s*alert$//'\'')"'
+
 # Alias definitions.
 # You may want to put all your additions into a separate file like
 # ~/.bash_aliases, instead of adding them here directly.
@@ -94,9 +105,13 @@ fi
 # enable programmable completion features (you don't need to enable
 # this, if it's already enabled in /etc/bash.bashrc and /etc/profile
 # sources /etc/bash.bashrc).
-#if [ -f /etc/bash_completion ] && ! shopt -oq posix; then
-#    . /etc/bash_completion
-#fi
+if ! shopt -oq posix; then
+  if [ -f /usr/share/bash-completion/bash_completion ]; then
+    . /usr/share/bash-completion/bash_completion
+  elif [ -f /etc/bash_completion ]; then
+    . /etc/bash_completion
+  fi
+fi
  
 #START 
  
@@ -115,31 +130,26 @@ export BASHCRMCLI="/_/bash_crm_cli"
 export PATH="$PATH:$BASHCRMCLI"
  
 _git_log_prettily () {
- if ! [ -z $1 ]
- then
- git log --pretty=$1
- fi
+    if ! [ -z $1 ]; then
+        git log --pretty=$1
+    fi
  }
  colorize_via_pygmentize () {
- if [ ! -x "$(which pygmentize)" ]
- then
- return -1
- fi
- if [ $# -eq 0 ]
- then
- pygmentize -g $@
- fi
- for FNAME in $@
- do
- filename=$(basename "$FNAME")
- lexer=`pygmentize -N \"$filename\"`
- if [ "Z$lexer" != "Ztext" ]
- then
- pygmentize -l $lexer "$FNAME"
- else
- pygmentize -g "$FNAME"
- fi
- done
+    if [ ! -x "$(which pygmentize)" ]; then
+        return -1
+    fi
+    if [ $# -eq 0 ]; then
+        pygmentize -g $@
+    fi
+    for FNAME in $@; do
+        filename=$(basename "$FNAME")
+        lexer=`pygmentize -N \"$filename\"`
+        if [ "Z$lexer" != "Ztext" ]; then
+            pygmentize -l $lexer "$FNAME"
+        else
+            pygmentize -g "$FNAME"
+        fi
+    done
  }
  alias ..='cd ..'
  alias ...=../..
@@ -217,15 +227,14 @@ _git_log_prettily () {
  alias gg='git gui citool'
  alias gga='git gui citool --amend'
  git_current_branch () {
- local ref
- ref=$(command git symbolic-ref --quiet HEAD 2> /dev/null)
- local ret=$?
- if [[ $ret != 0 ]]
- then
- [[ $ret = 128 ]] && return
- ref=$(command git rev-parse --short HEAD 2> /dev/null) || return
- fi
- echo ${ref#refs/heads/}
+    local ref
+    ref=$(command git symbolic-ref --quiet HEAD 2> /dev/null)
+    local ret=$?
+    if [[ $ret != 0 ]];  then
+        [[ $ret = 128 ]] && return
+        ref=$(command git rev-parse --short HEAD 2> /dev/null) || return
+    fi
+    echo ${ref#refs/heads/}
  }
  alias ggpull='git pull origin $(git_current_branch)'
  alias ggpur=ggu
@@ -312,23 +321,22 @@ _git_log_prettily () {
  alias lsa='ls -lah'
  alias md='mkdir -p'
  open_command () {
- emulate -L zsh
- setopt shwordsplit
- local open_cmd
- case "$OSTYPE" in
- (darwin*) open_cmd='open' ;;
- (cygwin*) open_cmd='cygstart' ;;
- (linux*) open_cmd='xdg-open' ;;
- (msys*) open_cmd='start ""' ;;
- (*) echo "Platform $OSTYPE not supported"
- return 1 ;;
- esac
- if [[ "$OSTYPE" = darwin* ]]
- then
- $open_cmd "$@" &> /dev/null
- else
- nohup $open_cmd "$@" &> /dev/null
- fi
+    emulate -L zsh
+    setopt shwordsplit
+    local open_cmd
+    case "$OSTYPE" in
+        (darwin*) open_cmd='open' ;;
+        (cygwin*) open_cmd='cygstart' ;;
+        (linux*) open_cmd='xdg-open' ;;
+        (msys*) open_cmd='start ""' ;;
+        (*) echo "Platform $OSTYPE not supported"
+            return 1 ;;
+    esac
+    if [[ "$OSTYPE" = darwin* ]] ; then
+        $open_cmd "$@" &> /dev/null
+    else
+        nohup $open_cmd "$@" &> /dev/null
+    fi
  }
  alias ofd='open_command $PWD'
  alias pip='noglob pip'
@@ -341,7 +349,7 @@ _git_log_prettily () {
  alias rubies='rvm list rubies'
  alias run-help=man
  _symfony_console () {
- echo "php $(find . -maxdepth 2 -mindepth 1 -name 'console' -type f | head -n 1)"
+    echo "php $(find . -maxdepth 2 -mindepth 1 -name 'console' -type f | head -n 1)"
  }
  alias sf='`_symfony_console`'
  alias sfcl='sf cache:clear'
@@ -353,33 +361,39 @@ _git_log_prettily () {
  alias sfroute='sf debug:router'
  alias sfsr='sf server:run -vvv'
  alias ssh='ssh -X'
- subl () {
- "$_sublime_path" $*
- }
+ #subl () {
+ #   "$_sublime_path" $*
+ #}
  alias st=subl
- find_project () {
- local PROJECT_ROOT="${PWD}"
- local FINAL_DEST="."
- while [[ $PROJECT_ROOT != "/" && ! -d "$PROJECT_ROOT/.git" ]]
- do
- PROJECT_ROOT=$(dirname $PROJECT_ROOT)
- done
- if [[ $PROJECT_ROOT != "/" ]]
- then
- local PROJECT_NAME="${PROJECT_ROOT##*/}"
- local SUBL_DIR=$PROJECT_ROOT
- while [[ $SUBL_DIR != "/" && ! -f "$SUBL_DIR/$PROJECT_NAME.sublime-project" ]]
- do
- SUBL_DIR=$(dirname $SUBL_DIR)
- done
- if [[ $SUBL_DIR != "/" ]]
- then
- FINAL_DEST="$SUBL_DIR/$PROJECT_NAME.sublime-project"
- else
- FINAL_DEST=$PROJECT_ROOT
- fi
- fi
- subl $FINAL_DEST
+ find_project() {
+    local PROJECT_ROOT="${PWD}"
+    local FINAL_DEST="."
+    while [[ $PROJECT_ROOT != "/" && ! -d "$PROJECT_ROOT/.git" ]]; do
+    {
+        PROJECT_ROOT=$(dirname $PROJECT_ROOT)
+    }
+    done
+    if [[ $PROJECT_ROOT != "/" ]] ;  then
+    {
+        local PROJECT_NAME="${PROJECT_ROOT##*/}"
+        local SUBL_DIR=$PROJECT_ROOT
+        while [[ $SUBL_DIR != "/" && ! -f "$SUBL_DIR/$PROJECT_NAME.sublime-project" ]]; do
+        {
+            SUBL_DIR=$(dirname $SUBL_DIR)
+        }
+        done
+        if [[ $SUBL_DIR != "/" ]];        then
+        {
+            FINAL_DEST="$SUBL_DIR/$PROJECT_NAME.sublime-project"
+        }
+        else 
+        {
+            FINAL_DEST=$PROJECT_ROOT
+        }
+        fi
+    }
+    fi
+    subl $FINAL_DEST
  }
  alias stp=find_project
  alias stt='st .'
@@ -414,54 +428,137 @@ _git_log_prettily () {
  
  
  # COLORS & PROMPT
- GRAYEDOUT="30m"
- RED="31m"
- GREEN="32m"
- YELLOW="33m"
- DARKBLUE="34m"
- PURPLE="35m"
- CYAN="36m"
- WHITEBOLD="37m"
+ G_R_A_Y_E_D_O_U_T="30m"
+ R_E_D="31m"
+ G_R_E_E_N="32m"
+ Y_E_LL_O_W="33m"
+ D_A_R_K_B_L_U_E="34m"
+ P_U_R_P_L_E="35m"
+ C_Y_A_N="36m"
+ W_H_I_T_E_B_O_LD="37m"
+
+ case  $(whoami) in
+        (root*)    _user="\[\033[01;$R_E_D\]\u" ;;
+        (je*)      _user="\[\033[01;$D_A_R_K_B_L_U_E\]\u" ;;
+        (vagrant*) _user="\[\033[01;$Y_E_LL_O_W\]\u" ;;
+        (docker*)  _user="\[\033[01;$G_R_A_Y_E_D_O_U_T\]\u" ;;
+        (zeus*)    _user="\[\033[01;$P_U_R_P_L_E\]\u" ;;
+        (*)        _user="\[\033[01;$G_R_E_E_N\]\u" ;;
+ esac
+
  
- _user="\[\033[01;$RED\]\u"
- _current_folder="\[\033[01;$CYAN\] \w"
- _prompt_char="\[\033[$WHITEBOLD\]$\[\033[00m\] "
+ _current_folder="\[\033[01;$C_Y_A_N\] \w"
+ _prompt_char="\[\033[$W_H_I_T_E_B_O_LD\]$\[\033[00m\] "
  
- _time_status="\[\033[01;$CYAN\]\`date +%H:%M:%S\`"
- _branch_name="\[\033[$YELLOW\][\$(git branch 2>/dev/null | grep '^*' | sed s/..//)]"
+ _time_status="\[\033[01;$C_Y_A_N\]\`date +%H:%M:%S\`"
+ _branch_name="\[\033[$Y_E_LL_O_W\][\$(git branch 2>/dev/null | grep '^*' | sed s/..//)]"
  
  # Column Format right align branch and time. Add columns +6 to compensate for chars inside of colors.original hack suggests -1 REF: http://stackoverflow.com/questions/7697889/how-to-show-git-status-info-on-the-right-side-of-the-terminal
  #export PS1="\$(printf \"%*s\\r%s\" \$(( COLUMNS-1 )) \"${_branch_name}${_time_status}\" \"${_user}@${_current_folder} ${_prompt_char}\")" 
  
  rightprompt()
  {
- local right_stuff="${_branch_name}${_time_status}"
- #right_stuff="right"
- if [ ! -z ${COLUMNS+x} ] ; then # check if a variable is set and not empty 
- {
- # printf "%*" "${right_stuff}"
- # }
- #else 
- # {
- #printf "%*s" $COLUMNS "${right_stuff}" #BROKEN 
- #printf "%*s" $(( COLUMNS )) "${right_stuff}" ##WORKS
- #printf "%*s" $COLUMNS "right" #WORKS 
- #printf "%*s" $COLUMNS "$(date +%H:%M:%S)" #WORKS 
- #printf "%*s" $COLUMNS "$(git branch 2>/dev/null | grep '^*' | sed s/..//)" #WORKS 
- #printf "%*s" $COLUMNS "$(git branch 2>/dev/null | grep '^*' | sed s/..//)$(date +%H:%M:%S)" #WORKS 
- #printf "%*s" $COLUMNS "[$YELLOW$(git branch 2>/dev/null | grep '^*' | sed s/..//)[01;$CYAN$(date +%H:%M:%S)" #WORKS 
- printf "%*s" $(( COLUMNS + 10)) "[$YELLOW$(git branch 2>/dev/null | grep '^*' | sed s/..//)[01;$CYAN$(date +%H:%M:%S)" #WORKS 
- }
- fi
+    local right_stuff="${_branch_name}${_time_status}"
+    #right_stuff="right"
+    if [ ! -z ${COLUMNS+x} ] ; then # check if a variable is set and not empty 
+    {
+        # printf "%*" "${right_stuff}"
+        # }
+        #else 
+        # {
+        #printf "%*s" $COLUMNS "${right_stuff}" #BROKEN 
+        #printf "%*s" $(( COLUMNS )) "${right_stuff}" ##WORKS
+        #printf "%*s" $COLUMNS "right" #WORKS 
+        #printf "%*s" $COLUMNS "$(date +%H:%M:%S)" #WORKS 
+        #printf "%*s" $COLUMNS "$(git branch 2>/dev/null | grep '^*' | sed s/..//)" #WORKS 
+        #printf "%*s" $COLUMNS "$(git branch 2>/dev/null | grep '^*' | sed s/..//)$(date +%H:%M:%S)" #WORKS 
+        # Dont work with \033 but with 
+        #   #printf "%*s" $COLUMNS "\033[$Y_E_LL_O_W$(git branch 2>/dev/null | grep '^*' | sed s/..//)\033[01;$C_Y_A_N$(date +%H:%M:%S)" #WORKS    but the \033 breaks it 
+        #   printf "%*s" $(( COLUMNS + 10)) "\033[$Y_E_LL_O_W$(git branch 2>/dev/null | grep '^*' | sed s/..//)\033[01;$C_Y_A_N $(date +%H:%M:%S)" #WORKS    but the \033 breaks it 
+        
+        # here using an interpreted version of \033 executed by "double quotes" in "echo -e"
+        #printf "%*s" $COLUMNS "[$YELLOW$(git branch 2>/dev/null | grep '^*' | sed s/..//)[01;$CYAN$(date +%H:%M:%S)" #WORKS 
+        printf "%*s" $(( COLUMNS + 10)) "[$Y_E_LL_O_W$(git branch 2>/dev/null | grep '^*' | sed s/..//)[01;$C_Y_A_N $(date +%H:%M:%S)" #WORKS 
+    }
+    fi
  }
  
+ is_branch_dirty_(){
+gray242="\\033[38;5;242m"
+ # Fetch to obtain a current status for remote
+    #git fetch   >/dev/null 2>&1 # suppress stdln and errln output
+
+		# conversion to bash
+		this_prompt=$(# @Overwrite of $HOME/.oh-my-zsh/lib/git.zsh
+# Outputs current branch info in prompt format
+function git_prompt_info() {
+  local ref
+  if [[ "$(command git config --get oh-my-zsh.hide-status 2>/dev/null)" != "1" ]]; then
+    ref=$(command git symbolic-ref HEAD 2> /dev/null) || \
+    ref=$(command git rev-parse --short HEAD 2> /dev/null) || return 0
+    echo "$ZSH_THEME_GIT_PROMPT_SUFFIX$gray242${ref#refs/heads/}"
+  fi
+};git_prompt_info)
+		this_ex=$(# @Overwrite of $HOME/.oh-my-zsh/lib/git.zsh
+# Outputs current branch info in prompt format
+function git_prompt_info() {
+  local ref
+  if [[ "$(command git config --get oh-my-zsh.hide-status 2>/dev/null)" != "1" ]]; then
+    ref=$(command git symbolic-ref HEAD 2> /dev/null) || \
+    ref=$(command git rev-parse --short HEAD 2> /dev/null) || return 0
+    echo "$(parse_git_dirty)"
+  fi
+};git_prompt_info)
+
+    this_ahead=$( # @Overwrite of https://stackoverflow.com/questions/7773939/show-git-ahead-and-behind-info-for-all-branches-including-remote_branchs
+branch_ahead_and_or_behind() {
+  #!/bin/bash
+  # by http://github.com/jehiah
+  # this prints out some branch status (similar to the '... ahead' info you get from git status)
+
+  # example:
+  # $ git branch-status
+  # dns_check (ahead 1) | (behind 112) origin/master
+  # master (ahead 2) | (behind 0) origin/master
+  local local_branch remote_branch
+  # before git 2.5-
+  git for-each-ref --format="%(refname:short) %(upstream:short)" refs/heads | \
+
+  # after git 2.5+
+  #git for-each-ref --format="%(refname:short) %(push:track)" refs/heads  | \
+  #  available with Git 1.9/2/0 (Q1 2014)
+  #git for-each-ref --format="%(refname:short) %(upstream:trackshort)" refs/heads | \
+  while read local_branch remote_branch
+  do
+      [ -z "$remote_branch" ] && continue
+      git rev-list --left-right ${local_branch}...${remote_branch} -- 2>/dev/null >/tmp/git_upstream_status_delta || continue
+      LEFT_AHEAD=$(grep -c '^<' /tmp/git_upstream_status_delta)
+      RIGHT_AHEAD=$(grep -c '^>' /tmp/git_upstream_status_delta)
+      echo "$local_branch (ahead $LEFT_AHEAD) | (behind $RIGHT_AHEAD) $remote_branch"
+  done
+};branch_ahead_and_or_behind)
+
+
+		#eval "echo -e \"$(git_prompt_info)${ret_status##*➜} $fg[cyan]${PWD##*/}$reset_color \"" | sed 's@%@\\@g' | sed 's@\\{@\\@g' | sed 's@\\}@\\@g' | sed -e 's@\\@@g' | tr -d '()' |  sed 's:(::;s:)::'
+		#eval "echo -e \"${ret_status##*➜} $fg[cyan]${PWD##*/}$reset_color $(git_prompt_info)\"" sed 's:(::;s:)::'
+		#eval "echo -e \"$PS1\""  | sed 's@%@\\@g' | sed 's@\\{@\\@g' | sed 's@\\}@\\@g' | sed -e 's@\\@@g'
+		echo -e $this_prompt ${ret_status##*➜} $fg[cyan]${PWD##*/}$reset_color$this_ex$gray242 $this_ahead | sed 's@%@\\@g' | sed 's@\\{@\\@g' | sed 's@\\}@\\@g' | sed -e 's@\\@@g' | tr -d '()' |  sed 's:(::;s:)::'
+ }
+   
+
  PS1='\[$(tput sc; rightprompt; tput rc)\]'
  export PS1="$PS1${_user}@${_current_folder}${_prompt_char}"
  
  
 
- loadkeys /lib/kbd/keymaps/i386/qwerty/no-latin1.map 
+ #loadkeys /lib/kbd/keymaps/i386/qwerty/no-latin1.map 
 
  
 #END 
+ 
+ 
+# PYENV
+export PATH="~/.pyenv/bin:$PATH"
+eval "$(pyenv init -)"
+eval "$(pyenv virtualenv-init -)"
  
