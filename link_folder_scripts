@@ -176,6 +176,7 @@ patch_utf_names(){
   anounce_command sudo ln -sf  "${TARGET_DIRECTORY}/crossequal" /usr/local/bin/≠
   anounce_command sudo ln -sf  "${TARGET_DIRECTORY}/middleminidot" /usr/local/bin/•
   anounce_command sudo ln -sf  "${TARGET_DIRECTORY}/ue" /usr/local/bin/ü
+  anounce_command sudo ln -sf  "${TARGET_DIRECTORY}/dimscreen" /usr/local/bin/€
 
   anounce_command sudo unlink  /usr/local/bin/cuet
   anounce_command sudo unlink  /usr/local/bin/loeschen_seo_nur_datei
