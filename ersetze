@@ -267,7 +267,8 @@ else
             #sudo apt-get install ack-grep -fy
 
             ls ./ack  | egrep 'ack' &>/dev/null
-            if [[ "${PROCESSOR_ERROR}" == "MAC" ]] && [ $? == 0 ]; then
+            err_buff=$?
+            if [[ "${PROCESSOR_ERROR}" == "MAC" ]] && [ $err_buff == 0 ]; then
             {
                 msg_green " ./ack INSTALLED."
                 SEEKER="./ack -Q ";
@@ -275,7 +276,7 @@ else
                 IGNORE_FILE="ignore-file";
                 PRINTCOMMAND="-l --print0";
             }
-            elif [[ "${PROCESSOR_ERROR}" == "INTEL" ]] && (( $? == 0 )); then
+            elif [[ "${PROCESSOR_ERROR}" == "INTEL" ]] && (( $err_buff == 0 )); then
                 {
 
                 msg_green " ./ack INSTALLED."
@@ -510,12 +511,13 @@ fi
 # If  | egrep "$SEEKING" &>/dev/null | returned an error....so it was... it was found/not found say it and stop execution for not found
 #if [ ! $? -eq 0 ] ; then #mac
 #if (( $? == 0 )) ;  then #work
-if [[ "${PROCESSOR_ERROR}" == "INTEL" ]] && (( $? == 0 )); then
+err_buff=$?
+if [[ "${PROCESSOR_ERROR}" == "INTEL" ]] && (( $err_buff == 0 )); then
     {
     msg_green "${green} FOUND !"
     echo "    ";
     }
-elif [[ "${PROCESSOR_ERROR}" == "MAC" ]] && [ $? == 0 ]; then
+elif [[ "${PROCESSOR_ERROR}" == "MAC" ]] && [ $err_buff == 0 ]; then
     {
     msg_green "${green} FOUND !"
     echo "    ";
@@ -675,12 +677,13 @@ fi
 # If  | egrep "$SEEKING" &>/dev/null | returned an error....so it was... it was found/not found say it and stop execution for not found
 #if [ $? == 0 ]; then
 #if (( $? != 0 )) ;  then  #Inverse respose It will be EMPTY $? when replacements where made!
-if [[ "${PROCESSOR_ERROR}" == "INTEL" ]] && (( $? != 0 )); then
+err_buff=$?
+if [[ "${PROCESSOR_ERROR}" == "INTEL" ]] && (( $err_buff != 0 )); then
     {
     msg_green "${green} REPLACED !"
     echo "    ";
     }
-elif [[ "${PROCESSOR_ERROR}" == "MAC" ]] && [ $? == 0 ]; then
+elif [[ "${PROCESSOR_ERROR}" == "MAC" ]] && [ $err_buff == 0 ]; then
     {
     msg_green "${green} REPLACED !"
     echo "    ";
@@ -734,7 +737,8 @@ fi
 
 #if (( $? == 0 )) ;  then #work
 #if [ ! $? == 0 ]; then #mac
-if [[ "${PROCESSOR_ERROR}" == "INTEL" ]] && (( $? == 0 )); then
+err_buff=$?
+if [[ "${PROCESSOR_ERROR}" == "INTEL" ]] && (( $err_buff == 0 )); then
     {
     echo "    ";
     echo "${cyan} REPLACE CONFIRMED ${green} FOUND !"
@@ -743,7 +747,7 @@ if [[ "${PROCESSOR_ERROR}" == "INTEL" ]] && (( $? == 0 )); then
     fi
     echo "    ";
     }
-elif [[ "${PROCESSOR_ERROR}" == "MAC" ]] && [ $? == 0 ]; then
+elif [[ "${PROCESSOR_ERROR}" == "MAC" ]] && [ $err_buff == 0 ]; then
     {
     echo "    ";
     echo "${cyan} REPLACE CONFIRMED ${green} FOUND !"

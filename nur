@@ -469,7 +469,8 @@ else
       #sudo apt-get install ack-grep -fy
 
       ls ./ack  | egrep 'ack' &>/dev/null
-      if [[ "${PROCESSOR_ERROR}" == "MAC" ]] && [ $? == 0 ]; then
+      err_buff=$?
+      if [[ "${PROCESSOR_ERROR}" == "MAC" ]] && [ $err_buff == 0 ]; then
         {
             if [ $VERBOSE -eq 1 ] ; then
               {
@@ -508,7 +509,7 @@ else
           IGNORE_FILE="ignore-file";
           PRINTCOMMAND="-l --print0";
         }
-      elif [[ "${PROCESSOR_ERROR}" == "INTEL" ]] && (( $? == 0 )); then
+      elif [[ "${PROCESSOR_ERROR}" == "INTEL" ]] && (( $err_buff == 0 )); then
         {
             if [ $VERBOSE -eq 1 ] ; then
               {
@@ -837,6 +838,7 @@ DIRSTOEXCLUDE=".cargo
 .vagrant
 .idea
 .servo
+coverage
 AbsoluteUrlBundle
 app/Stubs
 bower_components
@@ -1033,10 +1035,11 @@ fi
 
 # If  | egrep "$SEEKING" &>/dev/null | returned an error....so it was... it was found/not found say it and stop execution for not found
 #if [ $? -eq 0 ] ;then #work
+err_buff=$?
 FAILED="YES"
-if [[ "${PROCESSOR_ERROR}" == "INTEL" ]] && (( $? == 0 )); then
+if [[ "${PROCESSOR_ERROR}" == "INTEL" ]] && (( $err_buff == 0 )); then
   FAILED="NO"
-elif [[ "${PROCESSOR_ERROR}" == "MAC" ]] && [ $? == 0 ]; then
+elif [[ "${PROCESSOR_ERROR}" == "MAC" ]] && [ $err_buff == 0 ]; then
   FAILED="NO"
 fi
 
