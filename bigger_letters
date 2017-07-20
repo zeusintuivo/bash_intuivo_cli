@@ -25,4 +25,6 @@ done <<< """$(figlet -f banner $1 \
 | sed 's/oooo#oo/____#_.pppp/g' \
 | sed 's/#ooo#oo/#___#_.pppp/g' \
 | sed 's/\.pppp#o/_pppp##.pppp/g' \
+| sed s/#/##/g \
+| sed 's/o\|p\|\.\|_/oo/g' \
 )"""

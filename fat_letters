@@ -8,4 +8,24 @@
 while read -r ONE ; do
 echo """$ONE""" | sed 's/o/ /g'
 echo """$ONE""" | sed 's/o/ /g'
-done <<< """$(figlet -f banner3 $1 | sed s/#/##/g | sed 's/ /o/g' |  sed 's/o/oo/g')"""
+done <<< """$(figlet -f banner3 $1 \
+| sed 's/ /o/g' \
+| sed 's/########oo/########_.pppp/g' \
+| sed 's/########o/########.pppp/g' \
+| sed 's/##ooooo##o/##_____##.pppp/g' \
+| sed 's/##ooo##ooo/##___##__.pppp/g' \
+| sed 's/##oooo##oo/##____##_.pppp/g' \
+| sed 's/##oooooooo/##_______.pppp/g' \
+| sed 's/o######oo/_######_.pppp/g' \
+| sed 's/##ooooooo/##______.pppp/g' \
+| sed 's/oooooo##o/______##.pppp/g' \
+| sed 's/ooo##oooo/___##___.pppp/g' \
+| sed 's/##oooo##o/##____##.pppp/g' \
+| sed 's/#oo###o/#__###.pppp/g' \
+| sed 's/oo#oooo/__#___.pppp/g' \
+| sed 's/oo#oooo/__#___.pppp/g' \
+| sed 's/\.pppp####o/_____#####.pppp/g' \
+| sed 's/\.ppppo##oo/______###_.pppp/g' \
+| sed 's/#/##/g' \
+| sed 's/o\|p\|\.\|_/oo/g' \
+ )"""
