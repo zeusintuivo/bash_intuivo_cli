@@ -6,10 +6,12 @@
 #
 
 while read -r ONE ; do
-echo """$ONE""" | sed 's/o\|p\|\.\|_/ /g'
-echo """$ONE""" | sed 's/o\|p\|\.\|_/ /g'
+echo """$ONE"""  | sed 's/o/ /g'
+echo """$ONE"""  | sed 's/o/ /g'
 done <<< """$(figlet -f banner $1 \
 | sed 's/ /o/g' \
+| sed 's/#o##o#o/#_##_#.pppp/g' \
+| sed 's/##oo##o/##__##.pppp/g' \
 | sed 's/#oooooo/#_____.pppp/g' \
 | sed 's/ooooo#o/_____#.pppp/g' \
 | sed 's/#####oo/#####_.pppp/g' \
