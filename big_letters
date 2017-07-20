@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+#!/bin/bash
+#
+# @author Zeus Intuivo <zeus@intuivo.com>
+#
+#
+
+while read -r ONE ; do
+echo "$ONE"
+echo "$ONE"
+done <<< """$(figlet -f banner $1 | sed s/#/##/g | sed 's/ /  /g')"""
