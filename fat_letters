@@ -6,6 +6,6 @@
 #
 
 while read -r ONE ; do
-echo "$ONE"
-echo "$ONE"
-done <<< """$(figlet -f banner3 $1 | sed s/#/##/g | sed 's/ /  /g')"""
+echo """$ONE""" | sed 's/o/ /g'
+echo """$ONE""" | sed 's/o/ /g'
+done <<< """$(figlet -f banner3 $1 | sed s/#/##/g | sed 's/ /o/g' |  sed 's/o/oo/g')"""
