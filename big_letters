@@ -76,6 +76,8 @@ function big_letter() {
     | sed 's/oo#ooo/__#__.pppp/g' \
     | sed 's/o##ooo/_##__.pppp/g' \
     | sed 's/#o#ooo/#_#__.pppp/g' \
+    | sed 's/o#oo/_#_.pppp/g' \
+    | sed 's/###o/###.pppp/g' \
     | sed 's/#o/#.pppp/g' \
     | sed 's/\.pppp#o/_pppp##.pppp/g' \
     )"""
@@ -129,7 +131,7 @@ function big_letters_breaker() {
             sed 's/^.*\(.\{5\}\)$/\1/'
         }
 function test_big_letters() {
-    local params="$#-+1234567890qwertzuiopasdfghjklyxcvbnm"
+    local params=":$#-+1234567890qwertzuiopasdfghjklyxcvbnm"
     local  tring_length="${#params}"   # bash get string length
     TEST="YES";
     local res=""
