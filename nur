@@ -35,20 +35,29 @@ else
     PIPED="YES"
     # REF: http://stackoverflow.com/questions/2746553/bash-script-read-values-from-stdin-pipe
     # read PIPED #TOOD Works on mac osx, pending to test in linux and windows
-    PIPED=""
+    PIPED=''
+    # REF: https://stackoverflow.com/questions/7314044/use-bash-to-read-line-by-line-and-keep-space
+    # REF: http://www.unix.com/shell-programming-and-scripting/58611-resetting-ifs-variable.html
+    OLDIFS=$IFS            # resetting IFS variable
+    IFS=''                 # to read line by line and keep space
+    IFS= read -r ONEPIPE   # to avoid interpretation of backslashes.
+    PIPED="${ONEPIPE}"
     while read ONEPIPE
     do
+
          PIPED="${PIPED}
 ${ONEPIPE}"
          COUNTER=$((COUNTER+1))
     done
         if [ $COUNTER -eq 0 ]; then
+          IFS=$OLDIFS
           exit
         fi
 
+    #action="${ONEPIPE/ /⃝}"  # replace value inside string substitution expresion bash
     # TEST: echo "COUNTER: ${COUNTER}";echo "PIDED: ${PIPED}"; exit 0;
+    IFS=$OLDIFS
 fi
-
 # Piped Input
 #if [ ! -z "$PIPED" ]
 # then
@@ -953,7 +962,6 @@ fi
 if [[ $SEEKING == *"/"* ]]
 then
 {
-
     if [ $VERBOSE -eq 1 ] ; then
       {
         # NOT Colored
@@ -992,7 +1000,6 @@ then
 else
 {
 
-
     if [ $VERBOSE -eq 1 ] ; then
       {
         # NOT Colored
@@ -1002,6 +1009,7 @@ else
           }
         else
           {
+
             echo "${cyan}   ${SEEKER} \"${SEEKING}\" ${FILESCOMMAND}  ${IGNORELIST}  "
           }
         fi
@@ -1032,7 +1040,6 @@ else
 
 }
 fi
-
 # If  | egrep "$SEEKING" &>/dev/null | returned an error....so it was... it was found/not found say it and stop execution for not found
 #if [ $? -eq 0 ] ;then #work
 err_buff=$?

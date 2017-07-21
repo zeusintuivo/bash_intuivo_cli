@@ -3,21 +3,21 @@
 # @author Zeus Intuivo <zeus@intuivo.com>
 #
 
-# check to see if I used a message, then it will behave as a put 
+# check to see if I used a message, then it will behave as a put
 #bash shell script check input argument
 
-# set working directory as the scripts location during the execution of script 
+# set working directory as the scripts location during the execution of script
 # cd "$(dirname "$0")"
 
 ACTION=`basename "$0"`
 
 # if argument was not passed
-if [[ -z "$1"  ]] ; then 
+if [[ -z "$1"  ]] ; then
   # show all branches
   echo "$ACTION - Sorting files according to date recursively"
   echo " you provide path, a custom path "
   #exit 0;
-fi 
+fi
 PATHTODO="*"
 
 # REF: Sorting files according to date recursively http://stackoverflow.com/questions/5566310/how-to-recursively-find-and-list-the-latest-modified-files-in-a-directory-with-s
@@ -34,21 +34,21 @@ PATHTODO="*"
 #find $1 -type f | xargs stat --format '%Y :%y %n' | sort -nr | cut -d: -f2- | head
 #which is a bit faster.
 
-# check operation systems 
+# check operation systems
 (
-  if [[ "$(uname)" == "Darwin" ]] ; then 
-    # Do something under Mac OS X platform    
+  if [[ "$(uname)" == "Darwin" ]] ; then
+    # Do something under Mac OS X platform
     #find $1 -type f -exec stat -f "%m%t%Sm %N" "{}" \; | sort -n | cut -d: -f2- | head
     find "$PATHTODO"  -type f | xargs -I {} stat -f "%m%t%Sm %N" "{}"  | sort -n  | cut -c12-
 
-  elif [[ "$(expr substr $(uname -s) 1 5)" == "Linux" ]] ; then 
+  elif [[ "$(expr substr $(uname -s) 1 5)" == "Linux" ]] ; then
     # Do something under GNU/Linux platform
     #find $1 -type f -exec stat --format '%Y :%y %n' "{}" \; | sort -nr | cut -d: -f2- | head
-    find "$PATHTODO"  -type f -exec stat --format '%Y :%y %n' "{}" \; | sort -n | cut -c12- 
-  
-  elif [[ "$(expr substr $(uname -s) 1 10)" == "MINGW32_NT" ]] ; then 
+    find "$PATHTODO"  -type f -exec stat --format '%Y :%y %n' "{}" \; | sort -n | cut -c12-
+
+  elif [[ "$(expr substr $(uname -s) 1 10)" == "MINGW32_NT" ]] ; then
     # Do something under Windows NT platform
      echo "WINDOWS NEEDS TO LEARN"
 
-  fi 
+  fi
 )

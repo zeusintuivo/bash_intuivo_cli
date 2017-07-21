@@ -1,45 +1,45 @@
 #!/bin/bash
-# 
+#
 # @author Zeus Intuivo <zeus@intuivo.com>
 #
 #
 
 
 # if value is not set  -- exit silent it
-if [[ -z "$1"  ]] ; then 
+if [[ -z "$1"  ]] ; then
     exit 0
-fi 
+fi
 
-# Escape chars / ! 
+# Escape chars / !
 function escape_slashes {
-    sed 's/\//\\\//g' 
+    sed 's/\//\\\//g'
 }
 function escape_quotes {
-    sed 's/\"/\\\"/g' 
+    sed 's/\"/\\\"/g'
 }
 function escape_bangs {
-    sed 's/\!/\\\!/g' 
+    sed 's/\!/\\\!/g'
 }
 SEEKING=$(echo """$*"""  | escape_quotes | escape_bangs)
 SEEKING="""$*"""
 SEEKING=$(echo """$*"""   )
 
 
-# if everything else -- 
- 
-# check operation systems 
+# if everything else --
+
+# check operation systems
 (
-  if [[ "$(uname)" == "Darwin" ]] ; then 
-    # Do something under Mac OS X platform    
+  if [[ "$(uname)" == "Darwin" ]] ; then
+    # Do something under Mac OS X platform
     nur """${SEEKING}""" ;
-  elif [[ "$(expr substr $(uname -s) 1 5)" == "Linux" ]] ; then 
+  elif [[ "$(expr substr $(uname -s) 1 5)" == "Linux" ]] ; then
     # Do something under GNU/Linux platform
     nur """${SEEKING}""" ;
-  
-  elif [[ "$(expr substr $(uname -s) 1 10)" == "MINGW32_NT" ]] ; then 
+
+  elif [[ "$(expr substr $(uname -s) 1 10)" == "MINGW32_NT" ]] ; then
     # Do something under Windows NT platform
     nur """${SEEKING}""" ;
     # nothing here
-  fi 
+  fi
 )
- 
+

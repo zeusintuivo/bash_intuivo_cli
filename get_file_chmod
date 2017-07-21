@@ -5,7 +5,7 @@
 
 
 
-# set working directory as the scripts location during the execution of script 
+# set working directory as the scripts location during the execution of script
 # cd "$(dirname "$0")"
 
 # CURRENT SCRIPT EXECUTING
@@ -28,29 +28,37 @@ COUNTER=$((COUNTER+1))
 
 if [ -t 0 ]; then
     # Terminal input (keyboard) - interactive
-    PIPED=""
-else
-    # File or pipe input - non-interactive
-    PIPED="YES"
-    # REF: http://stackoverflow.com/questions/2746553/bash-script-read-values-from-stdin-pipe
-    # read PIPED #TOOD Works on mac osx, pending to test in linux and windows
-    PIPED="" 
+    PIPED=''
+    # REF: https://stackoverflow.com/questions/7314044/use-bash-to-read-line-by-line-and-keep-space
+    # REF: http://www.unix.com/shell-programming-and-scripting/58611-resetting-ifs-variable.html
+    OLDIFS=$IFS            # resetting IFS variable
+    IFS=''                 # to read line by line and keep space
+    IFS= read -r ONEPIPE   # to avoid interpretation of backslashes.
+    PIPED="${ONEPIPE}"
     while read ONEPIPE
     do
+
          PIPED="${PIPED}
 ${ONEPIPE}"
          COUNTER=$((COUNTER+1))
     done
+        if [ $COUNTER -eq 0 ]; then
+          IFS=$OLDIFS
+          exit
+        fi
+
+    #action="${ONEPIPE/ /⃝}"  # replace value inside string substitution expresion bash
     # TEST: echo "COUNTER: ${COUNTER}";echo "PIDED: ${PIPED}"; exit 0;
+    IFS=$OLDIFS
 fi
 
-# Piped Input 
+# Piped Input
 #if [ ! -z "$PIPED" ]
 # then
 #   echo "this is pipe..die "
 #   exit 0;
 #fi
-# NOT Piped Input 
+# NOT Piped Input
 #if [ -z "$PIPED" ]
 # then
 #   echo "this NOT pipe..die "
@@ -76,15 +84,15 @@ fi
 
 # ARGUMENTS ? - Start
 
-# check to see if I used a message, then it will behave as a put 
+# check to see if I used a message, then it will behave as a put
 # bash shell script check input argument
 FILENAME=""
 VERBOSE=""
-# Yes argument, not piped 
+# Yes argument, not piped
 if [ ! -z "$1" ] && [ -z "$PIPED" ]
   then
   {
-    if [[ "$1" == "-v" ]] ; 
+    if [[ "$1" == "-v" ]] ;
       then
         VERBOSE="ON"
       else
@@ -92,11 +100,11 @@ if [ ! -z "$1" ] && [ -z "$PIPED" ]
      fi
   }
 fi
-# Yes argument, yes piped 
+# Yes argument, yes piped
 if [ ! -z "$1" ] && [ ! -z "$PIPED" ]
   then
   {
-    if [[ "$1" == "-v" ]] ; 
+    if [[ "$1" == "-v" ]] ;
       then
         VERBOSE="ON"
     fi
@@ -104,7 +112,7 @@ if [ ! -z "$1" ] && [ ! -z "$PIPED" ]
   }
 fi
 
-# Not argument, yes piped 
+# Not argument, yes piped
 if [ -z "$1" ] && [ ! -z "$PIPED" ]
   then
   {
@@ -125,16 +133,16 @@ if [ -z "$1" ] && [ -z "$PIPED" ]
     echo "    "
     echo "Pick one: "
     echo "    "
-    ls 
+    ls
     exit 1;
   }
 fi
 
-# Yes argument, not piped 
-if [ ! -z "$2" ] 
+# Yes argument, not piped
+if [ ! -z "$2" ]
   then
   {
-    if [[ "$2" == "-v" ]] ; 
+    if [[ "$2" == "-v" ]] ;
       then
         VERBOSE="ON"
      fi
@@ -142,18 +150,18 @@ if [ ! -z "$2" ]
 fi
 # ARGUMENTS ? - END
 
-# WHICH SYSTEM AND TAKE ACTION ? - Start 
-# check operation systems 
+# WHICH SYSTEM AND TAKE ACTION ? - Start
+# check operation systems
 (
-  if [[ "$(uname)" == "Darwin" ]] ; then 
-    # Do something under Mac OS X platform    
+  if [[ "$(uname)" == "Darwin" ]] ; then
+    # Do something under Mac OS X platform
     while read -r ONE_FILENAME; do
       # if not empty
       PERMISIONS=""
-      if [ ! -z "${ONE_FILENAME}" ] ; then   
-        PERMISIONS=$(stat -f "%OLp" "${ONE_FILENAME}")  
+      if [ ! -z "${ONE_FILENAME}" ] ; then
+        PERMISIONS=$(stat -f "%OLp" "${ONE_FILENAME}")
       fi
-      if [[ "${VERBOSE}" == "ON" ]] ; 
+      if [[ "${VERBOSE}" == "ON" ]] ;
         then
           {
             echo "${PERMISIONS} ${ONE_FILENAME}"
@@ -165,15 +173,15 @@ fi
       fi
     done <<< "${FILENAME}"
 
-  elif [[ "$(expr substr $(uname -s) 1 5)" == "Linux" ]] ; then 
+  elif [[ "$(expr substr $(uname -s) 1 5)" == "Linux" ]] ; then
     # Do something under GNU/Linux platform
     while read -r ONE_FILENAME; do
       # if not empty
       PERMISIONS=""
-      if [ ! -z "${ONE_FILENAME}" ] ; then   
-        PERMISIONS=$(stat --format '%a' "${ONE_FILENAME}")  
+      if [ ! -z "${ONE_FILENAME}" ] ; then
+        PERMISIONS=$(stat --format '%a' "${ONE_FILENAME}")
       fi
-      if [[ "${VERBOSE}" == "ON" ]] ; 
+      if [[ "${VERBOSE}" == "ON" ]] ;
         then
           {
             echo "${PERMISIONS} ${ONE_FILENAME}"
@@ -184,12 +192,12 @@ fi
           }
       fi
     done <<< "${FILENAME}"
-  
-  elif [[ "$(expr substr $(uname -s) 1 10)" == "MINGW32_NT" ]] ; then 
+
+  elif [[ "$(expr substr $(uname -s) 1 10)" == "MINGW32_NT" ]] ; then
     # Do something under Windows NT platform
      echo "Not learned yet. nothing"
     # nothing here
-  fi 
+  fi
 )
 # WHICH SYSTEM AND TAKE ACTION ? - END
 

@@ -24,7 +24,7 @@ if [ -z "$3" ]
   FAIL=1;
 fi
 
-if [ $FAIL -eq 1 ] 
+if [ $FAIL -eq 1 ]
   then
   echo " "
   echo "Sample Usage:    - expects three arguments "
@@ -45,8 +45,8 @@ if [ -z "$4" ]
     echo "    ";
     echo "    assuming order or use ag -> ack -> grep -> local ./ack"
     echo "    ";
-    # Ack works to replace, but sift, grep, ag fail to replace with current setup 
-    # grep .* works for .zshrc 
+    # Ack works to replace, but sift, grep, ag fail to replace with current setup
+    # grep .* works for .zshrc
       DEFAULTSEEKER="ack"
     }
   else
@@ -84,11 +84,11 @@ FILESCOMMAND="";
 PRINTCOMMAND="-l --print0";
 
 
-# Test to see if file exists first 
+# Test to see if file exists first
 if [ ! -f "${FILE}" ] ; then
   {
     echo -e "${reset} File:\n      ${FILE} ${red} NOT Found! ${reset} ";
-    exit 1; 
+    exit 1;
   }
 fi
 
@@ -116,12 +116,12 @@ check_replacer () {
     #stdout UND stderr -capture  REF: https://www.thomas-krenn.com/de/wiki/Bash_stdout_und_stderr_umleiten
     ${REPLACER}  --version &> /tmp/ersetze_test_${REPLACER}.txt
     local PROPERLYWORKING=$(cat /tmp/ersetze_test_${REPLACER}.txt)
-   
+
     if [[ "$PROPERLYWORKING" == *"dyld:"* ]]; then { echo "error"; return;} fi
     if [[ "$PROPERLYWORKING" == *"GNU"* ]]; then { echo "GNU"; return;} else { echo "MAC";return;} fi
     echo "checked";
     return;
-  else 
+  else
     # msg_red "${green} ${red} CANNOT REPLACE ...${1} IS MISSING ";
     # msg_red " NEED TO INSTALL ${1}.       Linux:    sudo apt-get install ${1}         Mac:     brew install ${1}   "
     echo "install";
@@ -133,8 +133,8 @@ msg_install () {
   msg_red " NEED TO INSTALL ${1}.       Linux:    sudo apt-get install ${1}         Mac:     brew install ${1}   "
 }
 # REPLACER="sed";
-# Try vim's ex ..broke here grrr TODO research how to implement doing erestese_indatei /images/projects/ images/projects index.html did not work at all 
-REPLACER="sed"; # changed to sed 
+# Try vim's ex ..broke here grrr TODO research how to implement doing erestese_indatei /images/projects/ images/projects index.html did not work at all
+REPLACER="sed"; # changed to sed
 VALIDREPLACER=$(check_replacer "${REPLACER}")
 
 if [[ $VALIDREPLACER == "error" ]] ; then
@@ -154,7 +154,7 @@ rm /tmp/ersetze_test_${REPLACER}.txt
 if [[ $VALIDREPLACER == "install" || $VALIDREPLACER == "error"  ]] ; then
   REPLACER="sed";
   VALIDREPLACER=$(check_replacer "${REPLACER}")
-  
+
   if [[ $VALIDREPLACER == "error" ]] ; then
     msg_red "Error with replacer ${REPLACER}"
     msg_red " - Error:"
@@ -178,8 +178,8 @@ if [[ $VALIDREPLACER == "GNU" ]] ; then
 fi
 
 # C H E C K   R E P L A C E   F U N C T I O N S   I N S T A L L E D  -- RESULTS
-# Results as 
-#             $REPLACERGNU  NO OR YES 
+# Results as
+#             $REPLACERGNU  NO OR YES
 #             $REPLACERGNU  ex or sed
 #             halts execution if not found
 #
@@ -199,7 +199,7 @@ if command -v sift >/dev/null 2>&1; then
       # Fix:
       #   REF: https://github.com/svent/sift/issues/16
       #    As of version 0.4.0 sift supports two new options:
-      # 
+      #
       #    --err-skip-line-length to skip these errors
       #    --blocksize to specify a larger blocksize, allowing to search files with very long lines. Example: --blocksize 10M
 	    SEEKER="sift -nQ  --blocksize 50M";
@@ -240,7 +240,7 @@ else
 	    	IGNORE_DIR="ignore-dir";
             IGNORE_FILE="ignore-file";
             PRINTCOMMAND="-l --print0";
-		    
+
 			}
 		else
 			{
@@ -304,7 +304,7 @@ else
 			}
 		fi
 		}
-	fi		
+	fi
 	}
 fi
 #CHECK FOR CHOICE FORCE IT
@@ -320,10 +320,10 @@ if command -v ${DEFAULTSEEKER} >/dev/null 2>&1; then
         {
   		    SEEKER="sift -nQ --blocksize 50M";
   		    IGNORE_DIR="exclude-dirs";
-  		    IGNORE_FILE="exclude-files"      
-  		    PRINTCOMMAND="-l --output-sep=\"\\x00\"";  
+  		    IGNORE_FILE="exclude-files"
+  		    PRINTCOMMAND="-l --output-sep=\"\\x00\"";
 		    }
-        fi     
+        fi
         # make case sentive for ag
         if [ $DEFAULTSEEKER == "ag" ]; then
         {
@@ -341,7 +341,7 @@ if command -v ${DEFAULTSEEKER} >/dev/null 2>&1; then
             IGNORE_FILE="ignore-dir";
             PRINTCOMMAND="-l --print0";
         }
-        fi      
+        fi
         # make case sentive for local ./ack
         if [ $DEFAULTSEEKER == "./ack" ]; then
         {
@@ -360,7 +360,7 @@ if command -v ${DEFAULTSEEKER} >/dev/null 2>&1; then
             FILESCOMMAND=".";
             PRINTCOMMAND="-l --print0";
         }
-        fi     
+        fi
     }
 else
     {
@@ -371,7 +371,7 @@ fi
 
 # TARGET COMPOSITION
 # IGNORELIST="--${IGNORE_FILE}=composer.phar --${IGNORE_DIR}=vendor --${IGNORE_DIR}=.git --${IGNORE_DIR}=bower_components  --${IGNORE_DIR}=node_modules --${IGNORE_DIR}=storage/debugbar  --${IGNORE_DIR}=storage/logs  --${IGNORE_DIR}=app/Stubs "
-# 
+#
 # COMPOSE IGNORE ONELINER - start
 #
 EXCLUDEDIR="--${IGNORE_DIR}="
@@ -396,25 +396,25 @@ IGNORELIST=""
       if [ ! -z "${ONE_FILENAME}" ] ; then
         IGNORELIST="${IGNORELIST} ${EXCLUDEFILE}${ONE_FILENAME}"
       fi
-    done <<< "${FILESTOEXCLUDE}"    
+    done <<< "${FILESTOEXCLUDE}"
     while read -r ONE_DIRNAME; do
       # if not empty
       if [ ! -z "${ONE_DIRNAME}" ] ; then
         IGNORELIST="${IGNORELIST} ${EXCLUDEDIR}${ONE_DIRNAME}"
       fi
     done <<< "${DIRSTOEXCLUDE}"
-# 
+#
 # COMPOSE IGNORE ONELINER - end
 #
 
 # S E E K I N G   I N S T A L L    C H E C K  - Results
-# Results as 
-#             $SEEKER  seeker program selected form this priority sift, ag, ack, grep 
+# Results as
+#             $SEEKER  seeker program selected form this priority sift, ag, ack, grep
 #             $IGNORE_DIR  keyword used to ignore dir by program
 #             $IGNORE_FILE  keyword used to ignore dir by program
 #             $FILESCOMMAND  usually a dot (.) to indicate to search from (this) folder
 #             $PRINTCOMMAND  the pipiing command to funel to results to replacer program
-#             $IGNORELIST  construct of ignored files 
+#             $IGNORELIST  construct of ignored files
 #             halts execution if not found
 #
 SEEKING="$1";
@@ -432,12 +432,12 @@ echo "${reset} ${green} Seek ignoring $(echo ${IGNORELIST} | sed  "s@${EXCLUDEDI
 # echo "${cyan}  ag  --ignore-dir=vendor --ignore-dir=bower_components  --ignore-dir=node_modules --ignore-dir=storage/debugbar  --ignore-dir=storage/logs  --ignore-dir=app/Stubs \"${SEEKING}\" "
 # echo "${cyan}  grep  --exclude-dir=vendor --exclude-dir=bower_components  --exclude-dir=node_modules --exclude-dir=storage/debugbar  --exclude-dir=storage/logs  --exclude-dir=app/Stubs \"${SEEKING}\" "
 echo "   ";
-# THIS IS GREP FOR LINUX 
-# ack  --ignore-dir=vendor --ignore-dir=bower_components  --ignore-dir=node_modules --ignore-dir=storage/debugbar  --ignore-dir=storage/logs  --ignore-dir=app/Stubs "$SEEKING"  
+# THIS IS GREP FOR LINUX
+# ack  --ignore-dir=vendor --ignore-dir=bower_components  --ignore-dir=node_modules --ignore-dir=storage/debugbar  --ignore-dir=storage/logs  --ignore-dir=app/Stubs "$SEEKING"
 # ag  --ignore-dir=vendor --ignore-dir=bower_components  --ignore-dir=node_modules --ignore-dir=storage/debugbar  --ignore-dir=storage/logs  --ignore-dir=app/Stubs "$SEEKING"
-# grep  --exclude-dir=vendor --exclude-dir=bower_components  --exclude-dir=node_modules --exclude-dir=storage/debugbar  --exclude-dir=storage/logs  --exclude-dir=app/Stubs "$SEEKING" 
+# grep  --exclude-dir=vendor --exclude-dir=bower_components  --exclude-dir=node_modules --exclude-dir=storage/debugbar  --exclude-dir=storage/logs  --exclude-dir=app/Stubs "$SEEKING"
 #THIS IS GREP FOR MAC
-# grep  --exclude-dir=vendor --exclude-dir=bower_components  --exclude-dir=node_modules --exclude-dir=storage/debugbar  --exclude-dir=storage/logs  --exclude-dir=app/Stubs -e "$SEEKING" * 
+# grep  --exclude-dir=vendor --exclude-dir=bower_components  --exclude-dir=node_modules --exclude-dir=storage/debugbar  --exclude-dir=storage/logs  --exclude-dir=app/Stubs -e "$SEEKING" *
 
 if [[ $SEEKING == *"/"* ]]
 then
@@ -450,7 +450,7 @@ echo "${cyan}   ${SEEKER} \"${SEEKING}\" ${FILESCOMMAND} ${IGNORELIST}   ${FILE}
 }
 else
 {
-	
+
 echo "${cyan}   ${SEEKER} \"${SEEKING}\" ${FILESCOMMAND} ${IGNORELIST}   ${FILE}"
                 ${SEEKER} "$SEEKING" ${FILESCOMMAND}     ${IGNORELIST}   ${FILE}
                 ${SEEKER} "$SEEKING" ${FILESCOMMAND}     ${IGNORELIST}   ${FILE} | ${SEEKER} "$SEEKING" ${FILESCOMMAND}  &>/dev/null
@@ -465,13 +465,13 @@ then
 	echo "    ";
 	}
 else
-	{	
+	{
 	msg_red "${red} SORRY NO OCCURENCES FOUND !"
 	echo "    ";
 	exit 0;
 	}
 fi
-	
+
 
 
 echo "   ";
@@ -496,24 +496,24 @@ NEW="$2";
 # grep -l --exclude-dir=vendor --exclude-dir=bower_components  --exclude-dir=node_modules --exclude-dir=storage/debugbar  --exclude-dir=storage/logs  --exclude-dir=app/Stubs "$SEEKING" --print0 | xargs -0 sed  -i  -e s/"$SEEKING"/"$IMPLACING"/g
 # Keep this commands for reference DON'T DELETE  KEEP KEEP
 
-	
+
 # echo "${reset} ${green} Replacing ${reset} $SEEKING ${green} for ${reset} $IMPLACING  ${green} with Sed."
 echo "${reset} ${green} Replacing ${reset} $SEEKING ${green} for ${reset} $IMPLACING  ${green} with  ${SEEKER}."
 if [[ $REPLACER == "sed" ]] ; then
 	{
-    # check operation systems 
+    # check operation systems
     (
-      if [[ "$(uname)" == "Darwin" ]] ; then 
-        # Do something under Mac OS X platform    
+      if [[ "$(uname)" == "Darwin" ]] ; then
+        # Do something under Mac OS X platform
         echo " "
-      elif [[ "$(expr substr $(uname -s) 1 5)" == "Linux" ]] ; then 
+      elif [[ "$(expr substr $(uname -s) 1 5)" == "Linux" ]] ; then
         # Do something under GNU/Linux platform
         echo " "
-      elif [[ "$(expr substr $(uname -s) 1 10)" == "MINGW32_NT" ]] ; then 
+      elif [[ "$(expr substr $(uname -s) 1 10)" == "MINGW32_NT" ]] ; then
         # Do something under Windows NT platform
-      	msg_red "${green} ${red} WARNING INSIDE WINDOWS Sed locks you out of your file, and the solution is that you have to recreate the file again."		
+      	msg_red "${green} ${red} WARNING INSIDE WINDOWS Sed locks you out of your file, and the solution is that you have to recreate the file again."
         # nothing here
-      fi 
+      fi
     )
 	}
 fi
@@ -525,7 +525,7 @@ echo "${yellow} REPLACING NOW !        . . . using ${REPLACER} command ";
 
 # REF # http://stackoverflow.com/questions/11245144/replace-whole-line-containing-a-string-using-sed
 # The accepted answer did not work for me for several reasons:
-# 
+#
 #  • my version of sed does not like -i with a zero length extension
 #  • the syntax of the c\ command is weird and I couldn't get it to work
 #  • I didn't realize some of my issues are coming from unescaped slashes
@@ -533,10 +533,10 @@ echo "${yellow} REPLACING NOW !        . . . using ${REPLACER} command ";
 # So here is the solution I came up with which I think should work for most cases:
 #
 function escape_slashes {
-    sed 's/\//\\\//g' 
+    sed 's/\//\\\//g'
 }
 function escape_quotes {
-    sed 's/\"/\\\"/g' 
+    sed 's/\"/\\\"/g'
 }
 
 function change_line {
@@ -557,9 +557,9 @@ function change_line {
 IMPLACING=$(echo "${NEW}"  | escape_slashes | escape_quotes)
 
 
-# 
-# REPLACE - start 
-# 
+#
+# REPLACE - start
+#
 # If it contains forward slashes then use a different seeker
 if [[ $SEEKING == *"/"* ]]; then
   # contains slashes
@@ -587,7 +587,7 @@ if [[ $SEEKING == *"/"* ]]; then
       # ex
       # REF: http://askubuntu.com/questions/20414/find-and-replace-text-within-a-file-using-commands
       {
-        echo "${cyan}   ex -sc '%s$SEEKING$IMPLACINGg|x' ${FILE} " 
+        echo "${cyan}   ex -sc '%s$SEEKING$IMPLACINGg|x' ${FILE} "
                         ex -sc '%s$SEEKING$IMPLACINGg|x' ${FILE}
       }
     fi
@@ -617,16 +617,16 @@ if [[ $SEEKING == *"/"* ]]; then
       # ex
       {
         # VIM ex To find and replace all occurrences of case insensitive 'eth1' with 'br1', enter:
-        echo "${cyan}   ex -sc '+%s/$SEEKING/$IMPLACING/g|x' ${FILE} " 
-                        ex -sc '+%s/$SEEKING/$IMPLACING/g|x' ${FILE} 
+        echo "${cyan}   ex -sc '+%s/$SEEKING/$IMPLACING/g|x' ${FILE} "
+                        ex -sc '+%s/$SEEKING/$IMPLACING/g|x' ${FILE}
       }
     fi
-  }                                                                                                                                                                                                                                                                                                                                                                              
+  }
 fi
 echo "    ";
-# 
-# REPLACE - end 
-# 
+#
+# REPLACE - end
+#
 
 #
 # If  | egrep "$SEEKING" &>/dev/null | returned an error....so it was... it was found/not found say it and stop execution for not found
@@ -636,13 +636,13 @@ if [ $? == 0 ]; then
 	echo "    ";
 	}
 else
-	{	
+	{
 	msg_red "${red} SORRY NO REPLACEMENTS MADE !"
 	echo "    ";
 	exit 0;
 	}
 fi
-	
+
 
 echo "${green}  SEEKING ${yellow}  CONFIRM ${green} NEW VALUES NOW :   ";
 echo "    ";
@@ -654,14 +654,14 @@ then
 
 
 echo "${cyan}   ${SEEKER} \"${SEEKING}\" ${FILESCOMMAND} ${IGNORELIST}  ${FILE} "
-                ${SEEKER} "$SEEKING" ${FILESCOMMAND}     ${IGNORELIST}  ${FILE} 
+                ${SEEKER} "$SEEKING" ${FILESCOMMAND}     ${IGNORELIST}  ${FILE}
                 ${SEEKER} "$SEEKING" ${FILESCOMMAND}     ${IGNORELIST}  ${FILE}  | ${SEEKER} "$SEEKING" ${FILESCOMMAND}  &>/dev/null
 }
 else
 {
-	
+
 echo "${cyan}   ${SEEKER} \"${SEEKING}\" ${FILESCOMMAND} ${IGNORELIST}  ${FILE} "
-                ${SEEKER} "$SEEKING" ${FILESCOMMAND}     ${IGNORELIST}  ${FILE} 
+                ${SEEKER} "$SEEKING" ${FILESCOMMAND}     ${IGNORELIST}  ${FILE}
                 ${SEEKER} "$SEEKING" ${FILESCOMMAND}     ${IGNORELIST}  ${FILE}  | ${SEEKER} "$SEEKING" ${FILESCOMMAND}  &>/dev/null
 }
 fi
@@ -677,13 +677,13 @@ if [ $? == 0 ]; then
   echo "    ";
   }
 else
-  { 
+  {
   msg_red "${red} REPLACEMENT FAILED !"
   echo "    ";
   exit 0;
   }
 fi
-	
+
 
 echo "   ";
 echo "${yellow} ...";

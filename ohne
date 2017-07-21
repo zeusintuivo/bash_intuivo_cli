@@ -1,5 +1,5 @@
 #!/bin/bash
-# 
+#
 # @author Zeus Intuivo <zeus@intuivo.com>
 #
 #bash shell script check input argument ...OHNE
@@ -27,13 +27,13 @@ else
     PIPED="YES"
 fi
 
-# Piped Input 
+# Piped Input
 #if [ ! -z "$PIPED" ]
 #	then
 #	echo "this is pipe..die "
 #	exit 0;
 #fi
-# NOT Piped Input 
+# NOT Piped Input
 #if [ -z "$PIPED" ]
 #	then
 #	echo "this NOT pipe..die "
@@ -59,7 +59,7 @@ fi
 
 
 
-if [ -z "$1" ] && [ -z "$PIPED" ] 
+if [ -z "$1" ] && [ -z "$PIPED" ]
   then
     echo " "
     echo "Missing 1st argument "
@@ -81,7 +81,7 @@ if [ -z "$1" ] && [ -z "$PIPED" ]
 fi
 VERBOSE=0;
 DEFAULTSEEKER="sift"
-if [ "$1" == "-h" ] && [ -z "$PIPED" ] ; then 
+if [ "$1" == "-h" ] && [ -z "$PIPED" ] ; then
 	{
 		echo " "
 		echo " ohne - Ohne in German means without. Script used to NOT show parts of code for mac and linux"
@@ -107,7 +107,7 @@ if [ ! -z "$2" ] ; then
 	  			DEFAULTSEEKER="$2"
 			}
 		fi
-			
+
 	}
 fi
 if [ ! -z "$3" ] ; then
@@ -117,7 +117,7 @@ if [ ! -z "$3" ] ; then
 		    	echo "Verbose on";
 		    	VERBOSE=1;
 			}
-		fi			
+		fi
 	}
 fi
 
@@ -161,7 +161,7 @@ if command -v sift >/dev/null 2>&1; then
 	{
 
 
-        if [ $VERBOSE -eq 1 ] ; then  
+        if [ $VERBOSE -eq 1 ] ; then
         	{
         	    msg_green " sift INSTALLED."
         	}
@@ -171,15 +171,15 @@ if command -v sift >/dev/null 2>&1; then
 	    #-n, --line-number      show line numbers (default: off)
 	    #-Q, --literal          treat pattern as literal, quote meta characters
 	    #--output-sep=          output separator (default: "\n")
-	    
+
 	    # NOT PIPED then show line numbers
-	    if [ -z "$PIPED" ] ; then  
+	    if [ -z "$PIPED" ] ; then
         	{
         	    SEEKER="sift --err-skip-line-length -nQv ";
         	}
         fi
 	    #  PIPED then hide line numbers
-	    if [ ! -z "$PIPED" ] ; then  
+	    if [ ! -z "$PIPED" ] ; then
         	{
         	    SEEKER="sift --err-skip-line-length -Qv ";
         	}
@@ -194,8 +194,8 @@ else
 	if command -v ag >/dev/null 2>&1; then
 		{
 
-	    
-        if [ $VERBOSE -eq 1 ] ; then  
+
+        if [ $VERBOSE -eq 1 ] ; then
         	{
         		msg_green " ag INSTALLED."
         	}
@@ -204,15 +204,15 @@ else
 	    # -s  is for case sensitive
 	    #-Q --literal            Don't parse PATTERN as a regular expression
 	    #-0 --null --print0      Separate filenames with null (for 'xargs -0')
-	    
+
 	   	# NOT PIPED then show line numbers
-	    if [ -z "$PIPED" ] ; then  
+	    if [ -z "$PIPED" ] ; then
         	{
         	    SEEKER="ag -sQv ";
         	}
         fi
 	    #  PIPED then hide line numbers
-	    if [ ! -z "$PIPED" ] ; then  
+	    if [ ! -z "$PIPED" ] ; then
         	{
         	    SEEKER="ag --no-numbers -sQv ";
         	}
@@ -231,8 +231,8 @@ else
 		if command -v ack >/dev/null 2>&1; then
 			{
 
-		    
-	        if [ $VERBOSE -eq 1 ] ; then  
+
+	        if [ $VERBOSE -eq 1 ] ; then
 	        	{
 	        		msg_green " ack INSTALLED."
 	        	}
@@ -243,15 +243,15 @@ else
 		    # -Q, --literal                 Quote all metacharacters; PATTERN is litera
 
 		    # Ack DOES NOT SUPPORT HIDDING LINE NUMBERS
-	    	
+
 	    	# NOT PIPED then show line numbers
-		    if [ -z "$PIPED" ] ; then  
+		    if [ -z "$PIPED" ] ; then
 	        	{
 	        	    SEEKER="ack -Qv ";
 	        	}
 	        fi
 		    #  PIPED then hide line numbers
-		    if [ ! -z "$PIPED" ] ; then  
+		    if [ ! -z "$PIPED" ] ; then
 	        	{
 	        	    SEEKER="ack -Qv ";
 	        	}
@@ -259,7 +259,7 @@ else
 	    	IGNORE_DIR="ignore-dir";
             IGNORE_FILE="ignore-file";
             PRINTCOMMAND="-l --print0";
-		    
+
 			}
 		else
 			{
@@ -272,24 +272,24 @@ else
 			if [ $? == 0 ]; then
 				{
 
-			    
-		        if [ $VERBOSE -eq 1 ] ; then  
+
+		        if [ $VERBOSE -eq 1 ] ; then
 		        	{
 		        		msg_green " ./ack INSTALLED."
 		        	}
 		        fi
-				
+
 
 				# Ack DOES NOT SUPPORT HIDDING LINE NUMBERS
-	    	
+
 		    	# NOT PIPED then show line numbers
-			    if [ -z "$PIPED" ] ; then  
+			    if [ -z "$PIPED" ] ; then
 		        	{
 		        	    SEEKER="./ack -Qv ";
 		        	}
 		        fi
 			    #  PIPED then hide line numbers
-			    if [ ! -z "$PIPED" ] ; then  
+			    if [ ! -z "$PIPED" ] ; then
 		        	{
 		        	    SEEKER="./ack -Qv ";
 		        	}
@@ -323,28 +323,28 @@ else
 					# Interpret pattern as a set of fixed strings (i.e. force grep to behave as fgrep).
 					# -v, --invert-match
 
-				    
-			        if [ $VERBOSE -eq 1 ] ; then  
+
+			        if [ $VERBOSE -eq 1 ] ; then
 			        	{
 			        		msg_green " grep INSTALLED."
 			        	}
 			        fi
-				    
+
 				    # WHEN PIPED then show line numbers
-		            if [ -z "$PIPED" ] ; then  
+		            if [ -z "$PIPED" ] ; then
 			        	{
 			        	    SEEKER="grep -nrvE "
 			        	    FILESCOMMAND=".";
 			        	}
 			        fi
 				    #  PIPED then hide line numbers
-				    if [ ! -z "$PIPED" ] ; then  
+				    if [ ! -z "$PIPED" ] ; then
 			        	{
 			        	    SEEKER="grep -rvE "
 			        	}
 			        fi
 		            IGNORE_DIR="exclude-dir";
-		            IGNORE_FILE="exclude";		            
+		            IGNORE_FILE="exclude";
 		            PRINTCOMMAND="-l --print0";
 					}
 				else
@@ -360,7 +360,7 @@ else
 			}
 		fi
 		}
-	fi		
+	fi
 	}
 fi
 #CHECK FOR CHOICE FORCE IT
@@ -368,9 +368,9 @@ if command -v ${DEFAULTSEEKER} >/dev/null 2>&1; then
     {
         SEEKER="${DEFAULTSEEKER}";
 
-        if [ $VERBOSE -eq 1 ] && [ -z "$PIPED" ] ; then  
+        if [ $VERBOSE -eq 1 ] && [ -z "$PIPED" ] ; then
         	{
-        		echo "${cyan}  using chosen option ... ${SEEKER}  "; 
+        		echo "${cyan}  using chosen option ... ${SEEKER}  ";
         		msg_green " ${SEEKER} INSTALLED."
         	}
         fi
@@ -379,24 +379,24 @@ if command -v ${DEFAULTSEEKER} >/dev/null 2>&1; then
         if [[ "$DEFAULTSEEKER" == "sift" ]] ; then
         {
         	# -v, --invert-match                         select non-matching lines
-	    
+
 		    # NOT PIPED then show line numbers
-		    if [ -z "$PIPED" ] ; then  
+		    if [ -z "$PIPED" ] ; then
 	        	{
 	        	    SEEKER="sift --err-skip-line-length -nQv ";
 	        	}
 	        fi
 		    #  PIPED then hide line numbers
-		    if [ ! -z "$PIPED" ] ; then  
+		    if [ ! -z "$PIPED" ] ; then
 	        	{
 	        	    SEEKER="sift --err-skip-line-length -Qv ";
 	        	}
 	        fi
 		    IGNORE_DIR="exclude-dirs";
-		    IGNORE_FILE="exclude-files"      
-		    PRINTCOMMAND="-l --output-sep=\"\\x00\"";  
+		    IGNORE_FILE="exclude-files"
+		    PRINTCOMMAND="-l --output-sep=\"\\x00\"";
 		}
-        fi     
+        fi
         # make case sentive for ag
         if [[ "$DEFAULTSEEKER" == "ag" ]] ; then
         {
@@ -413,15 +413,15 @@ if command -v ${DEFAULTSEEKER} >/dev/null 2>&1; then
         	#-v, --invert-match            Invert match: select non-matching lines
 
 		    # Ack DOES NOT SUPPORT HIDDING LINE NUMBERS
-	    	
+
 	    	# NOT PIPED then show line numbers
-		    if [ -z "$PIPED" ] ; then  
+		    if [ -z "$PIPED" ] ; then
 	        	{
 	        	    SEEKER="ack -Qv ";
 	        	}
 	        fi
 		    #  PIPED then hide line numbers
-		    if [ ! -z "$PIPED" ] ; then  
+		    if [ ! -z "$PIPED" ] ; then
 	        	{
 	        	    SEEKER="ack -Qv ";
 	        	}
@@ -430,22 +430,22 @@ if command -v ${DEFAULTSEEKER} >/dev/null 2>&1; then
             IGNORE_FILE="ignore-dir";
             PRINTCOMMAND="-l --print0";
         }
-        fi      
+        fi
         # make case sentive for local ./ack
         if [[ "$DEFAULTSEEKER" == "./ack" ]] ; then
         {
         	#-v, --invert-match            Invert match: select non-matching lines
 
             # Ack DOES NOT SUPPORT HIDDING LINE NUMBERS
-	    	
+
 	    	# NOT PIPED then show line numbers
-		    if [ -z "$PIPED" ] ; then  
+		    if [ -z "$PIPED" ] ; then
 	        	{
 	        	    SEEKER="./ack -Qv ";
 	        	}
 	        fi
 		    #  PIPED then hide line numbers
-		    if [ ! -z "$PIPED" ] ; then  
+		    if [ ! -z "$PIPED" ] ; then
 	        	{
 	        	    SEEKER="./ack -Qv ";
 	        	}
@@ -460,14 +460,14 @@ if command -v ${DEFAULTSEEKER} >/dev/null 2>&1; then
         {
         	# -v, --invert-match select non-matching lines
     		 # WHEN PIPED then show line numbers
-            if [ -z "$PIPED" ] ; then  
+            if [ -z "$PIPED" ] ; then
 	        	{
 	        	    SEEKER="grep -nrvE "
 	        	    FILESCOMMAND=".";
 	        	}
 	        fi
 		    #  PIPED then hide line numbers
-		    if [ ! -z "$PIPED" ] ; then  
+		    if [ ! -z "$PIPED" ] ; then
 	        	{
 	        	    SEEKER="grep -rvE "
 	        	}
@@ -476,37 +476,37 @@ if command -v ${DEFAULTSEEKER} >/dev/null 2>&1; then
             IGNORE_FILE="exclude";
             PRINTCOMMAND="-l --print0";
         }
-        fi     
+        fi
     }
 else
     {
-	    if [ $VERBOSE -eq 1 ] && [ -z "$PIPED" ] ; then  
+	    if [ $VERBOSE -eq 1 ] && [ -z "$PIPED" ] ; then
         	{
     			echo "${cyan}  using ...${SEEKER}  "
         	}
         fi
     }
 fi
-   
+
 
 SEEKING="$1";
 IGNORELIST="--${IGNORE_FILE}=composer.phar --${IGNORE_FILE}=bootstrap.php.cache  --${IGNORE_FILE}=model --${IGNORE_FILE}=load_insert --${IGNORE_FILE}=generateparams --${IGNORE_FILE}=generatelocations --${IGNORE_FILE}=generateinserts --${IGNORE_FILE}=countalltables --${IGNORE_FILE}=conflicts --${IGNORE_DIR}=AbsoluteUrlBundle --${IGNORE_DIR}=.idea --${IGNORE_DIR}=cache --${IGNORE_DIR}=vendor --${IGNORE_DIR}=bower_components  --${IGNORE_DIR}=node_modules --${IGNORE_DIR}=storage/debugbar  --${IGNORE_DIR}=.idea  --${IGNORE_DIR}=.git --${IGNORE_DIR}=storage/logs  --${IGNORE_DIR}=app/Stubs "
 
 #If NOT verbose  and # not PIPED
-if [ $VERBOSE -eq 0 ] && [ -z "$PIPED" ] ; then  
+if [ $VERBOSE -eq 0 ] && [ -z "$PIPED" ] ; then
 	{
 		msg_green "${cyan} $SEEKING "
 		echo "    ";
 	}
 fi
 #If verbose  and # not PIPED
-if [ $VERBOSE -eq 1 ] && [ -z "$PIPED" ] ; then  
+if [ $VERBOSE -eq 1 ] && [ -z "$PIPED" ] ; then
 	{
 		echo "${reset} ${green} Finding ${reset} $SEEKING ${green}                 with  ${SEEKER} ."
 		echo "   ";
 
 		echo "   ";
-		echo "${reset} ${green} Seek ignoring composer.phar, vendor, bower_components, node_modules, storage/debugbar, app/Stub and storage/logs with ${SEEKER} -- "		
+		echo "${reset} ${green} Seek ignoring composer.phar, vendor, bower_components, node_modules, storage/debugbar, app/Stub and storage/logs with ${SEEKER} -- "
 	}
 fi
 
@@ -515,34 +515,34 @@ fi
 # echo "${cyan}  grep  --exclude-dir=vendor --exclude-dir=bower_components  --exclude-dir=node_modules --exclude-dir=storage/debugbar  --exclude-dir=storage/logs  --exclude-dir=app/Stubs \"${SEEKING}\" "
 
 #If verbose  and # not PIPED
-if [ $VERBOSE -eq 1 ] && [ -z "$PIPED" ]; then  
+if [ $VERBOSE -eq 1 ] && [ -z "$PIPED" ]; then
 	{
 		echo "   ";
 	}
 fi
-# THIS IS GREP FOR LINUX 
-# ack  --ignore-dir=vendor --ignore-dir=bower_components  --ignore-dir=node_modules --ignore-dir=storage/debugbar  --ignore-dir=storage/logs  --ignore-dir=app/Stubs "$SEEKING"  
+# THIS IS GREP FOR LINUX
+# ack  --ignore-dir=vendor --ignore-dir=bower_components  --ignore-dir=node_modules --ignore-dir=storage/debugbar  --ignore-dir=storage/logs  --ignore-dir=app/Stubs "$SEEKING"
 # ag  --ignore-dir=vendor --ignore-dir=bower_components  --ignore-dir=node_modules --ignore-dir=storage/debugbar  --ignore-dir=storage/logs  --ignore-dir=app/Stubs "$SEEKING"
-# grep  --exclude-dir=vendor --exclude-dir=bower_components  --exclude-dir=node_modules --exclude-dir=storage/debugbar  --exclude-dir=storage/logs  --exclude-dir=app/Stubs "$SEEKING" 
+# grep  --exclude-dir=vendor --exclude-dir=bower_components  --exclude-dir=node_modules --exclude-dir=storage/debugbar  --exclude-dir=storage/logs  --exclude-dir=app/Stubs "$SEEKING"
 #THIS IS GREP FOR MAC
-# grep  --exclude-dir=vendor --exclude-dir=bower_components  --exclude-dir=node_modules --exclude-dir=storage/debugbar  --exclude-dir=storage/logs  --exclude-dir=app/Stubs -e "$SEEKING" * 
+# grep  --exclude-dir=vendor --exclude-dir=bower_components  --exclude-dir=node_modules --exclude-dir=storage/debugbar  --exclude-dir=storage/logs  --exclude-dir=app/Stubs -e "$SEEKING" *
 
 if [[ $SEEKING == *"/"* ]]
 then
 {
-                                                                                                    
-        if [ $VERBOSE -eq 1 ] && [ -z "$PIPED" ] ; then  
+
+        if [ $VERBOSE -eq 1 ] && [ -z "$PIPED" ] ; then
         	{
 				echo "${cyan}   ${SEEKER} \"${SEEKING}\" ${FILESCOMMAND}  ${IGNORELIST}  "
-        	} 
-        fi   
+        	}
+        fi
         # not PIPED
-		if [ -z "$PIPED" ]; then  
+		if [ -z "$PIPED" ]; then
 			{
-                                                                                 # not output that  # remove emptylines                                   
+                                                                                 # not output that  # remove emptylines
         		RESULT=$(${SEEKER} "$SEEKING" ${FILESCOMMAND}      ${IGNORELIST} | awk "!/$SEEKING/" | sed '/^$/d')
 			}
-		else 
+		else
 			{
 				${SEEKER} "$SEEKING" ${FILESCOMMAND}      ${IGNORELIST} | awk "!/$SEEKING/" | sed '/^$/d'
 			}
@@ -551,20 +551,20 @@ then
 }
 else
 {
-	
 
-        if [ $VERBOSE -eq 1 ] && [ -z "$PIPED" ] ; then  
+
+        if [ $VERBOSE -eq 1 ] && [ -z "$PIPED" ] ; then
          	{
        			echo "${cyan}   ${SEEKER} \"${SEEKING}\" ${FILESCOMMAND}  ${IGNORELIST}  "
         	}
         fi
         # not PIPED
-		if [ -z "$PIPED" ]; then  
+		if [ -z "$PIPED" ]; then
 			{
-                                                                                 # not output that  # remove emptylines                                   
+                                                                                 # not output that  # remove emptylines
         		RESULT=$(${SEEKER} "$SEEKING" ${FILESCOMMAND}      ${IGNORELIST} | awk "!/$SEEKING/" | sed '/^$/d')
 			}
-		else 
+		else
 			{
 				${SEEKER} "$SEEKING" ${FILESCOMMAND}      ${IGNORELIST} | awk "!/$SEEKING/" | sed '/^$/d'
 				# ${SEEKER} "$SEEKING" ${FILESCOMMAND}      ${IGNORELIST}  &>/dev/null
@@ -581,7 +581,7 @@ then
 	{
 
         # not PIPED
-		if [ -z "$PIPED" ]; then  
+		if [ -z "$PIPED" ]; then
 			{
 				cut -f1 -d":" <<< "$RESULT" > /tmp/tmp1.txt
 				cut -f2 -d":" <<< "$RESULT" > /tmp/tmp2.txt
@@ -607,17 +607,17 @@ then
 				$(paste 	  /tmp/temp13.txt /tmp/temp10.txt > /tmp/temp15.txt)
 				$(paste 	  /tmp/temp15.txt /tmp/temp10.txt > /tmp/temp17.txt)
 				$(paste 	  /tmp/temp17.txt /tmp/temp10.txt > /tmp/temp19.txt)
-        #cat /tmp/temp19.txt # This was leading errors in display 
-				while read line; do    
-            echo $line    
-        done < /tmp/temp19.txt  
+        #cat /tmp/temp19.txt # This was leading errors in display
+				while read line; do
+            echo $line
+        done < /tmp/temp19.txt
 				rm /tmp/tmp1.txt /tmp/tmp2.txt /tmp/tmp4.txt /tmp/tmp6.txt /tmp/tmp8.txt /tmp/tmp10.txt /tmp/tmp12.txt /tmp/tmp14.txt /tmp/tmp16.txt /tmp/tmp18.txt /tmp/temp1.txt /tmp/temp2.txt /tmp/tomp4.txt /tmp/temp4.txt /tmp/temp6.txt /tmp/temp8.txt /tmp/temp10.txt /tmp/temp12.txt /tmp/temp14.txt /tmp/temp16.txt /tmp/temp18.txt /tmp/temp3.txt /tmp/temp5.txt /tmp/temp7.txt /tmp/temp9.txt /tmp/temp11.txt /tmp/temp13.txt /tmp/temp15.txt /tmp/temp17.txt /tmp/temp19.txt
 
 			}
 		fi
-		
 
-        if [ $VERBOSE -eq 1 ] ; then  
+
+        if [ $VERBOSE -eq 1 ] ; then
         	{
 				msg_green "${green} FOUND !"
         	}
@@ -625,8 +625,8 @@ then
 	}
 else
 	{
-		if [ -z "$PIPED" ] ; then    
-	      	{	
+		if [ -z "$PIPED" ] ; then
+	      	{
 				msg_red "${red} SORRY NO OCCURENCES FOUND !"
 	      	}
 	    fi
@@ -635,7 +635,7 @@ else
 fi
 
 # not PIPED
-if [ -z "$PIPED" ]; then  
+if [ -z "$PIPED" ]; then
 	{
 		echo "   ";
 	}
