@@ -1043,14 +1043,14 @@ fi
 # If  | egrep "$SEEKING" &>/dev/null | returned an error....so it was... it was found/not found say it and stop execution for not found
 #if [ $? -eq 0 ] ;then #work
 err_buff=$?
-FAILED="YES"
+FOUND="No"
 if [[ "${PROCESSOR_ERROR}" == "INTEL" ]] && (( $err_buff == 0 )); then
-  FAILED="NO"
+  FOUND="YES"
 elif [[ "${PROCESSOR_ERROR}" == "MAC" ]] && [ $err_buff == 0 ]; then
-  FAILED="NO"
+  FOUND="YES"
 fi
 
-if [[ "${FAILED}" == "NO" ]] ; then
+if [[ "${FOUND}" == "YES" ]] ; then
 {
         # not PIPED
     if [ -z "$PIPED" ]; then
