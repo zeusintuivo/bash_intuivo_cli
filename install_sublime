@@ -12,7 +12,7 @@ load_struct_testing_wget(){
 load_struct_testing_wget
 
 get_lastest_sublime_version() {
-    local SUBLIMELASTESTBUILD=$(curl -L https://www.sublimetext.com/3  2>/dev/null | grep 'The latest build is ....' | cut -c61-64)  # suppress only wget download messages, but keep wget output for variable
+    local SUBLIMELASTESTBUILD=$(curl -L https://www.sublimetext.com/3  2>/dev/null | sed -n "/<p\ class=\"latest\">/,/<\/div>/p" | head -1 | grep 'Build ....' | cut -c42-45)  # suppress only wget download messages, but keep wget output for variable
     wait
     [[ -z "${SUBLIMELASTESTBUILD}" ]] && failed "Sublime Version not found!"
     echo "${SUBLIMELASTESTBUILD}"
@@ -65,7 +65,7 @@ install_linux_lastest_sublime_32() {
 } # end install_linux_lastest_sublime_32
 
 install_windows_lastest_sublime_64() {
-    local SUBLIMELASTESTBUILD=$(curl -L https://www.sublimetext.com/3 | grep 'The latest build is ....' | cut -c61-64)
+    local SUBLIMELASTESTBUILD=$(curl -L https://www.sublimetext.com/3 | sed -n "/<p\ class=\"latest\">/,/<\/div>/p" | head -1 | grep 'Build ....' | cut -c42-45)
     wait
     local SUBLIMENAME="Sublime%20Text%20Build%20${SUBLIMELASTESTBUILD}%20x64%20Setup.exe"
     wait
@@ -77,7 +77,7 @@ install_windows_lastest_sublime_64() {
 } # end install_windows_lastest_sublime_64
 
 install_windows_lastest_sublime_32() {
-    local SUBLIMELASTESTBUILD=$(curl -L https://www.sublimetext.com/3 | grep 'The latest build is ....' | cut -c61-64)
+    local SUBLIMELASTESTBUILD=$(curl -L https://www.sublimetext.com/3 | sed -n "/<p\ class=\"latest\">/,/<\/div>/p" | head -1 | grep 'Build ....' | cut -c42-45)
     wait
     local SUBLIMENAME="Sublime%20Text%20Build%20${SUBLIMELASTESTBUILD}%20Setup.exe"
     wait
