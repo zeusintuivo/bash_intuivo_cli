@@ -48,7 +48,7 @@ if [[ "$1" == "-h" ]] ; then
     exit 0;
 fi
 
-DEFAULTSEEKER="sift"
+DEFAULTSEEKER="ack"
 if [ ! -z "$3" ] # Third argument not zempty
   then
     {
@@ -683,7 +683,7 @@ if [[ "${PROCESSOR_ERROR}" == "INTEL" ]] && (( $err_buff != 0 )); then
     msg_green "${green} REPLACED !"
     echo "    ";
     }
-elif [[ "${PROCESSOR_ERROR}" == "MAC" ]] && [ $err_buff == 0 ]; then
+elif [[ "${PROCESSOR_ERROR}" == "MAC" ]] && [ $err_buff != 0 ]; then
     {
     msg_green "${green} REPLACED !"
     echo "    ";
