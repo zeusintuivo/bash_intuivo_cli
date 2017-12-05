@@ -101,8 +101,16 @@ if [ -z "$1" ] && [ -z "$PIPED" ]
     echo " "
     echo "    ${THISSCRIPTNAME}    seek-this "
     echo "    ";
+    echo " "
 
-		echo "Missing 2nd argument "
+    echo "Missing 2nd argument "
+    echo " "
+    echo "Sample Usage:    - expects one argument  *required"
+    echo " "
+    echo "    ${THISSCRIPTNAME}    seek-this     filename"
+    echo "    ";
+
+		echo "Missing 3rd argument "
 	  echo " "
 		echo "Can be used:    - with two arguments   -optional "
 		echo " "
