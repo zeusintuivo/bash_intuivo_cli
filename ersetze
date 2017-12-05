@@ -48,7 +48,7 @@ if [[ "$1" == "-h" ]] ; then
     exit 0;
 fi
 
-DEFAULTSEEKER="ack"
+DEFAULTSEEKER="sift"
 if [ ! -z "$3" ] # Third argument not zempty
   then
     {
@@ -421,6 +421,10 @@ EXCLUDEDIR="--${IGNORE_DIR}="
 EXCLUDEFILE="--${IGNORE_FILE}="
 FILESTOEXCLUDE=".dir_bash_history
 .tutorial
+.description
+.env
+.env.development
+.env.test
 composer.phar"
 
 DIRSTOEXCLUDE=".git
