@@ -421,6 +421,10 @@ EXCLUDEDIR="--${IGNORE_DIR}="
 EXCLUDEFILE="--${IGNORE_FILE}="
 FILESTOEXCLUDE=".dir_bash_history
 .tutorial
+.description
+.env
+.env.development
+.env.test
 composer.phar"
 
 DIRSTOEXCLUDE=".git
