@@ -35,7 +35,7 @@ if [ -z "$1" ] && [ -z "$PIPED" ]
 fi
 
 #1 Download SQL
-mysqldump --routines -uroot -ptoor  nirvana9_rowwp > nirvana9_rowwp.sql
+mysqldump --routines -uroot -ptoor  nirvana9_rowwp > nirvana9_rowwp.sql | grep -v 'insecure'
 
 #2 REPLACE in SQL
 SEEKING="$1";

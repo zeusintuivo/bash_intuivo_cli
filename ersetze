@@ -48,7 +48,7 @@ if [[ "$1" == "-h" ]] ; then
     exit 0;
 fi
 
-DEFAULTSEEKER="ack"
+DEFAULTSEEKER="sift"
 if [ ! -z "$3" ] # Third argument not zempty
   then
     {
