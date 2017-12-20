@@ -4,15 +4,6 @@
 #
 
 
-
-# set working directory as the scripts location during the execution of script
-# cd "$(dirname "$0")"
-
-# CURRENT SCRIPT EXECUTING
-THISSCRIPTNAME=`basename "$0"`
-
-# PIPED ? - START
-
 # Bash: Detect pipe/file input in a shell script
 # REF: https://gist.github.com/davejamesmiller/1966557
 
@@ -22,12 +13,27 @@ THISSCRIPTNAME=`basename "$0"`
 
 # Source: http://www.linuxquestions.org/questions/linux-software-2/bash-scripting-pipe-input-to-script-vs.-1-570945/
 PIPED="";
-COUNTER=$((COUNTER+1))
-
+COLORED="";
+COUNTER=0;
+# ag -i filefoo /bar/
+# ag [FILE-TYPE] [OPTIONS] PATTERN [PATH]
+# ack [OPTION]... PATTERN [FILES OR DIRECTORIES]
+# sift [OPTIONS] PATTERN [FILE|PATH|tcp://HOST:PORT]...
+#  sift [OPTIONS] [-e PATTERN | -f FILE] [FILE|PATH|tcp://HOST:PORT]...
+#  sift [OPTIONS] --targets [FILE|PATH]...
+#      grep [-abcdDEFGHhIiJLlmnOopqRSsUVvwxZ] [-A num] [-B num] [-C[num]] [-e pattern] [-f file]
+#          [--binary-files=value] [--color[=when]] [--colour[=when]] [--context[=num]]
+#          [--label] [--line-buffered] [--null] [pattern] [file ...]
 # In Bash you can also use test -t to check for a terminal:
 
 if [ -t 0 ]; then
     # Terminal input (keyboard) - interactive
+    PIPED=""
+else
+    # File or pipe input - non-interactive
+    PIPED="YES"
+    # REF: http://stackoverflow.com/questions/2746553/bash-script-read-values-from-stdin-pipe
+    # read PIPED #TOOD Works on mac osx, pending to test in linux and windows
     PIPED=''
     # REF: https://stackoverflow.com/questions/7314044/use-bash-to-read-line-by-line-and-keep-space
     # REF: http://www.unix.com/shell-programming-and-scripting/58611-resetting-ifs-variable.html
@@ -51,18 +57,17 @@ ${ONEPIPE}"
     # TEST: echo "COUNTER: ${COUNTER}";echo "PIDED: ${PIPED}"; exit 0;
     IFS=$OLDIFS
 fi
-
 # Piped Input
 #if [ ! -z "$PIPED" ]
 # then
-#   echo "this is pipe..die "
-#   exit 0;
+# echo "this is pipe..die "
+# exit 0;
 #fi
 # NOT Piped Input
 #if [ -z "$PIPED" ]
 # then
-#   echo "this NOT pipe..die "
-#   exit 0;
+# echo "this NOT pipe..die "
+# exit 0;
 #fi
 #echo "PIPED:$PIPED";
 #exit;
@@ -79,6 +84,11 @@ fi
 #    PIPED=""
 
 #fi
+
+
+# CURRENT SCRIPT EXECUTING
+THISSCRIPTNAME=`basename "$0"`
+
 
 # PIPED ? - END
 
