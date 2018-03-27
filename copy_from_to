@@ -27,6 +27,7 @@ load_execute_command
 copy_using_rsync() {
     local FROMPATH="${1}"
     local TOPATH="${2}"
+    local filename just_file_name COPY_FROM one_item all_files
     anounce Copy Batch
 
     all_files=$(find "$FROMPATH" -maxdepth 1 | sed s"$FROMPATH"/g | sed 's/\.\///g' | sed '/^\.$/d' )
@@ -36,10 +37,20 @@ copy_using_rsync() {
     {
         if [ ! -z "${one_item}" ] && [[ "${FROMPATH}/${one_item}" != "${FROMPATH}/${FROMPATH}" ]]; then
         {
-            local filename=$(escape_filename <<< "${one_item}")
+            filename=$(escape_filename <<< "${one_item}")
             [ -d "${FROMPATH}/${filename}/" ] && mkdir -p "${TOPATH}/${filename}"
             anounce "${filename}"
-            anounce_command rsync -av "${FROMPATH}/${filename}" "${TOPATH}/"
+            just_file_name=$(echo $(basename "${filename}"))
+            if [ -e "${filename}" ] && [ ! -e "${FROMPATH}/${filename}" ]; then
+            {
+                COPY_FROM="${filename}"
+            }
+            elif [ ! -e "${filename}" ] && [ -e "${FROMPATH}/${filename}" ]; then
+            {
+                COPY_FROM="${FROMPATH}/${filename}"
+            }
+            fi
+            anounce_command rsync -av "${COPY_FROM}" "${TOPATH}/"
         }
         fi
     }
