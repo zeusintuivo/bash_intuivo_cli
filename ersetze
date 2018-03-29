@@ -428,6 +428,9 @@ FILESTOEXCLUDE=".dir_bash_history
 composer.phar"
 
 DIRSTOEXCLUDE=".git
+.nyc_output
+.serverless
+.tmp
 .ecryptfs
 .gvfs
 .idea

@@ -841,6 +841,9 @@ load_insert
 phpunit"
 
 DIRSTOEXCLUDE=".cargo
+.nyc_output
+.serverless
+.tmp
 .ecryptfs
 .gvfs
 .git
