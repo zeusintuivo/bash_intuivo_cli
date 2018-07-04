@@ -24,6 +24,29 @@ else
     exit 69
 fi
 
+if command -v rsync >/dev/null 2>&1; then
+    echo '.'
+else
+    echo "rsync not found. please install" 
+    exit 69
+fi
+
+
+if command -v find >/dev/null 2>&1; then
+    echo '.'
+else
+    echo "find not found. please install" 
+    exit 69
+fi
+
+
+if command -v sed >/dev/null 2>&1; then
+    echo '.'
+else
+    echo "sed not found. please install" 
+    exit 69
+fi
+
 load_execute_command(){
     EXECOMCLI=$(wget --quiet --no-check-certificate https://raw.githubusercontent.com/zeusintuivo/execute_command_intuivo_cli/master/execute_command -O -  2>/dev/null )   # suppress only curl download messages, but keep curl output for variable
     eval """${EXECOMCLI}"""
