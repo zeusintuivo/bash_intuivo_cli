@@ -112,7 +112,13 @@ fi
 FROMNAME="$1"
 TONAME="$2"
 
-FILETORENAME=$(locate_silent "${FROMNAME}".*)
+FILETORENAME=$(ö "${FROMNAME}")
+ if [ $? == 0 ]; then
+      {
+        echo "ERROR Finding File ${FROMNAME} ";
+        exit 0;
+      }
+fi
 # echo "FILETORENAME: ${FILETORENAME}"   # FILETORENAME: 
 # FILETORENAME=$(ö "${FROMNAME}".*)
 
@@ -155,7 +161,7 @@ TO="${pathonly}/${TONAME}"
 (
   if [[ "$(uname)" == "Darwin" ]] || [[ "$(expr substr $(uname -s) 1 5)" == "Linux" ]] ; then 
     # Do something under Mac OS X platform
-    if [ -e "${FROM}" ] ; then 
+    if [ -f "${FROM}" ] ; then
        mv "${FROM}" "${TO}"
     fi
     if [ $? == 0 ]; then
