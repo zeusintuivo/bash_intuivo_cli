@@ -1,0 +1,151 @@
+#!/bin/bash
+#
+# @author Zeus Intuivo <zeus@intuivo.com>
+#
+# CURRENT SCRIPT EXECUTING
+THISSCRIPTNAME=`basename "$0"`
+
+
+if [ -z "$1" ] && [ -z "$PIPED" ]
+  then
+    echo "${THISSCRIPTNAME}  replaces a ,,term'' from WordPress database, reading wp-config "
+    echo "                     file info for conextion "
+    echo " "
+    echo "                    wp-config.php file needs to have defines like this:"
+    echo " "
+    echo "                      define('WP_NAME','http://website.com');    # LOCAL_SERVER "
+    echo " "
+    echo "                    and each define must have the ,,# LOCAL_SERVER'' in each defined line "
+    echo " "
+    echo "                    Required values are:"
+    echo "                       DB_NAME, DB_USER, DB_PASSWORD, DB_HOST, WP_HOME, WP_SITEURL"
+    echo " "
+    echo "Missing 1st argument "
+    echo " "
+    echo "Sample Usage:    - expects two arguments  *required"
+    echo " "
+    echo "    ${THISSCRIPTNAME}    term-to-find    replace-with-this"
+    echo "    "
+    echo "    "
+    echo "    sample:    "
+    echo "        "
+    echo "    ${THISSCRIPTNAME}    TREEHOUSE.jpg     trees_gmbh_asa_sa_de_cv_logo.jpg"
+    echo "    ";
+    echo "       term-to-find        - is in concept the filename like TREEHOUSE.jpg ";
+    echo "        ";
+    echo "       replace-with-this   - is the new name 'trees_gmbh_asa_sa_de_cv_logo.jpg'  ";
+    echo "    ";
+    echo "     • it will download SQL form database ";
+    echo "     • it will rename the filename from TREEHOUSE.jpg to trees_gmbh_asa_sa_de_cv_logo.jpg ";
+    echo "     • it find any strings inside the SQL and change it to the new SEO term";
+    echo "     • it upload SQL to database rewriting the whole contents";
+    echo "     • cavead would be if the SQL is too big. ";
+    echo "     • created to use with a small Wordpress Joomla project";
+    echo "  ";
+  exit
+fi
+
+load_struct_testing_wget(){
+    local provider="/_/clis/execute_command_intuivo_cli/struct_testing"
+    [   -e "${provider}"  ] && source "${provider}"
+    [ ! -e "${provider}"  ] && eval """$(wget --quiet --no-check-certificate  https://raw.githubusercontent.com/zeusintuivo/execute_command_intuivo_cli/master/struct_testing -O -  2>/dev/null )"""   # suppress only wget download messages, but keep wget output for variable
+    ( ( ! command -v type passed >/dev/null 2>&1; ) && echo -e "\n \n  ERROR! Loading struct_testing \n \n " && exit 69; )
+} # end load_struct_testing_wget
+load_struct_testing_wget
+
+load_execute_command(){
+    local provider="/_/clis/execute_command_intuivo_cli/execute_command"
+    [   -e "${provider}"  ] && source "${provider}"
+    [ ! -e "${provider}"  ] && eval """$(wget --quiet --no-check-certificate  https://raw.githubusercontent.com/zeusintuivo/execute_command_intuivo_cli/master/execute_command -O -  2>/dev/null )"""   # suppress only wget download messages, but keep wget output for variable
+    ( ( ! command -v type execute_command >/dev/null 2>&1; ) && echo -e "\n \n  ERROR! Loading execute_command \n \n " && exit 69; )
+} # end load_execute_command
+load_execute_command
+
+#-1 Read wp-config
+if [ ! -e ./wp-config.php ] ; then
+{
+  echo "error: Filename wp-config.php not found!"
+  exit 69
+}
+fi
+
+function ensure_is_not_empty {
+  local NAME=$1
+  local VALUE=$2
+  if [[ -z "$VALUE" ]] ; then
+  {
+    echo "error: Filename $NAME is empty!"
+    exit 69;
+  }
+  fi
+}
+
+WP_CONFIG_FILE=$(<./wp-config.php)
+ensure_is_not_empty 'wp-config.php' """$WP_CONFIG_FILE"""
+
+DB_NAME=$(echo "$WP_CONFIG_FILE" | grep 'DB_NAME' | grep 'LOCAL_SERVER' | cut -d"'" -f4)
+DB_USER=$(echo "$WP_CONFIG_FILE" | grep 'DB_USER' | grep 'LOCAL_SERVER' | cut -d"'" -f4)
+DB_PASSWORD=$(echo "$WP_CONFIG_FILE" | grep 'DB_PASSWORD' | grep 'LOCAL_SERVER' | cut -d"'" -f4)
+DB_HOST=$(echo "$WP_CONFIG_FILE" | grep 'DB_HOST' | grep 'LOCAL_SERVER' | cut -d"'" -f4)
+WP_HOME=$(echo "$WP_CONFIG_FILE" | grep 'WP_HOME' | grep 'LOCAL_SERVER' | cut -d"'" -f4)
+WP_SITEURL=$(echo "$WP_CONFIG_FILE" | grep 'WP_SITEURL' | grep 'LOCAL_SERVER' | cut -d"'" -f4)
+
+echo 'DB_NAME' """$DB_NAME"""
+echo 'DB_USER' """$DB_USER"""
+echo 'DB_PASSWORD' """$DB_PASSWORD"""
+echo 'DB_HOST' """$DB_HOST"""
+echo 'WP_HOME' """$WP_HOME"""
+echo 'WP_SITEURL' """$WP_SITEURL"""
+
+ensure_is_not_empty 'DB_NAME' """$DB_NAME"""
+ensure_is_not_empty 'DB_USER' """$DB_USER"""
+ensure_is_not_empty 'DB_PASSWORD' """$DB_PASSWORD"""
+ensure_is_not_empty 'DB_HOST' """$DB_HOST"""
+ensure_is_not_empty 'WP_HOME' """$WP_HOME"""
+ensure_is_not_empty 'WP_SITEURL' """$WP_SITEURL"""
+
+#1 Download SQL
+anounce "mysqldump --routines -u${DB_USER} -p${DB_PASSWORD} ${DB_NAME} > temp_${DB_NAME}.sql | grep -v 'insecure'"
+mysqldump --routines -u${DB_USER} -p${DB_PASSWORD} ${DB_NAME} > temp_${DB_NAME}.sql | grep -v 'insecure'
+
+wait
+if [ ! -e ./temp_${DB_NAME}.sql ] ; then
+{
+  echo "error: DB SQL File was not created!"
+  exit 69
+}
+fi
+
+#2 REPLACE in SQL
+function escape_slashes {
+    sed 's/\//\\\//g'
+}
+function escape_quotes {
+    sed 's/\"/\\\"/g'
+}
+function escape_bangs {
+    sed 's/\!/\\\!/g'
+}
+function escape_dots {
+    sed 's/\./\\\./g'
+}
+SEEKING=$(echo """$1"""  | escape_dots | escape_slashes | escape_quotes | escape_bangs)
+
+# SEEKING="$1";
+IMPLACING="$2";
+anounce ersetseindatei "$SEEKING" "$IMPLACING" temp_${DB_NAME}.sql
+# ersetseindatei "$SEEKING" "$IMPLACING" temp_${DB_NAME}.sql
+sed -i -e s/"$SEEKING"/"$IMPLACING"/g temp_${DB_NAME}.sql
+
+# 3 wait
+wait
+
+# 4. Push Updated SQL
+anounce "mysql -A  -u${DB_USER} -p${DB_PASSWORD} ${DB_NAME} < temp_${DB_NAME}.sql"
+mysql -A  -u${DB_USER} -p${DB_PASSWORD} ${DB_NAME} < temp_${DB_NAME}.sql
+
+# 5. Clean TEMP FILE
+anounce rm -rf temp_${DB_NAME}.sql
+rm -rf temp_${DB_NAME}.sql
+
+
