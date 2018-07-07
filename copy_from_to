@@ -17,12 +17,49 @@ ${THISSCRIPTNAME}   from_path   to_path
     exit 0
 fi
 
+if command -v wget >/dev/null 2>&1; then
+    echo '.'
+else
+    echo "wget not found. please install" 
+    exit 69
+fi
+
+if command -v rsync >/dev/null 2>&1; then
+    echo '.'
+else
+    echo "rsync not found. please install" 
+    exit 69
+fi
+
+
+if command -v find >/dev/null 2>&1; then
+    echo '.'
+else
+    echo "find not found. please install" 
+    exit 69
+fi
+
+
+if command -v sed >/dev/null 2>&1; then
+    echo '.'
+else
+    echo "sed not found. please install" 
+    exit 69
+fi
+
 load_execute_command(){
     EXECOMCLI=$(wget --quiet --no-check-certificate https://raw.githubusercontent.com/zeusintuivo/execute_command_intuivo_cli/master/execute_command -O -  2>/dev/null )   # suppress only curl download messages, but keep curl output for variable
     eval """${EXECOMCLI}"""
     ( ( ! command -v type passed >/dev/null 2>&1; ) && echo -e "\n \n  ERROR! Loading execute_command \n \n " && exit 130; )
 } # end function load_execute_command
 load_execute_command
+
+if command -v anounce >/dev/null 2>&1; then
+    echo '.'
+else
+    echo "anounce not found. Check Your internet connection" 
+    exit 69
+fi
 
 copy_using_rsync() {
     local FROMPATH="${1}"
