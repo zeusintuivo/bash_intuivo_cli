@@ -139,18 +139,25 @@ fi
 # echo $filenameonly   # compareFile.inc 
 # echo $pathonly;      # libs-intuiload 
 FROM="${pathonly}/${filename}.${extension}"
-TO="${pathonly}/${TONAME}.${NEWEXTENSION}"
+TO="${pathonly}/${TONAME}"
 
 # Testing
+ echo "I will rename filename:"
  echo "MV FROM: ${FROM}"   # MV FROM: libs-intuiload/compareFile.inc
  echo "MV   TO: ${TO}"     # MV   TO: libs-intuiload/filesNotEqual.inc
+ echo " "
+ echo "I will change the term:"
+ echo "ERSETZE FROM: ${FROMNAME}"
+ echo "ERSETZE   TO: ${TONAME}"
 
-exit
+# exit
 # check operation systems 
 (
   if [[ "$(uname)" == "Darwin" ]] || [[ "$(expr substr $(uname -s) 1 5)" == "Linux" ]] ; then 
-    # Do something under Mac OS X platform    
-    mv "${FROM}" "${TO}"
+    # Do something under Mac OS X platform
+    if [ -e "${FROM}" ] ; then 
+       mv "${FROM}" "${TO}"
+    fi
     if [ $? == 0 ]; then
       {
         ersetze "${FROMNAME}" "${TONAME}"
@@ -166,7 +173,7 @@ exit
 
   elif [[ "$(expr substr $(uname -s) 1 10)" == "MINGW32_NT" ]] ; then 
     # Do something under Windows NT platform
-    ren "${FROM}" "${TO}"
+    [[ -f "${FROM}" ]] && (ren "${FROM}" "${TO}")
     ersetze "${FROMNAME}" "${TONAME}"
     ö "${TONAME}"
 
