@@ -1,0 +1,186 @@
+#!/bin/bash
+#
+# @author Zeus Intuivo <zeus@intuivo.com>
+#
+
+# check to see if I used a message, then it will behave as a put 
+#bash shell script check input argument
+
+# set working directory as the scripts location during the execution of script 
+# cd "$(dirname "$0")"
+
+
+# Bash: Detect pipe/file input in a shell script
+# REF: https://gist.github.com/davejamesmiller/1966557
+
+# How to detect whether input is from keyboard, a file, or another process.
+# Useful for writing a script that can read from standard input, or prompt the
+# user for input if there is none.
+
+# Source: http://www.linuxquestions.org/questions/linux-software-2/bash-scripting-pipe-input-to-script-vs.-1-570945/
+PIPED="";
+
+
+
+# In Bash you can also use test -t to check for a terminal:
+
+if [ -t 0 ]; then
+    # Terminal input (keyboard) - interactive
+    PIPED=""
+else
+    # File or pipe input - non-interactive
+    PIPED="YES"
+    
+fi
+
+# Piped Input 
+#if [ ! -z "$PIPED" ]
+# then
+# echo "this is pipe..die "
+# exit 0;
+#fi
+# NOT Piped Input 
+#if [ -z "$PIPED" ]
+# then
+# echo "this NOT pipe..die "
+# exit 0;
+#fi
+#echo "PIPED:$PIPED";
+#exit;
+
+# ALTERNATIVE:
+#if readlink /proc/$$/fd/0 | grep -q "^pipe:"; then
+    # Pipe input (echo abc | myscript)
+#    PIPED="YES"
+#elif file $( readlink /proc/$$/fd/0 ) | grep -q "character special"; then
+    # Terminal input (keyboard)
+#    PIPED=""
+#else
+    # File input (myscript < file.txt)
+#    PIPED=""
+
+#fi
+
+
+# CURRENT SCRIPT EXECUTING
+THISSCRIPTNAME=`basename "$0"`
+
+
+#bash shell script check input argument
+FAIL=0;
+echo "   ";
+if [ -z "$1" ] && [ -z "$PIPED" ] ; then
+  { 
+    echo "Missing 1st argument "
+    FAIL=1;
+  }
+fi
+if [ "$1" == "-h" ] && [ -z "$PIPED" ] ; then 
+  {
+    echo "Help "
+    echo "  "
+    FAIL=1;
+  }
+fi
+if [ -z "$2" ] && [ "$1" != "-h" ] ;  then
+  {
+    echo "Missing 2nd argument "
+    FAIL=1;
+  }
+fi
+if [ $FAIL -eq 1 ] ; then
+  {
+    echo " rename - Used to rename functions and files that have the same name like "
+    echo " "
+    echo " Examples: "
+    echo " "
+    echo "     FILENAME: isJson.php "
+    echo "               <?php function isJson() {} ?>"
+    echo " "
+    echo "     # Then you want to rename the function to is_json() and the filename as well. "
+    echo "     # Resulting in:"
+    echo " "
+    echo "     FILENAME: is_json.php "
+    echo "               <?php function is_json() {} ?>"
+    echo "  "
+    echo " Sample Usage:    - expects two arguments "
+    echo "  "
+    echo "    ${THISSCRIPTNAME}    replace_this_filename_function_name      with_this   new_extension "
+    echo "    ${THISSCRIPTNAME}    isJson                                   is_json     inc "
+    echo "        \--- this will look for isJson.* and  ${THISSCRIPTNAME}-it to is_json.inc   "
+    echo "        \--- this will find the term  'isJson' and  ${THISSCRIPTNAME}-it to 'is_json' in all containing file contents "
+    echo "    ";
+    echo "    ${THISSCRIPTNAME}    cards.js      Cards     es6"
+    echo "    ${THISSCRIPTNAME}    cards         Cards     es6"
+    echo "        \--- this will look for cards.* and  ${THISSCRIPTNAME}-it to cards.es6   "
+    echo "        \--- this will find the term 'cards' and  ${THISSCRIPTNAME}-it to 'Cards' in all containing file contents  "
+    echo "    ";
+    echo "    ";
+    exit 1;
+  }
+fi
+
+
+FROMNAME="$1"
+TONAME="$2"
+
+FILETORENAME=$(locate_silent "${FROMNAME}".*)
+# echo "FILETORENAME: ${FILETORENAME}"   # FILETORENAME: 
+# FILETORENAME=$(ö "${FROMNAME}".*)
+
+# BASH Parameter expansion REF: http://wiki.bash-hackers.org/syntax/pe
+filename=$(basename "$FILETORENAME")
+extension="${filename##*.}"
+filenamelong="${FILETORENAME##*./}"
+filenameonly="${FILETORENAME##*/}"
+pathonly="${filenamelong%/*}"
+NEWEXTENSION="${extension}"
+filename="${filename%.*}"
+if [ ! -z "$3" ] && [ "$1" != "-h" ] ;  then
+  {
+    NEWEXTENSION="$3"
+  }
+fi
+# Testing
+# CALL rename compareFile filesNotEqual
+# echo $FILETORENAME   # ./libs-intuiload/compareFile.inc 
+# echo $filename;      # compareFile 
+# echo $extension;     # inc 
+# echo $NEWEXTENSION   # inc 
+# echo $filenamelong   # libs-intuiload/compareFile.inc 
+# echo $filenameonly   # compareFile.inc 
+# echo $pathonly;      # libs-intuiload 
+FROM="${pathonly}/${filename}.${extension}"
+TO="${pathonly}/${TONAME}.${NEWEXTENSION}"
+
+# Testing
+ echo "MV FROM: ${FROM}"   # MV FROM: libs-intuiload/compareFile.inc
+ echo "MV   TO: ${TO}"     # MV   TO: libs-intuiload/filesNotEqual.inc
+
+# exit
+# check operation systems 
+(
+  if [[ "$(uname)" == "Darwin" ]] || [[ "$(expr substr $(uname -s) 1 5)" == "Linux" ]] ; then 
+    # Do something under Mac OS X platform    
+    mv "${FROM}" "${TO}"
+    if [ $? == 0 ]; then
+      {
+        ersetze "${FROMNAME}" "${TONAME}"
+        ö "${TONAME}"
+      }
+    else
+      { 
+        echo "ERROR Moving File ${FROM}  to ${TO}";
+        exit 0;
+      }
+    fi
+
+
+  elif [[ "$(expr substr $(uname -s) 1 10)" == "MINGW32_NT" ]] ; then 
+    # Do something under Windows NT platform
+    ren "${FROM}" "${TO}"
+    ersetze "${FROMNAME}" "${TONAME}"
+    ö "${TONAME}"
+
+  fi 
+)
