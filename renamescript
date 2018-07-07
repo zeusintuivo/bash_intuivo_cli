@@ -138,17 +138,8 @@ TO_FILENAME=$(basename "$TONAME")
     if [ -f "${FROMNAME}" ] ; then
        mv "${FROMNAME}" "${TONAME}"
     fi
-    if [ $? == 0 ]; then
-      {
         ersetze "${FROM_FILENAME}" "${TO_FILENAME}"
         ö "${TONAME}"
-      }
-    else
-      { 
-        echo "ERROR Moving File ${FROMNAME}  to ${TONAME}";
-        exit 0;
-      }
-    fi
 
 
   elif [[ "$(expr substr $(uname -s) 1 10)" == "MINGW32_NT" ]] ; then 
@@ -156,17 +147,8 @@ TO_FILENAME=$(basename "$TONAME")
     if [ -f "${FROMNAME}" ] ; then
        ren "${FROMNAME}" "${TONAME}"
     fi
-    if [ $? == 0 ]; then
-      {
         ersetze "${FROM_FILENAME}" "${TO_FILENAME}"
         ö "${TONAME}"
-      }
-    else
-      { 
-        echo "ERROR Moving File ${FROMNAME}  to ${TONAME}";
-        exit 0;
-      }
-    fi
 
   fi 
 )
