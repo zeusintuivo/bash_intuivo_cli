@@ -536,14 +536,14 @@ fi
 ####                   ##############           ##############      ####        ####    ################
 
 err_buff=$?
-echo "err_buff=$err_buff"
+# echo "err_buff=$err_buff"
 if [[ "${PROCESSOR_ERROR}" == "INTEL" ]] && (( $err_buff == 0 )); then
 {
     msg_green "${green} FOUND !"
     echo "    ";
     FOUND=1
 }
-elif [[ "${PROCESSOR_ERROR}" == "MAC" ]] && [ $err_buff == 1 ]; then
+elif [[ "${PROCESSOR_ERROR}" == "MAC" ]] && [ $err_buff == 0 ]; then
 {
     msg_green "${green} FOUND !"
     echo "    ";
@@ -712,7 +712,7 @@ if [[ "${PROCESSOR_ERROR}" == "INTEL" ]] && (( $err_buff != 0 )); then
     echo "    ";
     FOUND=1
     }
-elif [[ "${PROCESSOR_ERROR}" == "MAC" ]] && [ $err_buff != 1 ]; then
+elif [[ "${PROCESSOR_ERROR}" == "MAC" ]] && [ $err_buff != 0 ]; then
     {
     msg_green "${green} REPLACED !"
     echo "    ";
@@ -779,7 +779,7 @@ if [[ "${PROCESSOR_ERROR}" == "INTEL" ]] && (( $err_buff == 0 )); then
     fi
     echo "    ";
     }
-elif [[ "${PROCESSOR_ERROR}" == "MAC" ]] && [ $err_buff == 1 ]; then
+elif [[ "${PROCESSOR_ERROR}" == "MAC" ]] && [ $err_buff == 0 ]; then
     {
     echo "    ";
     echo "${cyan} REPLACE CONFIRMED ${green} FOUND !"

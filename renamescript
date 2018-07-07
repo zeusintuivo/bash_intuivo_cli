@@ -113,13 +113,13 @@ FROMNAME="$1"
 TONAME="$2"
 
 FILETORENAME=$(ö "${FROMNAME}")
- if [ $? == 0 ]; then
+ if [ -z "${FILETORENAME}" ]; then
       {
-        echo "ERROR Finding File ${FROMNAME} ";
+        echo "ERROR Filename Not Found: ${FROMNAME} ";
         exit 0;
       }
 fi
-# echo "FILETORENAME: ${FILETORENAME}"   # FILETORENAME: 
+echo "FILETORENAME: ${FILETORENAME}"   # FILETORENAME: 
 # FILETORENAME=$(ö "${FROMNAME}".*)
 
 # BASH Parameter expansion REF: http://wiki.bash-hackers.org/syntax/pe
@@ -148,6 +148,7 @@ FROM="${pathonly}/${filename}.${extension}"
 TO="${pathonly}/${TONAME}"
 
 # Testing
+ echo " "
  echo "I will rename filename:"
  echo "MV FROM: ${FROM}"   # MV FROM: libs-intuiload/compareFile.inc
  echo "MV   TO: ${TO}"     # MV   TO: libs-intuiload/filesNotEqual.inc
