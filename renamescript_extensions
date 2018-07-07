@@ -90,83 +90,25 @@ if [ -z "$2" ] && [ "$1" != "-h" ] ;  then
 fi
 if [ $FAIL -eq 1 ] ; then
   {
-    echo " ${THISSCRIPTNAME} - Used to rename scripts and files that have the same name like "
+    echo " ${THISSCRIPTNAME} - Used to rename several scripts extensions "
     echo " "
     echo " Examples: "
     echo " "
-    echo "     FILENAME: cards.js "
+    echo "     EXTENSION: js "
     echo " "
-    echo "     # The script cards.js to cards.es6 "
-    echo "     # Resulting in:  cards.es6 filename and all references to it also"
+    echo "     # The find all the scripts with .js   "
+    echo "     # Resulting in:  al scripts found renamed to .es6 filename and all references to it also"
     echo "  "
     echo " Sample Usage:    - expects two arguments "
     echo "  "
-    echo "    ${THISSCRIPTNAME}    from_name      to_name "
-    echo "    ${THISSCRIPTNAME}    cards.js       cards.es6 "
+    echo "    ${THISSCRIPTNAME}    js    es6     "
     echo "    ";
     exit 1;
   }
 fi
 
 
-FROMNAME="$1"
-TONAME="$2"
+FROMEXT="$1"
+TOEXT="$2"
 
-# echo " "
-# echo "I received for:"
-# echo "${THISSCRIPTNAME} FROM: ${FROMNAME}"   
-# echo "${THISSCRIPTNAME}   TO: ${TONAME}"  
-
-FROM_FILENAME=$(basename "$FROMNAME")
-TO_FILENAME=$(basename "$TONAME")
-
-# Testing
-# echo " "
-# echo "I will rename filename:"
-# echo "MV FROM: ${FROMNAME}"   # MV FROM: libs-intuiload/compareFile.inc
-# echo "MV   TO: ${TONAME}"     # MV   TO: libs-intuiload/filesNotEqual.inc
-# echo " "
-# echo "I will change the term:"
-# echo "ERSETZE FROM: ${FROM_FILENAME}"
-# echo "ERSETZE   TO: ${TO_FILENAME}"
-
-# exit
-# check operation systems 
-(
-  if [[ "$(uname)" == "Darwin" ]] || [[ "$(expr substr $(uname -s) 1 5)" == "Linux" ]] ; then 
-    # Do something under Mac OS X platform
-    if [ -f "${FROMNAME}" ] ; then
-       mv "${FROMNAME}" "${TONAME}"
-    fi
-    if [ $? == 0 ]; then
-      {
-        ersetze "${FROM_FILENAME}" "${TO_FILENAME}"
-        ö "${TONAME}"
-      }
-    else
-      { 
-        echo "ERROR Moving File ${FROMNAME}  to ${TONAME}";
-        exit 0;
-      }
-    fi
-
-
-  elif [[ "$(expr substr $(uname -s) 1 10)" == "MINGW32_NT" ]] ; then 
-    # Do something under Windows NT platform
-    if [ -f "${FROMNAME}" ] ; then
-       ren "${FROMNAME}" "${TONAME}"
-    fi
-    if [ $? == 0 ]; then
-      {
-        ersetze "${FROM_FILENAME}" "${TO_FILENAME}"
-        ö "${TONAME}"
-      }
-    else
-      { 
-        echo "ERROR Moving File ${FROMNAME}  to ${TONAME}";
-        exit 0;
-      }
-    fi
-
-  fi 
-)
+ö .$FROMEXT  | grep -v ".json" | xargs -I {} call_rename_script "$FROMEXT" "$TOEXT" "{}"
