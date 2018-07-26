@@ -264,6 +264,19 @@ fi
 # #             exit
 
 
+ ####        ####       #            ####       #####        ####
+ ####        ####       #            ####       #####        ####
+#    #      #    #      #           #    #      #    #      #
+#    #      #    #      #           #    #      #    #      #
+#           #    #      #           #    #      #    #       ####
+#           #    #      #           #    #      #    #       ####
+#           #    #      #           #    #      #####            #
+#           #    #      #           #    #      #####            #
+#    #      #    #      #           #    #      #   #       #    #
+#    #      #    #      #           #    #      #   #       #    #
+ ####        ####       ######       ####       #    #       ####
+ ####        ####       ######       ####       #    #       ####
+
 #
 # COLORS - Ouput - Start
 #
@@ -271,7 +284,6 @@ fi
 [[ -z "${BLACK}" ]] && BLACK="\\033[38;5;16m"
 [[ -z "${GREEN}" ]] && GREEN="\\033[38;5;22m"
 [[ -z "${CYAN}" ]] && CYAN="\\033[38;5;123m"
-[[ -z "${cyan}" ]] && cyan="\\033[38;5;123m"
 [[ -z "${PURPLE}" ]] && PURPLE="\\033[01;35m"
 [[ -z "${PURPLE_BLUE}" ]] && PURPLE_BLUE="\\033[38;5;93m"
 [[ -z "${GRAY241}" ]] && GRAY241="\\033[38;5;241m"
@@ -665,7 +677,7 @@ if command -v ${DEFAULTSEEKER} >/dev/null 2>&1; then
               }
             else
               {
-                echo "${cyan}  using chosen option ... ${SEEKER}  ";
+                echo "${CYAN}  using chosen option ... ${SEEKER}  ";
                 msg_echo " ${SEEKER} INSTALLED."
 
               }
@@ -811,7 +823,7 @@ else
     {
       if [ $VERBOSE -eq 1 ] && [ -z "$PIPED" ] ; then
           {
-          echo "${cyan}  using ...${SEEKER}  "
+          echo "${CYAN}  using ...${SEEKER}  "
           }
         fi
     }
@@ -904,7 +916,7 @@ if [ $VERBOSE -eq 0 ] && [ -z "$PIPED" ] ; then
               }
             else
               {
-                msg_echo "${cyan} $SEEKING "
+                msg_echo "${CYAN} $SEEKING "
                 echo "    ";
               }
             fi
@@ -936,9 +948,9 @@ if [ $VERBOSE -eq 1 ] && [ -z "$PIPED" ] ; then
   }
 fi
 
-# echo "${cyan}  ack  --ignore=vendor --ignore-dir=bower_components  --ignore-dir=node_modules --ignore-dir=storage/debugbar  --ignore-dir=storage/logs  --ignore-dir=app/Stubs \"${SEEKING}\" "
-# echo "${cyan}  ag  --ignore-dir=vendor --ignore-dir=bower_components  --ignore-dir=node_modules --ignore-dir=storage/debugbar  --ignore-dir=storage/logs  --ignore-dir=app/Stubs \"${SEEKING}\" "
-# echo "${cyan}  grep  --exclude-dir=vendor --exclude-dir=bower_components  --exclude-dir=node_modules --exclude-dir=storage/debugbar  --exclude-dir=storage/logs  --exclude-dir=app/Stubs \"${SEEKING}\" "
+# echo "${CYAN}  ack  --ignore=vendor --ignore-dir=bower_components  --ignore-dir=node_modules --ignore-dir=storage/debugbar  --ignore-dir=storage/logs  --ignore-dir=app/Stubs \"${SEEKING}\" "
+# echo "${CYAN}  ag  --ignore-dir=vendor --ignore-dir=bower_components  --ignore-dir=node_modules --ignore-dir=storage/debugbar  --ignore-dir=storage/logs  --ignore-dir=app/Stubs \"${SEEKING}\" "
+# echo "${CYAN}  grep  --exclude-dir=vendor --exclude-dir=bower_components  --exclude-dir=node_modules --exclude-dir=storage/debugbar  --exclude-dir=storage/logs  --exclude-dir=app/Stubs \"${SEEKING}\" "
 
 #If verbose  and # not PIPED
 if [ $VERBOSE -eq 1 ] && [ -z "$PIPED" ]; then
@@ -965,7 +977,7 @@ then
           }
         else
           {
-            echo "${cyan}   ${SEEKER} \"${SEEKING}\" ${FILESCOMMAND}  ${IGNORELIST}  "
+            echo "${CYAN}   ${SEEKER} \"${SEEKING}\" ${FILESCOMMAND}  ${IGNORELIST}  "
           }
         fi
       }
@@ -1004,7 +1016,7 @@ else
         else
           {
 
-            echo "${cyan}   ${SEEKER} \"${SEEKING}\" ${FILESCOMMAND}  ${IGNORELIST}  "
+            echo "${CYAN}   ${SEEKER} \"${SEEKING}\" ${FILESCOMMAND}  ${IGNORELIST}  "
           }
         fi
       }
