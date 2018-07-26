@@ -537,6 +537,7 @@ fi
 
 err_buff=$?
 # echo "err_buff=$err_buff"
+# echo "PROCESSOR_ERROR=$PROCESSOR_ERROR"
 if [[ "${PROCESSOR_ERROR}" == "INTEL" ]] && (( $err_buff == 0 )); then
 {
     msg_green "${green} FOUND !"
@@ -551,7 +552,7 @@ elif [[ "${PROCESSOR_ERROR}" == "MAC" ]] && [ $err_buff == 0 ]; then
 }
 else
 {
-    msg_red "${red} SORRY NO OCCURENCES FOUND !"
+    msg_red "${red} SORRY NO FOUND OCCURENCES !"
     echo "    ";
     FOUND=0
     exit 1;
