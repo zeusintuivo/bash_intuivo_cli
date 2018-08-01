@@ -539,7 +539,7 @@ then
         # not PIPED
 		if [ -z "$PIPED" ]; then
 			{
-                                                                                 # not output that  # remove emptylines
+                                                                              # sed '/^$/d'  # not output that  # remove emptylines
         		RESULT=$(${SEEKER} "$SEEKING" ${FILESCOMMAND}      ${IGNORELIST} | awk "!/$SEEKING/" | sed '/^$/d')
 			}
 		else
