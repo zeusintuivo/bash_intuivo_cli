@@ -264,26 +264,39 @@ fi
 # #             exit
 
 
-red=`tput setaf 1`
-cyan=`tput setaf 6`
-green=`tput setaf 2`
-reset=`tput sgr0`
+ ####        ####       #            ####       #####        ####
+ ####        ####       #            ####       #####        ####
+#    #      #    #      #           #    #      #    #      #
+#    #      #    #      #           #    #      #    #      #
+#           #    #      #           #    #      #    #       ####
+#           #    #      #           #    #      #    #       ####
+#           #    #      #           #    #      #####            #
+#           #    #      #           #    #      #####            #
+#    #      #    #      #           #    #      #   #       #    #
+#    #      #    #      #           #    #      #   #       #    #
+ ####        ####       ######       ####       #    #       ####
+ ####        ####       ######       ####       #    #       ####
 
-BLACK=$(tput setaf 0)
-RED=$(tput setaf 1)
-GREEN=$(tput setaf 2)
-yellow=$(tput setaf 3)
-LIME_YELLOW=$(tput setaf 190)
-POWDER_BLUE=$(tput setaf 153)
-BLUE=$(tput setaf 4)
-MAGENTA=$(tput setaf 5)
-CYAN=$(tput setaf 6)
-WHITE=$(tput setaf 7)
-BRIGHT=$(tput bold)
-NORMAL=$(tput sgr0)
-BLINK=$(tput blink)
-REVERSE=$(tput smso)
-UNDERLINE=$(tput smul)
+#
+# COLORS - Ouput - Start
+#
+
+[[ -z "${BLACK}" ]] && BLACK="\\033[38;5;16m"
+[[ -z "${GREEN}" ]] && GREEN="\\033[38;5;22m"
+[[ -z "${CYAN}" ]] && CYAN="\\033[38;5;123m"
+[[ -z "${PURPLE}" ]] && PURPLE="\\033[01;35m"
+[[ -z "${PURPLE_BLUE}" ]] && PURPLE_BLUE="\\033[38;5;93m"
+[[ -z "${GRAY241}" ]] && GRAY241="\\033[38;5;241m"
+[[ -z "${YELLOW226}" ]] && YELLOW226="\\033[38;5;226m"
+[[ -z "${YELLOW}" ]] && YELLOW="\\033[01;33m"
+[[ -z "${RESET}" ]] && RESET="\\033[0m"
+[[ -z "${RESET_PROMPT}" ]] && RESET_PROMPT="[0m"
+[[ -z "${RED}" ]] && RED="\\033[38;5;1m"
+[[ -z "${BRIGHT_BLUE87}" ]] && BRIGHT_BLUE87="\\033[38;5;87m"
+
+#
+# COLORS - Ouput - end
+#
 
 SEEKER="./ack";
 IGNORE_DIR="ignore";
@@ -291,11 +304,11 @@ FILESCOMMAND="";
 PRINTCOMMAND="-l --print0";
 
 msg_red () {
-    printf "\n${bdr}%s ${off}%s\n" "$@"
+    echo -e "${RED}${@}"
 }
 
-msg_green () {
-    printf "\n${bdg}%s ${off}%s\n" "$@"
+msg_echo () {
+    echo -e "${@}"
 }
 
 trap '{ msg_red " KEYBOARD INTERRUPT."; exit 130; }' INT
@@ -334,7 +347,7 @@ if command -v sift >/dev/null 2>&1; then
                 }
               else
                 {
-                  msg_green " sift INSTALLED."
+                  msg_echo " sift INSTALLED."
                 }
               fi
 
@@ -384,7 +397,7 @@ else
                 }
               else
                 {
-                  msg_green " ag INSTALLED."
+                  msg_echo " ag INSTALLED."
                 }
               fi
         }
@@ -435,7 +448,7 @@ else
                 }
               else
                 {
-                  msg_green " ack INSTALLED."
+                  msg_echo " ack INSTALLED."
                 }
               fi
           }
@@ -490,7 +503,7 @@ else
                   }
                 else
                   {
-                    msg_green " ./ack INSTALLED."
+                    msg_echo " ./ack INSTALLED."
                   }
                 fi
               }
@@ -529,7 +542,7 @@ else
                   }
                 else
                   {
-                    msg_green " ./ack INSTALLED."
+                    msg_echo " ./ack INSTALLED."
                   }
                 fi
               }
@@ -592,7 +605,7 @@ else
                 }
               else
                 {
-                  msg_green " grep INSTALLED."
+                  msg_echo " grep INSTALLED."
                 }
               fi
             }
@@ -629,7 +642,7 @@ else
                 echo "CANNOT SEARCH ....MISSING SEARCHER SIFT, ACK, AG, ./ACK, ./AG, ./SIFT OR GREP  ";
                 exit 1;
               } else {
-                echo "${green} ${red} CANNOT SEARCH ....MISSING SEARCHER SIFT, ACK, AG, ./ACK, ./AG, ./SIFT OR GREP  ";
+                echo -e "${RED} CANNOT SEARCH ....MISSING SEARCHER SIFT, ACK, AG, ./ACK, ./AG, ./SIFT OR GREP  ";
                 exit 1;
               }
             fi
@@ -645,8 +658,8 @@ else
   }
 fi
 # show hiden chars
-# echo -e "${cyan}" | tr -dc '[:print:]' | od -c ;
-# echo -e "${red}" | tr -dc '[:print:]' ;
+# echo -e "${CYAN" | tr -dc '[:print:]' | od -c ;
+# echo -e "${RED}" | tr -dc '[:print:]' ;
 # exit 1;
 
 #CHECK FOR CHOICE FORCE IT
@@ -664,8 +677,8 @@ if command -v ${DEFAULTSEEKER} >/dev/null 2>&1; then
               }
             else
               {
-                echo "${cyan}  using chosen option ... ${SEEKER}  ";
-                msg_green " ${SEEKER} INSTALLED."
+                echo "${CYAN}  using chosen option ... ${SEEKER}  ";
+                msg_echo " ${SEEKER} INSTALLED."
 
               }
             fi
@@ -810,7 +823,7 @@ else
     {
       if [ $VERBOSE -eq 1 ] && [ -z "$PIPED" ] ; then
           {
-          echo "${cyan}  using ...${SEEKER}  "
+          echo "${CYAN}  using ...${SEEKER}  "
           }
         fi
     }
@@ -890,16 +903,6 @@ IGNORELIST=""
 #
 
 
-#
-# COLORS - Ouput - Start
-#
-        #RESET_PROMPT="[38;5;231m"
-        RESET_PROMPT="[0m"
-#
-# COLORS - Ouput - end
-#
-
-
 
 #If NOT verbose  and # not PIPED
 if [ $VERBOSE -eq 0 ] && [ -z "$PIPED" ] ; then
@@ -908,12 +911,12 @@ if [ $VERBOSE -eq 0 ] && [ -z "$PIPED" ] ; then
             if [ ! -z "$COLORED" ] ; then
               {
                 echo "    ";
-                echo " $SEEKING "
+                echo -e " $SEEKING "
                 echo "    ";
               }
             else
               {
-                msg_green "${cyan} $SEEKING "
+                msg_echo "${CYAN} $SEEKING "
                 echo "    ";
               }
             fi
@@ -934,10 +937,10 @@ if [ $VERBOSE -eq 1 ] && [ -z "$PIPED" ] ; then
               }
             else
               {
-                echo "${reset} ${green} Finding ${reset} $SEEKING ${green}                 with  ${SEEKER} ."
+                echo "${RESET} ${GREEN} Finding ${RESET} $SEEKING ${GREEN}                 with  ${SEEKER} ."
                 echo "   ";
 
-                echo "${reset} ${green} Seek ignoring ${IGNORELIST} with ${SEEKER} -- "
+                echo "${RESET} ${GREEN} Seek ignoring ${IGNORELIST} with ${SEEKER} -- "
                 echo "   ";
               }
             fi
@@ -945,9 +948,9 @@ if [ $VERBOSE -eq 1 ] && [ -z "$PIPED" ] ; then
   }
 fi
 
-# echo "${cyan}  ack  --ignore=vendor --ignore-dir=bower_components  --ignore-dir=node_modules --ignore-dir=storage/debugbar  --ignore-dir=storage/logs  --ignore-dir=app/Stubs \"${SEEKING}\" "
-# echo "${cyan}  ag  --ignore-dir=vendor --ignore-dir=bower_components  --ignore-dir=node_modules --ignore-dir=storage/debugbar  --ignore-dir=storage/logs  --ignore-dir=app/Stubs \"${SEEKING}\" "
-# echo "${cyan}  grep  --exclude-dir=vendor --exclude-dir=bower_components  --exclude-dir=node_modules --exclude-dir=storage/debugbar  --exclude-dir=storage/logs  --exclude-dir=app/Stubs \"${SEEKING}\" "
+# echo "${CYAN}  ack  --ignore=vendor --ignore-dir=bower_components  --ignore-dir=node_modules --ignore-dir=storage/debugbar  --ignore-dir=storage/logs  --ignore-dir=app/Stubs \"${SEEKING}\" "
+# echo "${CYAN}  ag  --ignore-dir=vendor --ignore-dir=bower_components  --ignore-dir=node_modules --ignore-dir=storage/debugbar  --ignore-dir=storage/logs  --ignore-dir=app/Stubs \"${SEEKING}\" "
+# echo "${CYAN}  grep  --exclude-dir=vendor --exclude-dir=bower_components  --exclude-dir=node_modules --exclude-dir=storage/debugbar  --exclude-dir=storage/logs  --exclude-dir=app/Stubs \"${SEEKING}\" "
 
 #If verbose  and # not PIPED
 if [ $VERBOSE -eq 1 ] && [ -z "$PIPED" ]; then
@@ -974,7 +977,7 @@ then
           }
         else
           {
-            echo "${cyan}   ${SEEKER} \"${SEEKING}\" ${FILESCOMMAND}  ${IGNORELIST}  "
+            echo "${CYAN}   ${SEEKER} \"${SEEKING}\" ${FILESCOMMAND}  ${IGNORELIST}  "
           }
         fi
       }
@@ -1013,7 +1016,7 @@ else
         else
           {
 
-            echo "${cyan}   ${SEEKER} \"${SEEKING}\" ${FILESCOMMAND}  ${IGNORELIST}  "
+            echo "${CYAN}   ${SEEKER} \"${SEEKING}\" ${FILESCOMMAND}  ${IGNORELIST}  "
           }
         fi
       }
@@ -1115,9 +1118,9 @@ if [[ "${FOUND}" == "YES" ]] ; then
             # Filename
             awk '{print $0}' /tmp/tmp1.txt > /tmp/temp1.txt   # pink    #filename
             # File linenumber
-            awk '{print $0}'  /tmp/tmp2.txt > /tmp/temp2.txt # green     #line number
-            #  reset color ---mm nothing to reset hehe.
-            awk '{print $0}' /tmp/tmp4.txt > /tmp/tomp4.txt #reset color  # first results
+            awk '{print $0}'  /tmp/tmp2.txt > /tmp/temp2.txt # GREEN     #line number
+            #  RESET color ---mm nothing to RESET hehe.
+            awk '{print $0}' /tmp/tmp4.txt > /tmp/tomp4.txt #RESET color  # first results
 
             # the rest of the results
             cat /tmp/tomp4.txt | sed s"$SEEKING""$SEEKING"g > /tmp/temp4.txt   #first results
@@ -1135,13 +1138,13 @@ if [[ "${FOUND}" == "YES" ]] ; then
             awk '{print "[38;5;13m" $0}' /tmp/tmp1.txt > /tmp/temp1.txt   # pink    #filename
             #awk '{print $0}' /tmp/tmp1.txt > /tmp/temp1.txt # nocolor
             # File linenumber
-            awk '{print "[38;5;28m" $0}'  /tmp/tmp2.txt > /tmp/temp2.txt # green     #line number
+            awk '{print "[38;5;28m" $0}'  /tmp/tmp2.txt > /tmp/temp2.txt # GREEN     #line number
             #awk '{print $0}'  /tmp/tmp2.txt > /tmp/temp2.txt  #      #line number
             #awk '{print $0}'  /tmp/tmp2.txt > /tmp/temp2.txt  # nocolor
-            #  reset color
-            #awk '{print "[38;5;231m" $0}' /tmp/tmp4.txt > /tmp/tomp4.txt #reset color  # first results
+            #  RESET color
+            #awk '{print "[38;5;231m" $0}' /tmp/tmp4.txt > /tmp/tomp4.txt #RESET color  # first results
 
-            awk '{print "[0m" $0}' /tmp/tmp4.txt  > /tmp/tomp4.txt #reset color  # first results
+            awk '{print "[0m" $0}' /tmp/tmp4.txt  > /tmp/tomp4.txt #RESET color  # first results
 
             # the rest of the results
             cat /tmp/tomp4.txt | sed s"$SEEKING""[38;5;9m$SEEKING${RESET_PROMPT}"g > /tmp/temp4.txt
@@ -1183,7 +1186,7 @@ if [[ "${FOUND}" == "YES" ]] ; then
         #else
         #  echo "" > /tmp/temp17.txt
         #fi
-        #ALT!echo -e "${reset}Results:\n" > /tmp/temp19.txt
+        #ALT!echo -e "${RESET}Results:\n" > /tmp/temp19.txt
         if [ ! -s /tmp/temp18.txt ] ; then
           #ALT!$(paste -d' ' /tmp/temp17.txt /tmp/temp18.txt >> /tmp/temp19.txt)
           $(paste -d':' /tmp/temp17.txt /tmp/temp18.txt > /tmp/temp19.txt)
@@ -1230,7 +1233,7 @@ if [[ "${FOUND}" == "YES" ]] ; then
               }
             else
               {
-                msg_green "${green} FOUND !"
+                msg_echo "${GREEN} FOUND !"
               }
             fi
           }
@@ -1249,7 +1252,7 @@ else
               }
             else
               {
-                msg_red "${red} SORRY NO OCCURENCES FOUND !"
+                msg_red "SORRY NO OCCURENCES FOUND !"
                 echo "    ";
                 exit 1;
               }

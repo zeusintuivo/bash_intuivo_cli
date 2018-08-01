@@ -4,37 +4,217 @@
 # @author Zeus Intuivo <zeus@intuivo.com>
 #
 #
+COLORED="";
+TEST="";
+YELLOW_OVER_DARKBLUE="\\033[38;5;220m\\033[48;5;20m"
+RESET="\\033[0m"
+function bigger_letter() {
+    local ONE
+    while read -r ONE ; do
+    {
+        #  NOT Colored
+        if [ -z "$COLORED" ] ; then  # is empty
+        {
+            #| sed 's/o\|p\|\.\|_/o/g' \
+            if [[ "$TEST" == 'YES' ]] ; then
+            {
+                echo """$ONE""" | sed 's/o/ /g'
+                echo """$ONE""" | sed 's/o/ /g'
+            }
+            else
+            {
+                echo """$ONE""" | sed 's/#/##/g' | sed 's/o\|p\|\.\|_/oo/g' | sed 's/o/ /g'
+                echo """$ONE""" | sed 's/#/##/g' | sed 's/o\|p\|\.\|_/oo/g' | sed 's/o/ /g'
+            }
+            fi
+        }
+        else
+        {
+            echo -e "$YELLOW_OVER_DARKBLUE""""$ONE""""$RESET"  | sed 's/o/ /g'
+            echo -e "$YELLOW_OVER_DARKBLUE""""$ONE""""$RESET"  | sed 's/o/ /g'
+        }
+        fi
+    }
+    done <<< """$(figlet -f banner $1 \
+    | sed 's/ /o/g' \
+    | sed 's/#oooo#oo/##____##_.pppp/g' \
+    | sed 's/ooooo#oo/______##_.pppp/g' \
+    | sed 's/o#####oo/_#######_.pppp/g' \
+    | sed 's/#ooooo#o/##_____##.pppp/g' \
+    | sed 's/oooooo#o/_______##.pppp/g' \
+    | sed 's/o#####oo/_#######_.pppp/g' \
+    | sed 's/#ooooooo/###______.pppp/g' \
+    | sed 's/#######o/#########.pppp/g' \
+    | sed 's/oo###ooo/__#####__.pppp/g' \
+    | sed 's/o#ooo#oo/_##___##_.pppp/g' \
+    | sed 's/#ooooo#o/##_____##.pppp/g' \
+    | sed 's/o###o#o/_####_##.pppp/g' \
+    | sed 's/#oo#o#o/##__#_##.pppp/g' \
+    | sed 's/#o##o#o/##_##_##.pppp/g' \
+    | sed 's/##oo##o/###__###.pppp/g' \
+    | sed 's/#oooooo/###_____.pppp/g' \
+    | sed 's/ooooo#o/_____###.pppp/g' \
+    | sed 's/#####oo/#######_.pppp/g' \
+    | sed 's/#oooo#o/##____##.pppp/g' \
+    | sed 's/o#oo#oo/_##__##_.pppp/g' \
+    | sed 's/oo##ooo/__####__.pppp/g' \
+    | sed 's/o####oo/_######_.pppp/g' \
+    | sed 's/######o/########.pppp/g' \
+    | sed 's/#oo###o/##__####.pppp/g' \
+    | sed 's/o#ooooo/_###____.pppp/g' \
+    | sed 's/oo#oooo/__###___.pppp/g' \
+    | sed 's/ooo#ooo/___###__.pppp/g' \
+    | sed 's/oooo#oo/____###_.pppp/g' \
+    | sed 's/#ooo#oo/##___##_.pppp/g' \
+    | sed 's/####ooo/######__.pppp/g' \
+    | sed 's/##ooo#o/###___##.pppp/g' \
+    | sed 's/#o#oo#o/##_#__##.pppp/g' \
+    | sed 's/#ooo##o/##___###.pppp/g' \
+    | sed 's/#####o/#######.pppp/g' \
+    | sed 's/#ooo#o/##___##.pppp/g' \
+    | sed 's/o#o#oo/_##_##_.pppp/g' \
+    | sed 's/oo#ooo/__###__.pppp/g' \
+    | sed 's/o##ooo/_####__.pppp/g' \
+    | sed 's/#o#ooo/##_##__.pppp/g' \
+    | sed 's/o#oo/_###_.pppp/g' \
+    | sed 's/###o/#####.pppp/g' \
+    | sed 's/#o/#.pppp/g' \
+    | sed 's/\.pppp#o/_pppp##.pppp/g' \
+    )"""
+} # end bigger_letter
 
-while read -r ONE ; do
-echo """$ONE""" | sed 's/o/ /g'
-echo """$ONE""" | sed 's/o/ /g'
-done <<< """$(figlet -f banner3 $1 \
-| sed 's/ /o/g' \
-| sed 's/o###oo###oo/_###__###_.pppp/g' \
-| sed 's/##ooo####o/##___####.pppp/g' \
-| sed 's/o######ooo/_######__.pppp/g' \
-| sed 's/o######oo/_######_.pppp/g' \
-| sed 's/##oo##oo##o/##__##__##.pppp/g' \
-| sed 's/##oooooo##o/##______##.pppp/g' \
-| sed 's/##oooooooo/##_______.pppp/g' \
-| sed 's/##oooo##oo/##____##_.pppp/g' \
-| sed 's/########oo/########_.pppp/g' \
-| sed 's/##ooooo##o/##_____##.pppp/g' \
-| sed 's/##ooo##ooo/##___##__.pppp/g' \
-| sed 's/ooo###oooo/___###___.pppp/g' \
-| sed 's/oo##o##ooo/__##_##__.pppp/g' \
-| sed 's/o##ooo##oo/_##___##_.pppp/g' \
-| sed 's/########o/########.pppp/g' \
-| sed 's/######ooo/######__.pppp/g' \
-| sed 's/##ooooooo/##______.pppp/g' \
-| sed 's/oooooo##o/______##.pppp/g' \
-| sed 's/ooo##oooo/___##___.pppp/g' \
-| sed 's/##oooo##o/##____##.pppp/g' \
-| sed 's/#oo###o/#__###.pppp/g' \
-| sed 's/oo#oooo/__#___.pppp/g' \
-| sed 's/oo#oooo/__#___.pppp/g' \
-| sed 's/\.pppp####o/_____#####.pppp/g' \
-| sed 's/\.ppppo##oo/______###_.pppp/g' \
-| sed 's/#/##/g' \
-| sed 's/o\|p\|\.\|_/oo/g' \
- )"""
+function bigger_letters_breaker() {
+    local params="${@}"
+    local tring_length="${#params}"   # bash get string length
+
+    local res=""
+    # debug echo "params: $params"
+    # debug echo "tring_length: $tring_length"
+    # BASH Loops with numbers REF: https://www.cyberciti.biz/faq/unix-for-loop-1-to-10/
+    # Tested using bash version 4.1.5
+    local counter=0
+    local letter bletter
+    while [[ $counter -lt  $tring_length ]] ; do
+    {
+        # your-unix-command-here
+        # Access String like array REF: https://stackoverflow.com/questions/7578930/bash-split-string-into-character-array
+        # debug echo "counter: $counter"
+        # debug echo "letter: $letter"
+        # debug echo "res: $res"
+        letter=${params:$counter:1}
+        if [ -z "${res}" ] ; then # is_empty
+        {
+            res=$(bigger_letter $letter)
+        }
+        else
+        {
+            bletter=$(bigger_letter $letter)
+            res=$(paste  -d ' '  <(echo "$res") <(echo "$bletter"))
+        }
+        fi
+        let counter=counter+1
+    }
+    done
+    echo "${res}"
+} # end bigger_letters_breaker
+
+        function trim_start_space() {
+            sed -e 's/^[[:space:]]*//' | sed 's/^\ //g' | sed 's/^\t//g'
+        }
+        function trim_end_space() {
+            sed -e 's/[[:space:]]*$//' | sed 's/\ $//g' | sed 's/\t$//g'
+        }
+        function trim() {
+            trim_start_space | trim_end_space
+        }
+        function last_five() {
+            sed 's/^.*\(.\{5\}\)$/\1/'
+        }
+function test_bigger_letters() {
+    local params=":$#-+1234567890qwertzuiopasdfghjklyxcvbnm"
+    local  tring_length="${#params}"   # bash get string length
+    TEST="YES";
+    local res=""
+    # debug echo "params: $params"
+    # debug echo "tring_length: $tring_length"
+    # BASH Loops with numbers REF: https://www.cyberciti.biz/faq/unix-for-loop-1-to-10/
+    # Tested using bash version 4.1.5
+    local counter=0
+    local letter bletter  largest  ONE_LINE long cletter ONE_SEE_LINE
+    local error_length=0
+    while [[ $counter -lt  $tring_length ]] ; do
+    {
+        # your-unix-command-here
+        # Access String like array REF: https://stackoverflow.com/questions/7578930/bash-split-string-into-character-array
+        # debug echo "counter: $counter"
+        # debug echo "letter: $letter"
+        # debug echo "res: $res"
+        letter=${params:$counter:1}
+
+        bletter=$(bigger_letters_breaker $letter )
+        # test that the result looks squared
+        largest=0
+        long=0
+        error_length=0
+        while read -r ONE_LINE; do
+        {
+            if [ ! -z "${ONE_LINE}" ] ; then #not empty
+            {
+                long="${#ONE_LINE}"   # bash get string length
+                if [ $long -ne $largest ] ; then
+                {
+                    let error_length=error_length+1
+                    largest=$long
+                }
+                fi
+            }
+            fi
+        }
+        done <<< "${bletter}"
+
+        # test that the ends all combined end in ".pppp"
+        #res=$(echo "$bletter" | trim | last_five | sort  | uniq | tail -1)
+        res=$(echo "$bletter" | trim | last_five | sort  | uniq | sed '/\.pppp/d' )
+        if [[ "${res}" == "" ]] && [ $error_length -lt 4 ]  ; then
+        {
+            echo "($letter):passed: "
+        }
+        else
+        {
+            COLORED="YES";
+            bletter=$(bigger_letters_breaker $letter )
+            COLORED="";
+            echo "failed test for letter ($letter): res ($res) length errs ($error_length) "
+            cletter=$(figlet -f banner  $letter)
+            #echo -e "$YELLOW_OVER_DARKBLUE$ONE_SEE_LINE$RESET"  | sed 's/ /o/g'
+            # echo "${cletter}"  | sed 's/ /_/g'
+            OLD_IFS=IFS
+            IFS=''
+            for ONE_SEE_LINE in "${cletter}"; do
+            #while read -r ONE_SEE_LINE; do
+            {
+                if [ ! -z "${ONE_SEE_LINE}" ] ; then #not empty
+                {
+                    #echo -e "$YELLOW_OVER_DARKBLUE$ONE_SEE_LINE$RESET"  | sed 's/ /_/g'
+                    echo "${cletter}"  | sed 's/ /_/g'
+                }
+                fi
+            }
+            done
+            #done <<< "${cletter}"
+            IFS=$OLD_IFS
+            echo "$bletter"
+        }
+        fi
+
+        let counter=counter+1
+    }
+    done
+    TEST="NO";
+
+} # end test_bigger_letters
+COLORED="";
+# debug COLORED="YES"; bigger_letters_breaker q
+# debug
+[ ! -z "${1}" ] && [[ "${1}" == "--test" ]] && test_bigger_letters
+bigger_letters_breaker "${@}"

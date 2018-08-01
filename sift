@@ -8,13 +8,21 @@
 (
   if [[ "$(uname)" == "Darwin" ]] ; then
     # Do something under Mac OS X platform
-      [[ "$(uname -m)" == "x86_64" ]] && sift_mac_64 "$@"
-      [[ "$(uname -m)" == "i686"   ]] && sift_mac_32 "$@"
+      if [[ "$(uname -m)" == "x86_64" ]] ; then  
+        # echo "err_buff1=$?"
+        sift_mac_64 "$@"
+        # echo "err_buff2=$?"
+      elif  [[ "$(uname -m)" == "i686"   ]] ; then
+        sift_mac_32 "$@"
+      fi  
   elif [[ "$(expr substr $(uname -s) 1 5)" == "Linux" ]] ; then
     # Do something under GNU/Linux platform
     # ubuntu lsb_release -i | sed 's/Distributor\ ID://g' = \tUbuntu\n
-      [[ "$(uname -i)" == "x86_64" ]] && sift_linux_64 "$@"
-      [[ "$(uname -i)" == "i686"   ]] && sift_linux_32 "$@"
+      if [[ "$(uname -i)" == "x86_64" ]] ; then 
+        sift_linux_64 "$@"
+      elif [[ "$(uname -i)" == "i686"   ]] ; then 
+        sift_linux_32 "$@"
+      fi  
   elif [[ "$(expr substr $(uname -s) 1 10)" == "MINGW32_NT" ]] ; then
     # Do something under Windows NT platform
     sift_win_64 "$*"

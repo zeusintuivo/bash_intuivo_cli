@@ -77,14 +77,21 @@ fi
 #echo " ";
 ## SED REF: http://www.theunixschool.com/2014/08/sed-examples-remove-delete-chars-from-line-file.html
 #                                           # remove 1st character in every line:
-
+# echo "err_buff3=$?"
 findings=$(find . | ag --nocolor "/.*${SEEKING}[^/]*$" | trim_start_space | sed 's/^\../  /g')
+# echo "err_buff4=$?"
 if [[ ! -z "${findings}" ]] ; then
 {
+  # echo "err_buff5=$?"
   #ACTIONS="echo -e \"{#}\\033[38;5;232m:1\\033[0m\""
   ACTIONS="echo \"{#}\""
-  [ -d .idea/ ] && [ -f Gemfile ] && [ -d app/ ] && [ -d db/ ] && [ -d config/ ] && [ -d "test/" ] && ACTIONS="echo -e \"\\033[38;5;202m{#}\\033[38;5;232m:1\""
-   .each  "${ACTIONS}"  "${findings}"
+  # echo "err_buff6=$?"
+  if [ -d .idea/ ] && [ -f Gemfile ] && [ -d app/ ] && [ -d db/ ] && [ -d config/ ] && [ -d "test/" ] ; then 
+    ACTIONS="echo -e \"\\033[38;5;202m{#}\\033[38;5;232m:1\""
+  fi   
+  # echo "err_buff7=$?"
+  .each  "${ACTIONS}"  "${findings}"
+  # echo "err_buff8=$?" 
 }
 fi
 

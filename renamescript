@@ -1,0 +1,154 @@
+#!/bin/bash
+#
+# @author Zeus Intuivo <zeus@intuivo.com>
+#
+
+# check to see if I used a message, then it will behave as a put 
+#bash shell script check input argument
+
+# set working directory as the scripts location during the execution of script 
+# cd "$(dirname "$0")"
+
+
+# Bash: Detect pipe/file input in a shell script
+# REF: https://gist.github.com/davejamesmiller/1966557
+
+# How to detect whether input is from keyboard, a file, or another process.
+# Useful for writing a script that can read from standard input, or prompt the
+# user for input if there is none.
+
+# Source: http://www.linuxquestions.org/questions/linux-software-2/bash-scripting-pipe-input-to-script-vs.-1-570945/
+PIPED="";
+
+
+
+# In Bash you can also use test -t to check for a terminal:
+
+if [ -t 0 ]; then
+    # Terminal input (keyboard) - interactive
+    PIPED=""
+else
+    # File or pipe input - non-interactive
+    PIPED="YES"
+    
+fi
+
+# Piped Input 
+#if [ ! -z "$PIPED" ]
+# then
+# echo "this is pipe..die "
+# exit 0;
+#fi
+# NOT Piped Input 
+#if [ -z "$PIPED" ]
+# then
+# echo "this NOT pipe..die "
+# exit 0;
+#fi
+#echo "PIPED:$PIPED";
+#exit;
+
+# ALTERNATIVE:
+#if readlink /proc/$$/fd/0 | grep -q "^pipe:"; then
+    # Pipe input (echo abc | myscript)
+#    PIPED="YES"
+#elif file $( readlink /proc/$$/fd/0 ) | grep -q "character special"; then
+    # Terminal input (keyboard)
+#    PIPED=""
+#else
+    # File input (myscript < file.txt)
+#    PIPED=""
+
+#fi
+
+
+# CURRENT SCRIPT EXECUTING
+THISSCRIPTNAME=`basename "$0"`
+
+
+#bash shell script check input argument
+FAIL=0;
+# echo "   ";
+if [ -z "$1" ] && [ -z "$PIPED" ] ; then
+  { 
+    echo "Missing 1st argument "
+    FAIL=1;
+  }
+fi
+if [ "$1" == "-h" ] && [ -z "$PIPED" ] ; then 
+  {
+    echo "Help "
+    echo "  "
+    FAIL=1;
+  }
+fi
+if [ -z "$2" ] && [ "$1" != "-h" ] ;  then
+  {
+    echo "Missing 2nd argument "
+    FAIL=1;
+  }
+fi
+if [ $FAIL -eq 1 ] ; then
+  {
+    echo " ${THISSCRIPTNAME} - Used to rename scripts and files that have the same name like "
+    echo " "
+    echo " Examples: "
+    echo " "
+    echo "     FILENAME: cards.js "
+    echo " "
+    echo "     # The script cards.js to cards.es6 "
+    echo "     # Resulting in:  cards.es6 filename and all references to it also"
+    echo "  "
+    echo " Sample Usage:    - expects two arguments "
+    echo "  "
+    echo "    ${THISSCRIPTNAME}    from_name      to_name "
+    echo "    ${THISSCRIPTNAME}    cards.js       cards.es6 "
+    echo "    ";
+    exit 1;
+  }
+fi
+
+
+FROMNAME="$1"
+TONAME="$2"
+
+# echo " "
+# echo "I received for:"
+# echo "${THISSCRIPTNAME} FROM: ${FROMNAME}"   
+# echo "${THISSCRIPTNAME}   TO: ${TONAME}"  
+
+FROM_FILENAME=$(basename "$FROMNAME")
+TO_FILENAME=$(basename "$TONAME")
+
+# Testing
+# echo " "
+# echo "I will rename filename:"
+# echo "MV FROM: ${FROMNAME}"   # MV FROM: libs-intuiload/compareFile.inc
+# echo "MV   TO: ${TONAME}"     # MV   TO: libs-intuiload/filesNotEqual.inc
+# echo " "
+# echo "I will change the term:"
+# echo "ERSETZE FROM: ${FROM_FILENAME}"
+# echo "ERSETZE   TO: ${TO_FILENAME}"
+
+# exit
+# check operation systems 
+(
+  if [[ "$(uname)" == "Darwin" ]] || [[ "$(expr substr $(uname -s) 1 5)" == "Linux" ]] ; then 
+    # Do something under Mac OS X platform
+    if [ -f "${FROMNAME}" ] ; then
+       mv "${FROMNAME}" "${TONAME}"
+    fi
+        ersetze "${FROM_FILENAME}" "${TO_FILENAME}"
+        ö "${TONAME}"
+
+
+  elif [[ "$(expr substr $(uname -s) 1 10)" == "MINGW32_NT" ]] ; then 
+    # Do something under Windows NT platform
+    if [ -f "${FROMNAME}" ] ; then
+       ren "${FROMNAME}" "${TONAME}"
+    fi
+        ersetze "${FROM_FILENAME}" "${TO_FILENAME}"
+        ö "${TONAME}"
+
+  fi 
+)

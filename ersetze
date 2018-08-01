@@ -83,6 +83,7 @@ SEEKER="./ack";
 IGNORE_DIR="ignore";
 FILESCOMMAND="";
 PRINTCOMMAND="-l --print0";
+FOUND=0
 
 msg_red () {
     printf "\n${bdr}%s ${off}%s\n" "${red} $@"
@@ -109,7 +110,7 @@ test_positives(){
   echo "${KIND}"
 }
 PROCESSOR_ERROR=$(test_positives)
-# DEBUG MACPOSITIVE MACPOSITIVE echo "${MACPOSITIVE}"
+# DEBUG MACPOSITIVE MACPOSITIVE echo "${PROCESSOR_ERROR}"
 # DEBUG MACPOSITIVE exit 1
 #
 # C H E C K   H O W   C O M P U T E R   H A N D L E S   E R R O R S   --End
@@ -268,7 +269,7 @@ else
 
             ls ./ack  | egrep 'ack' &>/dev/null
             err_buff=$?
-            if [[ "${PROCESSOR_ERROR}" == "MAC" ]] && [ $err_buff == 0 ]; then
+            if [[ "${PROCESSOR_ERROR}" == "MAC" ]] && [ $err_buff == 1 ]; then
             {
                 msg_green " ./ack INSTALLED."
                 SEEKER="./ack -Q ";
@@ -490,6 +491,7 @@ echo "${reset} ${green} Seek ignoring $(echo ${IGNORELIST} | sed  "s@${EXCLUDEDI
 # echo "${cyan}  ag  --ignore-dir=vendor --ignore-dir=bower_components  --ignore-dir=node_modules --ignore-dir=storage/debugbar  --ignore-dir=storage/logs  --ignore-dir=app/Stubs \"${SEEKING}\" "
 # echo "${cyan}  grep  --exclude-dir=vendor --exclude-dir=bower_components  --exclude-dir=node_modules --exclude-dir=storage/debugbar  --exclude-dir=storage/logs  --exclude-dir=app/Stubs \"${SEEKING}\" "
 echo "   ";
+err_buff=$?;
 # THIS IS GREP FOR LINUX
 # ack  --ignore-dir=vendor --ignore-dir=bower_components  --ignore-dir=node_modules --ignore-dir=storage/debugbar  --ignore-dir=storage/logs  --ignore-dir=app/Stubs "$SEEKING"
 # ag  --ignore-dir=vendor --ignore-dir=bower_components  --ignore-dir=node_modules --ignore-dir=storage/debugbar  --ignore-dir=storage/logs  --ignore-dir=app/Stubs "$SEEKING"
@@ -518,22 +520,42 @@ fi
 # If  | egrep "$SEEKING" &>/dev/null | returned an error....so it was... it was found/not found say it and stop execution for not found
 #if [ ! $? -eq 0 ] ; then #mac
 #if (( $? == 0 )) ;  then #work
+################       ##############         ####          ####    ####        ####    ################
+################       ##############         ####          ####    ####        ####    ################
+####                 ####          ####       ####          ####    ######      ####    ####          ####
+####                 ####          ####       ####          ####    ######      ####    ####          ####
+####                 ####          ####       ####          ####    ##########  ####    ####          ####
+####                 ####          ####       ####          ####    ##########  ####    ####          ####
+############         ####          ####       ####          ####    ####  ####  ####    ####          ####
+############         ####          ####       ####          ####    ####  ####  ####    ####          ####
+####                 ####          ####       ####          ####    ####    ########    ####          ####
+####                 ####          ####       ####          ####    ####    ########    ####          ####
+####                 ####          ####       ####          ####    ####      ######    ####          ####
+####                 ####          ####       ####          ####    ####      ######    ####          ####
+####                   ##############           ##############      ####        ####    ################
+####                   ##############           ##############      ####        ####    ################
+
 err_buff=$?
+# echo "err_buff=$err_buff"
+# echo "PROCESSOR_ERROR=$PROCESSOR_ERROR"
 if [[ "${PROCESSOR_ERROR}" == "INTEL" ]] && (( $err_buff == 0 )); then
 {
     msg_green "${green} FOUND !"
     echo "    ";
+    FOUND=1
 }
 elif [[ "${PROCESSOR_ERROR}" == "MAC" ]] && [ $err_buff == 0 ]; then
 {
     msg_green "${green} FOUND !"
     echo "    ";
+    FOUND=1
 }
 else
 {
-    msg_red "${red} SORRY NO OCCURENCES FOUND !"
+    msg_red "${red} SORRY NO FOUND OCCURENCES !"
     echo "    ";
-    #exit 1;
+    FOUND=0
+    exit 1;
 }
 fi
 
@@ -689,17 +711,20 @@ if [[ "${PROCESSOR_ERROR}" == "INTEL" ]] && (( $err_buff != 0 )); then
     {
     msg_green "${green} REPLACED !"
     echo "    ";
+    FOUND=1
     }
 elif [[ "${PROCESSOR_ERROR}" == "MAC" ]] && [ $err_buff != 0 ]; then
     {
     msg_green "${green} REPLACED !"
     echo "    ";
+    FOUND=1
     }
 else
     {
     msg_red "${red} SORRY NO REPLACEMENTS MADE !"
     echo "    ";
     exit 0;
+    FOUND=0
     }
 fi
 
@@ -745,6 +770,7 @@ fi
 #if (( $? == 0 )) ;  then #work
 #if [ ! $? == 0 ]; then #mac
 err_buff=$?
+# echo "err_buff=$err_buff"
 if [[ "${PROCESSOR_ERROR}" == "INTEL" ]] && (( $err_buff == 0 )); then
     {
     echo "    ";
