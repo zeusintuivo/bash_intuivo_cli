@@ -624,6 +624,7 @@ if [[ $SEEKING == *"/"* || $IMPLACING == *"/"* ]]; then
         if [[ "${REPLACERGNU}" == "YES" ]] ; then
           # sed GNU
           {
+            echo "${yellow} sed GNU ";
             # Get list and scroll through the list
             # FILES=$(${SEEKER} "$SEEKING"     ${FILESCOMMAND} ${PRINTCOMMAND} ${IGNORELIST})
             # echo "FILES FOUND: $FILES"
@@ -642,9 +643,12 @@ if [[ $SEEKING == *"/"* || $IMPLACING == *"/"* ]]; then
           # sed mac
           # MAC REPLACER Has to HAVE A FILENAME.EXTENSION provided for the -i (inplace) option
           {
-          # Sample use: ${THISSCRIPTNAME} /usr/bin/env\ bash  /bin/bash
-          echo "${cyan}   ${SEEKER} \"${SEEKING}\" ${FILESCOMMAND} ${PRINTCOMMAND} ${IGNORELIST}   | xargs -0 sed -i'.sedbak'  -e s\"${SEEKING}\"\"${IMPLACING}\"g"
-                          ${SEEKER} "$SEEKING"     ${FILESCOMMAND} ${PRINTCOMMAND} ${IGNORELIST}   | xargs -0 sed -i'.sedbak'  -e s"$SEEKING""$IMPLACING"g | ${SEEKER} "$SEEKING" ${FILESCOMMAND}  &>/dev/null
+            echo "${yellow} sed MAC ";
+            # Sample use: ${THISSCRIPTNAME} /usr/bin/env\ bash  /bin/bash
+            # echo "${cyan}   ${SEEKER} \"${SEEKING}\" ${FILESCOMMAND} ${PRINTCOMMAND} ${IGNORELIST}   | xargs -0 sed -i'.sedbak'  -e s\"${SEEKING}\"\"${IMPLACING}\"g"
+            echo "${cyan}   ${SEEKER} \"${SEEKING}\" ${FILESCOMMAND} ${PRINTCOMMAND} ${IGNORELIST}   | xargs -I {} sed -i'.sedbak'  -e s\"${SEEKING}\"\"${IMPLACING}\"g {}"
+            #                ${SEEKER} "$SEEKING"     ${FILESCOMMAND} ${PRINTCOMMAND} ${IGNORELIST}   | xargs -0 sed -i'.sedbak'  -e s"$SEEKING""$IMPLACING"g | ${SEEKER} "$SEEKING" ${FILESCOMMAND}  &>/dev/null
+                            ${SEEKER} "$SEEKING"     ${FILESCOMMAND} ${PRINTCOMMAND} ${IGNORELIST}   | xargs -I {} sed -i'.sedbak'  -e s"$SEEKING""$IMPLACING"g {} | ${SEEKER} "$SEEKING" ${FILESCOMMAND}  &>/dev/null
           }
         fi
       }
@@ -665,6 +669,7 @@ if [[ $SEEKING == *"/"* || $IMPLACING == *"/"* ]]; then
         if [[ "${REPLACERGNU}" == "YES" ]] ; then
           # sed GNU
           {
+            echo "${yellow} sed GNU ";
             # Get list and scroll through the list
             # FILES=$(${SEEKER} "$SEEKING"     ${FILESCOMMAND} ${PRINTCOMMAND} ${IGNORELIST})
             # echo "FILES FOUND: $FILES"
@@ -682,8 +687,9 @@ if [[ $SEEKING == *"/"* || $IMPLACING == *"/"* ]]; then
           # sed 2.5.1-FreeBSD mac
           # MAC REPLACER Has to HAVE A FILENAME.EXTENSION provided for the -i (inplace) option
           {
-            echo "${cyan}   ${SEEKER} \"${SEEKING}\" ${FILESCOMMAND} ${PRINTCOMMAND} ${IGNORELIST}   | xargs -0 sed -i'.sedbak'  -e s/\"${SEEKING}\"/\"${IMPLACING}\"/g"
-                            ${SEEKER} "$SEEKING"     ${FILESCOMMAND} ${PRINTCOMMAND} ${IGNORELIST}   | xargs -0 sed -i'.sedbak'  -e s/"$SEEKING"/"$IMPLACING"/g | ${SEEKER} "$SEEKING" ${FILESCOMMAND}  &>/dev/null
+            echo "${yellow} sed MAC ";
+            echo "${cyan}   ${SEEKER} \"${SEEKING}\" ${FILESCOMMAND} ${PRINTCOMMAND} ${IGNORELIST}   | xargs -I {} sed -i'.sedbak'  -e s/\"${SEEKING}\"/\"${IMPLACING}\"/g {}"
+                            ${SEEKER} "$SEEKING"     ${FILESCOMMAND} ${PRINTCOMMAND} ${IGNORELIST}   | xargs -I {} sed -i'.sedbak'  -e s/"$SEEKING"/"$IMPLACING"/g {} | ${SEEKER} "$SEEKING" ${FILESCOMMAND} &>/dev/null
           }
         fi
       }
