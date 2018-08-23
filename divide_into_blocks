@@ -52,7 +52,7 @@ function get_all_files {
 
 function divide_using_rsync() {
     local from_path=$(check_path "FROM" "${1}")
-    local base_path=$(check_path "FROM" "${2}")
+    local base_path=$(check_path "TO" "${2}")
     local backup_path="${from_path}/original"
     local GOAL=${3}
     local to_path
