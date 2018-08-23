@@ -8,8 +8,8 @@ THISSCRIPTNAME=`basename "$0"`
 if [[ -z "$1"  ]] || [[ -z "$2"  ]] ; then   # empty value
   echo "
 
-From one folder to another  using batch in subfolders, you don't gets stoped while the computer 'builds' a list
-using rsync which is suppoused to be faster at the time I did this (2017)
+From one folder to another  using batch in subfolders, you don't get stopped while the computer 'builds' a list
+using rsync which is supposed to be faster at the time I did this (2017)
 
 
 ${THISSCRIPTNAME}   from_path   to_path   number_per_block
@@ -17,15 +17,19 @@ ${THISSCRIPTNAME}   from_path   to_path   number_per_block
     exit 0
 fi
 
-load_execute_command(){
+function load_execute_command {
     EXECOMCLI=$(wget --quiet --no-check-certificate https://raw.githubusercontent.com/zeusintuivo/execute_command_intuivo_cli/master/execute_command -O -  2>/dev/null )   # suppress only curl download messages, but keep curl output for variable
     eval """${EXECOMCLI}"""
     ( ( ! command -v type passed >/dev/null 2>&1; ) && echo -e "\n \n  ERROR! Loading execute_command \n \n " && exit 130; )
 } # end function load_execute_command
 load_execute_command
 
-check_path(){
-    local path=$(echo "${2}" | sed 's/\/$//g') # remove last slash
+function remove_last_slash {
+    sed 's/\/$//g'  # remove last slash
+}
+
+function check_path {
+    local path=$(echo "${2}" | remove_last_slash)
     local cwd=$(pwd)
     local result
     # Find paths
@@ -39,14 +43,14 @@ check_path(){
     echo "${result}"
 } # end check_path
 
-get_all_files(){
+function get_all_files {
     local all_files=$(find "${1}" -maxdepth 1 | sed s"${1}"/g | sed 's/\.\///g' | sed '/^\.$/d' )
     #anounce Found:"${all_files}"
     #exit
     echo "${all_files}"
 } #edn get_all_files
 
-divide_using_rsync() {
+function divide_using_rsync() {
     local from_path=$(check_path "FROM" "${1}")
     local base_path=$(check_path "FROM" "${2}")
     local backup_path="${from_path}/original"
