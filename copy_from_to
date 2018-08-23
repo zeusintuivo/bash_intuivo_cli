@@ -69,10 +69,78 @@ function remove_last_slash {
     sed 's/\/$//g'  # remove last slash
 }
 
-copy_using_rsync() {
+
+function slashes_to_newlines {
+    sed -e 's/'"\/"'/'"\n"'/g' #splits slashed into enters with newlines divides slashes
+}
+# TEST: echo "/_/work/savedo/projects/savedo-cms-wagon-de/app/assets/fonts/bootstrap/" | slashes_to_newlines
+# EXPECTATION:
+# _
+# work
+# savedo
+# projects
+# savedo-cms-wagon-de
+# app
+# assets
+# fonts
+# bootstrap
+#
+function remove_double_slashes { #removes double slashes in path and converts ./ to PWD
+    # usage
+    #        1. FOLDER=$(remove_double_slashes ".//_/work/savedo/projects/savedo-cms-wagon-de///app/assets///fonts/bootstrap///")
+    #        2. remove_double_slashes ".//_/work/savedo/projects/savedo-cms-wagon-de///app/assets///fonts/bootstrap///"
+    local incoming_string="${@}"
+    local PARTS=$(slashes_to_newlines <<< "${incoming_string}")
+    local ONE_PART
+    local result=""
+    local COUNTER=0
+    local using_string=""
+    while read -r ONE_PART; do
+    # for ONE_PART in ${PARTS}; do
+    {
+        if [ ! -z "${ONE_PART}" ] ; then # if not empty
+        {
+            using_string="${ONE_PART}"
+            if [ $COUNTER -eq 0 ] && ( [ "${using_string}" == "." ] || [ -d "${using_string}" ] ) ; then
+            {
+                result="$(pwd)"
+                [ -d "${using_string}" ] && result="$(pwd)/${using_string}"
+            } else {
+                if [ $COUNTER -eq 0 ] ; then
+                {
+                    result="${using_string}"
+                    [ -d "${using_string}" ] && [[ ${incoming_string:0:1} != "/" ]] && result="$(pwd)/${using_string}"
+                } else {
+                    result="${result}/${using_string}"
+                }
+                fi
+
+            }
+            fi
+            (( COUNTER++ ))
+        }
+        fi
+    }
+    done <<< "${PARTS}"
+    if [[ ${incoming_string:0:1} == "/" ]] ; then # get first char from string
+    {
+       [[ ${result:0:1} != "/" ]] && result="/${result}"
+    }
+    fi
+    echo "${result}"
+    return 0
+}
+# TEST: remove_double_slashes "/_/work/savedo/projects/savedo-cms-wagon-de///app/assets///fonts/bootstrap///"
+# EXPECTATION: /_/work/savedo/projects/savedo-cms-wagon-de/app/assets/fonts/bootstrap
+
+# TEST: remove_double_slashes "./work/savedo/projects/savedo-cms-wagon-de///app/assets///fonts/bootstrap///"
+# EXPECTATION: ${PWD}/work/savedo/projects/savedo-cms-wagon-de/app/assets/fonts/bootstrap
+
+
+function copy_using_rsync() {
     local FROMPATH="${1}"
     local TOPATH="${2}"
-    local filename just_file_name COPY_FROM one_item all_files
+    local filename just_file_name COPY_FROM one_item all_files COPY_FROM_corrected TOPATH_corrected
     anounce Copy Batch
 
     all_files=$(find "$FROMPATH" -maxdepth 1 | sed s"$FROMPATH"/g | sed 's/\.\///g' | sed '/^\.$/d' )
@@ -95,7 +163,13 @@ copy_using_rsync() {
                 COPY_FROM="${FROMPATH}/${filename}"
             }
             fi
-            anounce_command rsync -av "${COPY_FROM}" "${TOPATH}/"
+            COPY_FROM_corrected=$(remove_double_slashes "${COPY_FROM}")
+            # DEBUG echo "${COPY_FROM}"
+            # DEBUG echo "${COPY_FROM_corrected}"
+            TOPATH_corrected=$(remove_double_slashes "${TOPATH}")
+            # DEBUG echo "${TOPATH}"
+            # DEBUG echo "${TOPATH_corrected}"
+            anounce_command rsync -av "${COPY_FROM_corrected}" "${TOPATH_corrected}/"
         }
         fi
     }

@@ -68,8 +68,7 @@ function remove_double_slashes { #removes double slashes in path and converts ./
                 if [ $COUNTER -eq 0 ] ; then
                 {
                     result="${using_string}"
-                    [ -d "${using_string}" ] && result="$(pwd)/${using_string}"
-                    [ ! -d "${using_string}" ] && result="$(pwd)/${using_string}"
+                    [ -d "${using_string}" ] && [[ ${incoming_string:0:1} != "/" ]] && result="$(pwd)/${using_string}"
                 } else {
                     result="${result}/${using_string}"
                 }
