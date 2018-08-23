@@ -20,14 +20,14 @@ fi
 if command -v wget >/dev/null 2>&1; then
     echo '1'
 else
-    echo "wget not found. please install" 
+    echo "wget not found. please install"
     exit 69
 fi
 
 if command -v rsync >/dev/null 2>&1; then
     echo '2'
 else
-    echo "rsync not found. please install" 
+    echo "rsync not found. please install"
     exit 69
 fi
 
@@ -35,7 +35,7 @@ fi
 if command -v find >/dev/null 2>&1; then
     echo '3'
 else
-    echo "find not found. please install" 
+    echo "find not found. please install"
     exit 69
 fi
 
@@ -43,7 +43,7 @@ fi
 if command -v sed >/dev/null 2>&1; then
     echo '4'
 else
-    echo "sed not found. please install" 
+    echo "sed not found. please install"
     exit 69
 fi
 
@@ -61,9 +61,13 @@ load_execute_command_wget
 if command -v anounce >/dev/null 2>&1; then
     echo '5'
 else
-    echo "anounce not found. Check Your internet connection" 
+    echo "anounce not found. Check Your internet connection"
     exit 69
 fi
+
+function remove_last_slash {
+    sed 's/\/$//g'  # remove last slash
+}
 
 copy_using_rsync() {
     local FROMPATH="${1}"
