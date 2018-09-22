@@ -17,9 +17,17 @@ ${THISSCRIPTNAME}   from_path   to_path
     exit 0
 fi
 
+if [ ! -e "${1}" ]; then
+{
+	echo '0'
+    echo "Error: Source path Not found: ${1}"
+	exit 69
+}
+fi
 if command -v wget >/dev/null 2>&1; then
     echo '1'
 else
+	echo '1'
     echo "wget not found. please install"
     exit 69
 fi
@@ -52,7 +60,7 @@ load_execute_command_wget(){
     local provider="/_/clis/execute_command_intuivo_cli/execute_command"
     [   -e "${provider}"  ] && source "${provider}"
     [ ! -e "${provider}"  ] && eval """$(wget --quiet --no-check-certificate  https://raw.githubusercontent.com/zeusintuivo/execute_command_intuivo_cli/master/execute_command -O -  2>/dev/null )"""   # suppress only wget download messages, but keep wget output for variable
-    ( ( ! command -v type passed >/dev/null 2>&1; ) && echo -e "\n \n  ERROR! Loading execute_command \n \n " && exit 69; )
+    ( ( ! command -v type passed >/dev/null 2>&1; ) && echo -e "\\n \\n  ERROR! Loading execute_command \\n \\n " && exit 69; )
 } # end load_execute_command_wget
 load_execute_command_wget
 
@@ -71,7 +79,18 @@ function remove_last_slash {
 
 
 function slashes_to_newlines {
-    sed -e 's/'"\/"'/'"\n"'/g' #splits slashed into enters with newlines divides slashes
+	(
+	  if [[ "$(uname)" == "Darwin" ]] ; then
+	    # Do something under Mac OS X platform
+	    sed -e 's/'"\/"'/\'$'\n/g' #BSD-way 'Mac' splits slashed into enters with newlines divides slashes
+	  elif [[ "$(expr substr $(uname -s) 1 5)" == "Linux" ]] ; then
+	    # Do something under GNU/Linux platform
+	    sed -e 's/'"\/"'/'"\n"'/g' #Linux way splits slashed into enters with newlines divides slashes
+	  elif [[ "$(expr substr $(uname -s) 1 10)" == "MINGW32_NT" ]] ; then
+	    # Do something under Windows NT platform
+	    sed -e 's/'"\/"'/'"\n"'/g' #Windows way -Not implemented, Windows-GNU splits slashed into enters with newlines divides slashes
+	  fi
+	)
 }
 # TEST: echo "/_/work/savedo/projects/savedo-cms-wagon-de/app/assets/fonts/bootstrap/" | slashes_to_newlines
 # EXPECTATION:
@@ -142,7 +161,6 @@ function copy_using_rsync() {
     local TOPATH="${2}"
     local filename just_file_name COPY_FROM one_item all_files COPY_FROM_corrected TOPATH_corrected
     anounce Copy Batch
-
     all_files=$(find "$FROMPATH" -maxdepth 1 | sed s"$FROMPATH"/g | sed 's/\.\///g' | sed '/^\.$/d' )
     #anounce  Found:"${all_files}"
     #exit
