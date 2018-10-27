@@ -55,7 +55,7 @@ else
     exit 69
 fi
 
-THISSCRIPTNAME=`basename "$0"`
+
 load_execute_command_wget(){
     local provider="/_/clis/execute_command_intuivo_cli/execute_command"
     [   -e "${provider}"  ] && source "${provider}"
