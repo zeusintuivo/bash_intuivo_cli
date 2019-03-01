@@ -1,0 +1,31 @@
+#!/bin/bash
+#
+# @author Zeus Intuivo <zeus@intuivo.com>
+#
+#
+
+# What listening to a port
+THISSCRIPTNAME=`basename "$0"`
+PORT_TO_SCAN="80"
+if [ ! -z "${1}" ] ;  then
+	if [[ "-h" == "${1}" ]] ; then
+      echo "
+      Scans using lsof and greps the port provided. Defaults to port 80 if not provided
+
+      Missing 1st argument
+
+      Sample Usage:     -  optional one argument
+          ${THISSCRIPTNAME} port-number
+          ${THISSCRIPTNAME} 80
+          ${THISSCRIPTNAME}
+          ${THISSCRIPTNAME} 8080
+          ${THISSCRIPTNAME} 443
+	  "
+		exit 0
+	else
+    	PORT_TO_SCAN="${1}"
+	fi
+fi
+
+
+sudo lsof -n -i:"${PORT_TO_SCAN}" | grep LISTEN
