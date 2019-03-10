@@ -187,7 +187,11 @@ function copy_using_rsync() {
             TOPATH_corrected=$(remove_double_slashes "${TOPATH}")
             # DEBUG echo "${TOPATH}"
             # DEBUG echo "${TOPATH_corrected}"
-            anounce_command rsync -av "${COPY_FROM_corrected}" "${TOPATH_corrected}/"
+            anounce rsync -av "${COPY_FROM_corrected}" "${TOPATH_corrected}/"
+            rsync -av "${COPY_FROM_corrected}" "${TOPATH_corrected}/"
+            anounce copy all hidden files:
+            anounce rsync -avzP "${COPY_FROM_corrected}/".[^.]* "${TOPATH_corrected}/"
+            rsync -avzP "${COPY_FROM_corrected}/".[^.]* "${TOPATH_corrected}/"
         }
         fi
     }
