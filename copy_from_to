@@ -190,8 +190,8 @@ function copy_using_rsync() {
             anounce rsync -av "${COPY_FROM_corrected}" "${TOPATH_corrected}/"
             rsync -av "${COPY_FROM_corrected}" "${TOPATH_corrected}/"
             anounce copy all hidden files:
-            anounce rsync -avzP "${COPY_FROM_corrected}/".[^.]* "${TOPATH_corrected}/"
-            rsync -avzP "${COPY_FROM_corrected}/".[^.]* "${TOPATH_corrected}/"
+            anounce rsync -avzP "${COPY_FROM_corrected}/.[^.]*" "${TOPATH_corrected}/"
+            rsync -avzP "${COPY_FROM_corrected}/.[^.]*" "${TOPATH_corrected}/"
         }
         fi
     }
