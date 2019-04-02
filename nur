@@ -830,6 +830,19 @@ else
 fi
 
 
+######      #    #       ####       #           #    #       ####       #       ####       #    #       ####
+######      #    #       ####       #           #    #       ####       #       ####       #    #       ####
+#            #  #       #    #      #           #    #      #           #      #    #      ##   #      #
+#            #  #       #    #      #           #    #      #           #      #    #      ##   #      #
+#####         ##        #           #           #    #       ####       #      #    #      # #  #       ####
+#####         ##        #           #           #    #       ####       #      #    #      # #  #       ####
+#             ##        #           #           #    #           #      #      #    #      #  # #           #
+#             ##        #           #           #    #           #      #      #    #      #  # #           #
+#            #  #       #    #      #           #    #      #    #      #      #    #      #   ##      #    #
+#            #  #       #    #      #           #    #      #    #      #      #    #      #   ##      #    #
+######      #    #       ####       ######       ####        ####       #       ####       #    #       ####
+######      #    #       ####       ######       ####        ####       #       ####       #    #       ####
+
 
 #
 # TARGET COMPOSITION
@@ -837,8 +850,13 @@ fi
 #
 # COMPOSE IGNORE ONELINER - start
 #
-EXCLUDEDIR="--${IGNORE_DIR}="
 EXCLUDEFILE="--${IGNORE_FILE}="
+EXCLUDEDIR="--${IGNORE_DIR}="
+MOREIGNORE_FILES=""
+[ -f .nurignore_files ] && MOREIGNORE_FILES=$(<..nurignore_files)
+MOREIGNORE_DIRS=""
+[ -f .nurignore_dirs ] && MOREIGNORE_DIRS=$(<.nurignore_dirs)
+
 FILESTOEXCLUDE=".dir_bash_history
 .tutorial
 ack
@@ -851,7 +869,8 @@ generateinserts
 generatelocations
 generateparams
 load_insert
-phpunit"
+phpunit
+${MOREIGNORE_FILES}"
 
 DIRSTOEXCLUDE=".cargo
 .nyc_output
@@ -882,7 +901,8 @@ var/logs
 var/session
 app/cache
 app/logs
-app/session"
+app/session
+${MOREIGNORE_DIRS}"
 
 IGNORELIST=""
 
