@@ -853,7 +853,7 @@ fi
 EXCLUDEFILE="--${IGNORE_FILE}="
 EXCLUDEDIR="--${IGNORE_DIR}="
 MOREIGNORE_FILES=""
-[ -f .nurignore_files ] && MOREIGNORE_FILES=$(<..nurignore_files)
+[ -f .nurignore_files ] && MOREIGNORE_FILES=$(<.nurignore_files)
 MOREIGNORE_DIRS=""
 [ -f .nurignore_dirs ] && MOREIGNORE_DIRS=$(<.nurignore_dirs)
 
