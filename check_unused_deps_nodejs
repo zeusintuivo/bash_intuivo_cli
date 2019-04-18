@@ -1,0 +1,127 @@
+#!/bin/bash
+#
+# @author Zeus Intuivo <zeus@intuivo.com>
+#
+#
+
+red="\\033[38;5;1m"
+reset="\\033[0m"
+function msg_error() {
+	echo -e "${red} ERROR ! ${@} ${reset}"
+} 
+
+PACKAGE_JSON=""
+if [ ! -f package.json ] ; then 
+{
+  msg_error "package.json file not found ! Stopping."
+  exit 69
+} else {
+  PACKAGE_JSON=$(<package.json)
+}
+fi
+JQ_INSTALLED=0
+# check operation systems
+(
+  if [[ "$(uname)" == "Darwin" ]] ; then
+    # Do something under Mac OS X platform
+    # if value is not set  -- exit silent it
+    if command -v jq >/dev/null 2>&1; then
+    {
+        JQ_INSTALLED=1
+    }
+    else
+    {
+        msg_error "jq dependency missing ! Attempting to install."
+        brew install jq
+        wait
+        if command -v jq >/dev/null 2>&1; then
+        {
+          JQ_INSTALLED=1
+        }
+        else
+        {
+          msg_error "jq dependency missing ! Attempt to install seem to have failed ! Stopping."
+          exit 69
+        }
+        fi
+    }
+    fi
+   
+  elif [[ "$(expr substr $(uname -s) 1 5)" == "Linux" ]] ; then
+    # Do something under GNU/Linux platform
+    msg_error "jq dependency missing ! I don't know how to attemp to install in this Linux $(expr substr $(uname -s) 1 5)"
+
+  elif [[ "$(expr substr $(uname -s) 1 10)" == "MINGW32_NT" ]] ; then
+    # Do something under Windows NT platform
+    msg_error "jq dependency missing ! I don't know how to attemp to install in this Windows $(expr substr $(uname -s) 1 10)"
+
+    # nothing here
+  fi
+)
+
+
+# if everything else --
+
+# check operation systems
+(
+  if [[ "$(uname)" == "Darwin" ]] ; then
+    # Do something under Mac OS X platform
+    DEPS=$(echo """${PACKAGE_JSON}""" | jq -r '.dependencies | keys | .[]' 2> /dev/null ) #  capture all stout sderr ignored
+    DEVDEPS=$(echo """${PACKAGE_JSON}""" | jq -r '.devDependencies | keys | .[]' 2> /dev/null ) #  capture all stout sderr ignored
+    OPTDEPS=$(echo """${PACKAGE_JSON}""" | jq -r '.optionalDependencies | keys | .[]' 2> /dev/null) #  capture all stout sderr ignored
+    ALLDEPS=$(echo -e "${DEPS}\n${DEVDEPS}\n${OPTDEPS}" 2> /dev/null ) #  capture all stout sderr ignored
+    USED=""
+    NOTUSED=""
+    TESTREQUIRE=""
+    TESTIMPORT=""
+    for dep in ${ALLDEPS}; do
+      if [ ! -z "${dep}" ] ; then
+      {
+        echo -e "require(*$dep*)"
+        TESTREQUIRE=""
+        TESTREQUIRE=$(grep "require\(.*$dep.*\)"  -Rl . )
+        if [ ! -z "${TEST}" ] ; then 
+        {
+          USED=$(echo -e "${USED}\n${TESTREQUIRE}")
+        }
+        fi 
+        TESTREQUIRE=$(grep "require\(.*$dep.*\)"  -Rl . )
+        if [ ! -z "${TEST}" ] ; then 
+        {
+          USED=$(echo -e "${USED}\n${TESTREQUIRE}")
+        }
+        fi 
+        
+        if [ -z "${TESTREQUIRE}" ] && [ -z "${TESTIMPORT}" ] ; then 
+        {
+          NOTUSED=$(echo -e "${NOTUSED}\n${deb}")
+        }
+        fi
+        echo 'import { colorConvert } from "./utils/color-convert"' | egrep "from.*$dep.*"
+        #grep "*$dep*" -Rq --exclude-dir="node_modules" . 
+        # ü "$dep"
+        # if ( ; then
+        #{
+        #  echo "Found as require ${dep}"
+        #}
+        #fi
+        #if ( grep "from \.*$dep.*" -Rq --exclude-dir="node_modules" . ) ; then
+        #{
+        #  echo "Found as import ${dep}"
+        #}
+        #fi
+      
+      }
+      fi
+    done
+  elif [[ "$(expr substr $(uname -s) 1 5)" == "Linux" ]] ; then
+    # Do something under GNU/Linux platform
+    sed 's/'"""${SEEKING}"""'//g'  ;
+
+  elif [[ "$(expr substr $(uname -s) 1 10)" == "MINGW32_NT" ]] ; then
+    # Do something under Windows NT platform
+    sed 's/'"""${SEEKING}"""'//g' ;
+    # nothing here
+  fi
+)
+
