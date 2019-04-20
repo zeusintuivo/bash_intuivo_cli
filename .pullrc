@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# @author Jesus Alcaraz <jesus.alcaraz@doctolib.com>
+# @author Zeus Intuivo <zeus@intuivo.com>
 #
 
 DOCKER_RUNNING=$(docker inspect -f '{{.State.Running}}' postgres)
