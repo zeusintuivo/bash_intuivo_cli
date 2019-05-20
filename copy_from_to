@@ -160,13 +160,59 @@ function remove_double_slashes { #removes double slashes in path and converts ./
 function copy_with_rsync() {
     local _from="${1}"
     local _to="${2}"
-    anounce rsync -av "${_from}" "${_to}/"
+    (( DEBUG_VERB_READING_LOGIC )) && list rsync -av "${_from}" "${_to}/"
     (( DEBUG_VERB_READING_LOGIC )) && mock_command rsync -av "${_from}" "${_to}/"
-    (( !DEBUG_VERB_READING_LOGIC )) && rsync -av "${_from}" "${_to}/"
-    anounce copy all hidden files:
-    anounce rsync -avzP "${_from}/.[^.]*" "${_to}/"
-    (( DEBUG_VERB_READING_LOGIC )) && mock_command rsync -avzP "${_from}/.[^.]*" "${_to}/"
-    (( !DEBUG_VERB_READING_LOGIC )) && rsync -avzP "${_from}/.[^.]*" "${_to}/"
+    local res=$((( !DEBUG_VERB_READING_LOGIC )) && rsync -av "${_from}" "${_to}/" 2>&1) #  Pipe both stderr and  stdout to variable
+    local error_code="$?"
+    (( DEBUG_VERB_READING_LOGIC )) && echo "\${error_code}:${error_code}"
+    if [ ${error_code} != 0 ] ; then
+    {
+        echo "\${error_code}:${error_code}"
+        echo "\${output}:${res}"
+        (( DEBUG_VERB_READING_LOGIC )) && mock_command rsync -av "${_from}" "${_to}/"
+        (( !DEBUG_VERB_READING_LOGIC )) && rsync -av "${_from}" "${_to}/"
+        _say_error_and_exit_worker Failed to copy directory
+        exit 1
+    }
+    fi
+    if [[ -d "${_from}" ]]; then 
+    {
+        list_of_dot_files=$(ls "${_from}/.[^.]*" 2>&1) #  Pipe both stderr and  stdout to variable
+        error_code="$?"
+        if [ ${error_code} == 0 ] ; then  # if folder shows hidden files only 
+        {
+            list copy all hidden files inside "${_from}":
+            comment rsync -avzP "${_from}/.[^.]*" "${_to}/" 2>&1 #  Pipe both stderr and  stdout to variable
+            anounce rsync -avzP "${_from}/.[^.]*" "${_to}/" 2>&1 #  Pipe both stderr and  stdout to variable
+
+            (( DEBUG_VERB_READING_LOGIC )) && mock_command "${_from}/.[^.]*"
+            (( DEBUG_VERB_READING_LOGIC )) && mock_command "${list_of_dot_files}"
+            (( DEBUG_VERB_READING_LOGIC )) && mock_command rsync -avzP "${_from}/.[^.]*" "${_to}/"
+            res=$((( !DEBUG_VERB_READING_LOGIC )) && rsync -avzP "${list_of_dot_files}" "${_to}/" 2>&1) #  Pipe both stderr and  stdout to variable
+            error_code="$?"
+            if [ ${error_code} != 0 ] ; then
+            {
+                echo "\${error_code}:${error_code}"
+                echo "\${output}:${res}"
+                anounce rsync -avzP "${_from}/.[^.]*" "${_to}/"
+                mock_command "${list_of_dot_files}"
+                mock_command rsync -avzP "${_from}/.[^.]*" "${_to}/"
+                _say_error_and_exit_worker Failed to copy  hidden files inside
+                exit 1
+            }
+            fi
+        # } else {
+        #   echo "$(ls "${_from}/.[^.]*")"
+        #    echo "\${error_code}:${error_code}"
+        #    echo "\${output}:${res}"
+        #    exit 1
+        }
+        fi
+
+
+    }
+    fi
+   
 }
 
 function copy_from(){
@@ -191,10 +237,20 @@ function main_copy_loop() {
     local _to="${2}"
     local FROMPATH TOPATH
     local _debug="${3}"  #  0 null "" means off,  1 means on 
-    (( _debug )) && debug "DEBUG IS ON"
-    (( _debug )) && DEBUG_VERB_READING_LOGIC=1
-    (( _debug )) &&  echo "_from: ${_from}"
-    (( _debug )) &&  echo "_to: ${_to}"
+    if (( _debug )) ; then {
+        # REF: https://stackoverflow.com/questions/64786/error-handling-in-bash
+        set -o pipefail  # trace ERR through pipes
+        set -o errtrace  # trace ERR through 'time command' and other functions
+        set -o nounset   ## set -u : exit the script if you try to use an uninitialised variable
+        set -o errexit   ## set -e : exit the script if any statement returns a non-true return value
+        local stderr_log="/dev/shm/stderr.log"
+        exec 2>"$stderr_log"
+        debug "DEBUG IS ON"
+        DEBUG_VERB_READING_LOGIC=1
+        echo "_from: ${_from}"
+        echo "_to: ${_to}"
+    }
+    fi
     local _saved_pwd=$(pwd)
     if [[ -d "${_from}" ]] ; then 
     {
@@ -233,16 +289,16 @@ function main_copy_loop() {
             filename=$(escape_filename <<< "${one_item}")
             (( _debug )) && debug "filename: ${filename}"
             [ -d "${FROMPATH}/${filename}/" ] && mkdir -p "${TOPATH}/${filename}"
-            anounce "${filename}"
+            comment "${filename}"
             just_file_name=$(echo $(basename "${filename}"))
             (( _debug )) && debug "just_file_name: <${just_file_name}>"
             COPY_FROM=$(copy_from "${FROMPATH}" "${filename}")            
             (( _debug )) && debug "COPY_FROM: ${COPY_FROM}"
             COPY_FROM_corrected=$(remove_double_slashes "${COPY_FROM}")
-            (( _debug )) &&  echo "COPY_FROM_corrected: ${COPY_FROM_corrected}"
+            (( _debug )) &&  debug "COPY_FROM_corrected: ${COPY_FROM_corrected}"
             TOPATH_corrected=$(remove_double_slashes "${TOPATH}")
-            (( _debug )) &&  echo "TOPATH ${TOPATH}"
-            (( _debug )) &&  echo "TOPATH_corrected: ${TOPATH_corrected}"
+            (( _debug )) &&  debug "TOPATH ${TOPATH}"
+            (( _debug )) &&  debug "TOPATH_corrected: ${TOPATH_corrected}"
             # (( _debug )) && return 0
             copy_with_rsync "${COPY_FROM_corrected}" "${TOPATH_corrected}"
 
