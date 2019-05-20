@@ -17,12 +17,14 @@ ${THISSCRIPTNAME}   from_path   to_path
     exit 0
 fi
 
-if [ ! -e "${1}" ]; then
+if [[ ! -e "${1}" ]]; then
 {
 	echo '0'
     echo "Error: Source path Not found: ${1}"
 	exit 69
 }
+else
+    echo '0 Path found'
 fi
 if command -v wget >/dev/null 2>&1; then
     echo '1'
@@ -92,13 +94,13 @@ function slashes_to_newlines {
 	  fi
 	)
 }
-# TEST: echo "/_/work/savedo/projects/savedo-cms-wagon-de/app/assets/fonts/bootstrap/" | slashes_to_newlines
+# TEST: echo "/_/work/company/projects/company-cms-wagon-de/app/assets/fonts/bootstrap/" | slashes_to_newlines
 # EXPECTATION:
 # _
 # work
-# savedo
+# company
 # projects
-# savedo-cms-wagon-de
+# company-cms-wagon-de
 # app
 # assets
 # fonts
@@ -106,8 +108,8 @@ function slashes_to_newlines {
 #
 function remove_double_slashes { #removes double slashes in path and converts ./ to PWD
     # usage
-    #        1. FOLDER=$(remove_double_slashes ".//_/work/savedo/projects/savedo-cms-wagon-de///app/assets///fonts/bootstrap///")
-    #        2. remove_double_slashes ".//_/work/savedo/projects/savedo-cms-wagon-de///app/assets///fonts/bootstrap///"
+    #        1. FOLDER=$(remove_double_slashes ".//_/work/company/projects/company-cms-wagon-de///app/assets///fonts/bootstrap///")
+    #        2. remove_double_slashes ".//_/work/company/projects/company-cms-wagon-de///app/assets///fonts/bootstrap///"
     local incoming_string="${@}"
     local PARTS=$(slashes_to_newlines <<< "${incoming_string}")
     local ONE_PART
@@ -149,49 +151,101 @@ function remove_double_slashes { #removes double slashes in path and converts ./
     echo "${result}"
     return 0
 }
-# TEST: remove_double_slashes "/_/work/savedo/projects/savedo-cms-wagon-de///app/assets///fonts/bootstrap///"
-# EXPECTATION: /_/work/savedo/projects/savedo-cms-wagon-de/app/assets/fonts/bootstrap
+# TEST: remove_double_slashes "/_/work/company/projects/company-cms-wagon-de///app/assets///fonts/bootstrap///"
+# EXPECTATION: /_/work/company/projects/company-cms-wagon-de/app/assets/fonts/bootstrap
 
-# TEST: remove_double_slashes "./work/savedo/projects/savedo-cms-wagon-de///app/assets///fonts/bootstrap///"
-# EXPECTATION: ${PWD}/work/savedo/projects/savedo-cms-wagon-de/app/assets/fonts/bootstrap
+# TEST: remove_double_slashes "./work/company/projects/company-cms-wagon-de///app/assets///fonts/bootstrap///"
+# EXPECTATION: ${PWD}/work/company/projects/company-cms-wagon-de/app/assets/fonts/bootstrap
 
+function copy_with_rsync() {
+    local _from="${1}"
+    local _to="${2}"
+    anounce rsync -av "${_from}" "${_to}/"
+    (( DEBUG_VERB_READING_LOGIC )) && mock_command rsync -av "${_from}" "${_to}/"
+    (( !DEBUG_VERB_READING_LOGIC )) && rsync -av "${_from}" "${_to}/"
+    anounce copy all hidden files:
+    anounce rsync -avzP "${_from}/.[^.]*" "${_to}/"
+    (( DEBUG_VERB_READING_LOGIC )) && mock_command rsync -avzP "${_from}/.[^.]*" "${_to}/"
+    (( !DEBUG_VERB_READING_LOGIC )) && rsync -avzP "${_from}/.[^.]*" "${_to}/"
+}
 
-function copy_using_rsync() {
-    local FROMPATH="${1}"
-    local TOPATH="${2}"
+function copy_from(){
+    local _from_path="${1}"
+    local _filename="${2}"
+    if [ -e "${_filename}" ] && [ ! -e "${_from_path}/${_filename}" ]; then
+    {
+        echo "${_filename}"
+        return 0 
+    }
+    elif [ ! -e "${_filename}" ] && [ -e "${_from_path}/${_filename}" ]; then
+    {
+        echo "${_from_path}/${_filename}"
+        return 0
+    }
+    fi
+}
+DEBUG_VERB_READING_LOGIC=0
+
+function main_copy_loop() {
+    local _from="${1}"
+    local _to="${2}"
+    local FROMPATH TOPATH
+    local _debug="${3}"  #  0 null "" means off,  1 means on 
+    (( _debug )) && debug "DEBUG IS ON"
+    (( _debug )) && DEBUG_VERB_READING_LOGIC=1
+    (( _debug )) &&  echo "_from: ${_from}"
+    (( _debug )) &&  echo "_to: ${_to}"
+    local _saved_pwd=$(pwd)
+    if [[ -d "${_from}" ]] ; then 
+    {
+        cd  "${_from}"
+        FROMPATH=$(realpath .)
+        cd "${_saved_pwd}"
+    }
+    fi
+    (( _debug )) && debug "FROMPATH: <${FROMPATH}>"
+    if [[ -d "${_to}" ]] ; then 
+    {
+        cd  "${_to}"
+        TOPATH=$(realpath .)
+        cd "${_saved_pwd}"
+
+    } else {
+        anounce "Creating missing ${_to}"
+        mkdir -p "${_to}"
+    }
+    fi
+    (( _debug )) && debug "TOPATH: <${TOPATH}>"
     local filename just_file_name COPY_FROM one_item all_files COPY_FROM_corrected TOPATH_corrected
     anounce Copy Batch
-    all_files=$(find "$FROMPATH" -maxdepth 1 | sed s"$FROMPATH"/g | sed 's/\.\///g' | sed '/^\.$/d' )
+    # TODO REVEW Maybe only Linux (( _debug )) && mock_command find \"$FROMPATH\" -maxdepth 1 \| sed s@\"${FROMPATH}\"@@g  \| sed \'s/\.\///g\' \| sed '\/\^\\.\$\/d'
+    # TODO REVEW Maybe only Linux all_files=$(find "$FROMPATH" -maxdepth 1 | sed s/"${FROMPATH}"/g | sed 's/\.\///g' | sed '/^\.$/d' )
+    # (( _debug )) && mock_command find \"$FROMPATH\" -maxdepth 1 \| sed s@\"${FROMPATH}\"@@g \| sed '/^\.$/d'
+    all_files=$(find "$FROMPATH" -maxdepth 1 )
     #anounce  Found:"${all_files}"
     #exit
+    
     while read -r one_item; do
     {
         if [ ! -z "${one_item}" ] && [[ "${FROMPATH}/${one_item}" != "${FROMPATH}/${FROMPATH}" ]]; then
         {
+            (( _debug )) && debug "one_item: <${one_item}>"
             filename=$(escape_filename <<< "${one_item}")
+            (( _debug )) && debug "filename: ${filename}"
             [ -d "${FROMPATH}/${filename}/" ] && mkdir -p "${TOPATH}/${filename}"
             anounce "${filename}"
             just_file_name=$(echo $(basename "${filename}"))
-            if [ -e "${filename}" ] && [ ! -e "${FROMPATH}/${filename}" ]; then
-            {
-                COPY_FROM="${filename}"
-            }
-            elif [ ! -e "${filename}" ] && [ -e "${FROMPATH}/${filename}" ]; then
-            {
-                COPY_FROM="${FROMPATH}/${filename}"
-            }
-            fi
+            (( _debug )) && debug "just_file_name: <${just_file_name}>"
+            COPY_FROM=$(copy_from "${FROMPATH}" "${filename}")            
+            (( _debug )) && debug "COPY_FROM: ${COPY_FROM}"
             COPY_FROM_corrected=$(remove_double_slashes "${COPY_FROM}")
-            # DEBUG echo "${COPY_FROM}"
-            # DEBUG echo "${COPY_FROM_corrected}"
+            (( _debug )) &&  echo "COPY_FROM_corrected: ${COPY_FROM_corrected}"
             TOPATH_corrected=$(remove_double_slashes "${TOPATH}")
-            # DEBUG echo "${TOPATH}"
-            # DEBUG echo "${TOPATH_corrected}"
-            anounce rsync -av "${COPY_FROM_corrected}" "${TOPATH_corrected}/"
-            rsync -av "${COPY_FROM_corrected}" "${TOPATH_corrected}/"
-            anounce copy all hidden files:
-            anounce rsync -avzP "${COPY_FROM_corrected}/.[^.]*" "${TOPATH_corrected}/"
-            rsync -avzP "${COPY_FROM_corrected}/.[^.]*" "${TOPATH_corrected}/"
+            (( _debug )) &&  echo "TOPATH ${TOPATH}"
+            (( _debug )) &&  echo "TOPATH_corrected: ${TOPATH_corrected}"
+            # (( _debug )) && return 0
+            copy_with_rsync "${COPY_FROM_corrected}" "${TOPATH_corrected}"
+
         }
         fi
     }
@@ -199,5 +253,11 @@ function copy_using_rsync() {
 }
 
 
-copy_using_rsync "${1}" "${2}"
+main_copy_loop "${1}" "${2}" "${3}" 
+# Sample call 
+# copy_from_to zipper-desktop zipper_mirror  
+#
+# To Debug
+# copy_from_to zipper-desktop zipper_mirror 1
+
 
