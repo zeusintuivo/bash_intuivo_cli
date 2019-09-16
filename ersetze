@@ -465,7 +465,6 @@ DIRSTOEXCLUDE=".cargo
 .gvfs
 .git
 .vagrant
-.idea
 .servo
 coverage
 AbsoluteUrlBundle
@@ -473,12 +472,11 @@ app/Stubs
 bower_components
 cache
 dist
-node_modules
 python
 storage/debugbar
 storage/logs
 target
-tmp
+
 log
 ports
 var/cache

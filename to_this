@@ -1,0 +1,38 @@
+#!/usr/bin/env bash
+#!/bin/bash
+#
+
+
+
+function main(){
+	local from="${1}"
+	local to="${2}"
+	local ONE_FILE
+	local FILES=""
+	local ONE_ENTRY
+	local NEW_FILENAME
+	local ENTRIES=$(find . | ag -s --nocolor "/.*""${from}""[^/]*$" | sed 's/../  /')
+
+	while read -r ONE_ENTRY; do
+	{
+		if [ ! -z "${ONE_ENTRY}" ] ; then # if not empty
+	    {
+	    	ONE_FILE=$(echo "${ONE_ENTRY}" | cut -d':' -f1)
+	    	FILES="${FILES}
+${ONE_FILE}"
+			NEW_FILENAME=$(echo "${ONE_FILE}" | sed -e s/"${from}"/"${to}"/g)
+		  	echo from "${ONE_FILE}" to  "${NEW_FILENAME}"
+		  	mv "${ONE_FILE}" "${NEW_FILENAME}"
+
+	    }
+	    fi
+
+	}
+	done <<< "${ENTRIES}"
+
+}
+
+echo main $*
+main $*
+
+

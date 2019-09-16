@@ -19,15 +19,15 @@ fi
 
 if [[ ! -e "${1}" ]]; then
 {
-	echo '0'
+	echo '0 Source path check'
     echo "Error: Source path Not found: ${1}"
 	exit 69
 }
 else
-    echo '0 Path found'
+    echo '0 Path found check'
 fi
 if command -v wget >/dev/null 2>&1; then
-    echo '1'
+    echo '1 wget check'
 else
 	echo '1'
     echo "wget not found. please install"
@@ -35,7 +35,7 @@ else
 fi
 
 if command -v rsync >/dev/null 2>&1; then
-    echo '2'
+    echo '2 sed check'
 else
     echo "rsync not found. please install"
     exit 69
@@ -43,7 +43,7 @@ fi
 
 
 if command -v find >/dev/null 2>&1; then
-    echo '3'
+    echo '3 sed check'
 else
     echo "find not found. please install"
     exit 69
@@ -51,7 +51,7 @@ fi
 
 
 if command -v sed >/dev/null 2>&1; then
-    echo '4'
+    echo '4 sed check'
 else
     echo "sed not found. please install"
     exit 69
@@ -69,7 +69,7 @@ load_execute_command_wget
 
 
 if command -v anounce >/dev/null 2>&1; then
-    echo '5'
+    echo '5 anounce check'
 else
     echo "anounce not found. Check Your internet connection"
     exit 69
@@ -162,7 +162,7 @@ function copy_with_rsync() {
     local _to="${2}"
     (( DEBUG_VERB_READING_LOGIC )) && list rsync -av "${_from}" "${_to}/"
     (( DEBUG_VERB_READING_LOGIC )) && mock_command rsync -av "${_from}" "${_to}/"
-    local res=$((( !DEBUG_VERB_READING_LOGIC )) && rsync -av "${_from}" "${_to}/" 2>&1) #  Pipe both stderr and  stdout to variable
+    local res=$( (( !DEBUG_VERB_READING_LOGIC )) && rsync -av "${_from}" "${_to}/" 2>&1) #  Pipe both stderr and  stdout to variable
     local error_code="$?"
     (( DEBUG_VERB_READING_LOGIC )) && echo "\${error_code}:${error_code}"
     if [ ${error_code} != 0 ] ; then
@@ -175,11 +175,11 @@ function copy_with_rsync() {
         exit 1
     }
     fi
-    if [[ -d "${_from}" ]]; then 
+    if [[ -d "${_from}" ]]; then
     {
         list_of_dot_files=$(ls "${_from}/.[^.]*" 2>&1) #  Pipe both stderr and  stdout to variable
         error_code="$?"
-        if [ ${error_code} == 0 ] ; then  # if folder shows hidden files only 
+        if [ ${error_code} == 0 ] ; then  # if folder shows hidden files only
         {
             list copy all hidden files inside "${_from}":
             comment rsync -avzP "${_from}/.[^.]*" "${_to}/" 2>&1 #  Pipe both stderr and  stdout to variable
@@ -188,7 +188,7 @@ function copy_with_rsync() {
             (( DEBUG_VERB_READING_LOGIC )) && mock_command "${_from}/.[^.]*"
             (( DEBUG_VERB_READING_LOGIC )) && mock_command "${list_of_dot_files}"
             (( DEBUG_VERB_READING_LOGIC )) && mock_command rsync -avzP "${_from}/.[^.]*" "${_to}/"
-            res=$((( !DEBUG_VERB_READING_LOGIC )) && rsync -avzP "${list_of_dot_files}" "${_to}/" 2>&1) #  Pipe both stderr and  stdout to variable
+            res=$( (( !DEBUG_VERB_READING_LOGIC )) && rsync -avzP "${list_of_dot_files}" "${_to}/" 2>&1) #  Pipe both stderr and  stdout to variable
             error_code="$?"
             if [ ${error_code} != 0 ] ; then
             {
@@ -212,7 +212,7 @@ function copy_with_rsync() {
 
     }
     fi
-   
+
 }
 
 function copy_from(){
@@ -221,7 +221,7 @@ function copy_from(){
     if [ -e "${_filename}" ] && [ ! -e "${_from_path}/${_filename}" ]; then
     {
         echo "${_filename}"
-        return 0 
+        return 0
     }
     elif [ ! -e "${_filename}" ] && [ -e "${_from_path}/${_filename}" ]; then
     {
@@ -236,7 +236,7 @@ function main_copy_loop() {
     local _from="${1}"
     local _to="${2}"
     local FROMPATH TOPATH
-    local _debug="${3}"  #  0 null "" means off,  1 means on 
+    local _debug="${3}"  #  0 null "" means off,  1 means on
     if (( _debug )) ; then {
         # REF: https://stackoverflow.com/questions/64786/error-handling-in-bash
         set -o pipefail  # trace ERR through pipes
@@ -252,7 +252,7 @@ function main_copy_loop() {
     }
     fi
     local _saved_pwd=$(pwd)
-    if [[ -d "${_from}" ]] ; then 
+    if [[ -d "${_from}" ]] ; then
     {
         cd  "${_from}"
         FROMPATH=$(realpath .)
@@ -260,7 +260,7 @@ function main_copy_loop() {
     }
     fi
     (( _debug )) && debug "FROMPATH: <${FROMPATH}>"
-    if [[ -d "${_to}" ]] ; then 
+    if [[ -d "${_to}" ]] ; then
     {
         cd  "${_to}"
         TOPATH=$(realpath .)
@@ -280,7 +280,7 @@ function main_copy_loop() {
     all_files=$(find "$FROMPATH" -maxdepth 1 )
     #anounce  Found:"${all_files}"
     #exit
-    
+
     while read -r one_item; do
     {
         if [ ! -z "${one_item}" ] && [[ "${FROMPATH}/${one_item}" != "${FROMPATH}/${FROMPATH}" ]]; then
@@ -292,7 +292,7 @@ function main_copy_loop() {
             comment "${filename}"
             just_file_name=$(echo $(basename "${filename}"))
             (( _debug )) && debug "just_file_name: <${just_file_name}>"
-            COPY_FROM=$(copy_from "${FROMPATH}" "${filename}")            
+            COPY_FROM=$(copy_from "${FROMPATH}" "${filename}")
             (( _debug )) && debug "COPY_FROM: ${COPY_FROM}"
             COPY_FROM_corrected=$(remove_double_slashes "${COPY_FROM}")
             (( _debug )) &&  debug "COPY_FROM_corrected: ${COPY_FROM_corrected}"
@@ -309,9 +309,9 @@ function main_copy_loop() {
 }
 
 
-main_copy_loop "${1}" "${2}" "${3}" 
-# Sample call 
-# copy_from_to zipper-desktop zipper_mirror  
+main_copy_loop "${1}" "${2}" "${3}"
+# Sample call
+# copy_from_to zipper-desktop zipper_mirror
 #
 # To Debug
 # copy_from_to zipper-desktop zipper_mirror 1
