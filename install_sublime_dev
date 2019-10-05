@@ -30,11 +30,15 @@ download_sublime(){
 install_darwin_lastest_sublime_64() {
     local SUBLIMEDEVLASTESTBUILD=$(get_lastest_sublime_version)
     local SUBLIMENAME="Sublime%20Text%20Build%20${SUBLIMEDEVLASTESTBUILD}.dmg"
+    local SUBLIMENAME_4_HDUTIL="Sublime Text Build ${SUBLIMEDEVLASTESTBUILD}.dmg"
     wait
     cd ~/Downloads/
-    download_sublime "${SUBLIMENAME}"
+    [ ! -e "${SUBLIMENAME_4_HDUTIL}" ] || download_sublime "${SUBLIMENAME}"
+    echo "${pwd}"
+    echo "${SUBLIMENAME_4_HDUTIL}"
+    ls -la "${SUBLIMENAME_4_HDUTIL}"
     wait
-    sudo hdiutil attach ${SUBLIMENAME}
+    sudo hdiutil attach "${SUBLIMENAME_4_HDUTIL}"
     wait
     sudo cp -R /Volumes/Sublime\ Text/Sublime\ Text.app /Applications/
     wait
