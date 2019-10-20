@@ -118,7 +118,7 @@ copy_bcompare_settings() {
 copy_sets_all_chown_folders() {
     anounce Set all permisions for working folders
 
-    anounce_command chown -R ${TOUSER}:${TOUSER} /Users/benutzer/_/clis /_/boxes/branced_weise.box /_/weise /_/weise2 /_/journals /_/guake /_/rubymine
+    anounce_command chown -R ${TOUSER}:${TOUSER} /Users/benutzer$HOME/_/clis /_/boxes/branced_weise.box /_/weise /_/weise2 /_/journals /_/guake /_/rubymine
 }
 
 copy_ssh_keys() {

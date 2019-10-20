@@ -59,7 +59,7 @@ fi
 
 
 load_execute_command_wget(){
-    local provider="/Users/benutzer/_/clis/execute_command_intuivo_cli/execute_command"
+    local provider="/Users/benutzer$HOME/_/clis/execute_command_intuivo_cli/execute_command"
     [   -e "${provider}"  ] && source "${provider}"
     [ ! -e "${provider}"  ] && eval """$(wget --quiet --no-check-certificate  https://raw.githubusercontent.com/zeusintuivo/execute_command_intuivo_cli/master/execute_command -O -  2>/dev/null )"""   # suppress only wget download messages, but keep wget output for variable
     ( ( ! command -v type passed >/dev/null 2>&1; ) && echo -e "\\n \\n  ERROR! Loading execute_command \\n \\n " && exit 69; )
