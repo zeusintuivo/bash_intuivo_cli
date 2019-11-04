@@ -159,10 +159,8 @@ patch_utf_names(){
   TARGET_DIRECTORY="$HOME/_/clis"
   if [ ! -z "${2}" ] ;  then
       TARGET_DIRECTORY="${2}"
+      TARGET_DIRECTORY=$(echo "${TARGET_DIRECTORY}" | sed 's/ /\\ /g')
   fi
-
-  [ ! -d "${TARGET_DIRECTORY}/"   ] && return 0
-  [ ! -d "/usr/local/bin/"  ] && return 0
 
   anounce Patching UTF-8 Filenames
   anounce_command sudo ln -sf  "${TARGET_DIRECTORY}/cuet" /usr/local/bin/cüt
@@ -187,8 +185,10 @@ patch_utf_names(){
   anounce_command sudo unlink  /usr/local/bin/ue
 
 } # end patch_utf_names
-[[ "${PWD}" == *"bash_intuivo_cli"* ]] && [ -d "${PWD}/"  ] && patch_utf_names "${USER}" "$HOME/_/clis/bash_intuivo_cli"
 
+
+[[ "${PWD}" == *"bash_intuivo_cli"* ]] && [ -d "${PWD}/"  ] && patch_utf_names "${USER}" "$HOME/_/clis/bash_intuivo_cli"
+[[ "${PWD}" == *"bash_intuivo_cli"* ]] && patch_utf_names "${USER}" "${PWD}"
 
 
 
