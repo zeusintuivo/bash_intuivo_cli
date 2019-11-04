@@ -135,14 +135,15 @@ while read -r SCRIPT_NAME; do
 
   if [ ! -z "${SCRIPT_NAME}" ]  && [ ! -d "${SCRIPT_NAME}/" ] ; then   # Not empty and is not a directory
     {
-      anounce_command chmod +x "${CURRENT_PATH}/${SCRIPT_NAME}"
-      target_link="/usr/local/bin/${SCRIPT_NAME}"
-      if [[ -e "${target_link}" ]] && [[ -L "${target_link}" ]]; then # Symlink softlink exists REF: http://stackoverflow.com/questions/5767062/how-to-check-if-symlink-exists
+      to_link=$(echo "${CURRENT_PATH}/${SCRIPT_NAME}" | sed 's/ /\\ /g') # escape spaces
+      anounce_command chmod +x "${to_link}"
+      from_link=$(echo "/usr/local/bin/${SCRIPT_NAME}" | sed 's/ /\\ /g') # escape spaces
+      if [[ -e "${from_link}" ]] && [[ -L "${from_link}" ]]; then # Symlink softlink exists REF: http://stackoverflow.com/questions/5767062/how-to-check-if-symlink-exists
         {
-          anounce_command sudo unlink "${target_link}"
+          anounce_command sudo unlink "${from_link}"
         }
       fi
-      anounce_command sudo ln -sf "${CURRENT_PATH}/${SCRIPT_NAME}" "${target_link}"
+      anounce_command sudo ln -sf "${to_link}" "${from_link}"
     }
   fi
 done <<< "${LIST_OF_BASH_SCRIPTS}"
