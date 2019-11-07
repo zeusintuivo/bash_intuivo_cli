@@ -438,9 +438,9 @@ fi
 EXCLUDEFILE="--${IGNORE_FILE}="
 EXCLUDEDIR="--${IGNORE_DIR}="
 MOREIGNORE_FILES=""
-[ -f .erzetseignore_files ] && MOREIGNORE_FILES=$(<.erzetseignore_files)
+[ -f .ersetzeignore_files ] && MOREIGNORE_FILES=$(<.ersetzeignore_files)
 MOREIGNORE_DIRS=""
-[ -f .erzetseignore_dirs ] && MOREIGNORE_DIRS=$(<.erzetseignore_dirs)
+[ -f .ersetzeignore_dirs ] && MOREIGNORE_DIRS=$(<.ersetzeignore_dirs)
 
 FILESTOEXCLUDE=".dir_bash_history
 .tutorial
