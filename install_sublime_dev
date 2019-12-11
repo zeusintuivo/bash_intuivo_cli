@@ -6,10 +6,10 @@
 # SUDO_USER only exists during execution of sudo
 # REF: https://stackoverflow.com/questions/7358611/get-users-home-directory-when-they-run-a-script-as-root
 # Global:
-USER_HOME=$(getent passwd $SUDO_USER | cut -d: -f6)
-echo Called by:$USER_HOME
+THISSCRIPTNAME=`basename "$0"`
+
 load_struct_testing_wget(){
-    local provider="$HOME/_/clis/execute_command_intuivo_cli/struct_testing"
+    local provider="$USER_HOME/_/clis/execute_command_intuivo_cli/struct_testing"
     [   -e "${provider}"  ] && source "${provider}"
     [ ! -e "${provider}"  ] && eval """$(wget --quiet --no-check-certificate  https://raw.githubusercontent.com/zeusintuivo/execute_command_intuivo_cli/master/struct_testing -O -  2>/dev/null )"""   # suppress only wget download messages, but keep wget output for variable
     ( ( ! command -v type passed >/dev/null 2>&1; ) && echo -e "\n \n  ERROR! Loading struct_testing \n \n " && exit 69; )
@@ -17,15 +17,25 @@ load_struct_testing_wget(){
 load_struct_testing_wget
 
 execute_as_sudo(){
+  if [ -z $SUDO_USER ] ; then 
+    sudo $THISSCRIPTNAME 
+    wait
+    exit 0 
+  fi
   # REF: http://superuser.com/questions/93385/run-part-of-a-bash-script-as-a-different-user
   # REF: http://superuser.com/questions/195781/sudo-is-there-a-command-to-check-if-i-have-sudo-and-or-how-much-time-is-left
   local CAN_I_RUN_SUDO=$(sudo -n uptime 2>&1|grep "load"|wc -l)
   if [ ${CAN_I_RUN_SUDO} -gt 0 ]; then
-    passed "\e[7m*** Installing Package Control (check https://packagecontrol.io/ for more awesomeness)...\e[0m"
+    passed "\e[7m*** Installing as sudo...\e[0m"
   else
     failed "Needs to run as sudo ... ${0}"
   fi
 }
+execute_as_sudo
+
+USER_HOME=$(getent passwd $SUDO_USER | cut -d: -f6)
+passed Caller user identified:$USER_HOME
+
 
 get_lastest_sublime_version() {
     local _sublime_string=$(curl -L https://www.sublimetext.com/3dev  2>/dev/null | sed -n "/<p\ class=\"latest\">/,/<\/div>/p" | head -1)  # suppress only wget download messages, but keep wget output for variable
@@ -58,19 +68,21 @@ download_sublime(){
   # https://download.sublimetext.com/sublime_text_3_build_3211_x64.tar.bz2
   local target_url="https://download.sublimetext.com/${1}"
   if ( command -v type wget >/dev/null 2>&1; ) ; then
-    echo -e "\e[7m*** Downloading file to temp location...\e[0m"
-    # REF: about :> http://unix.stackexchange.com/questions/37507/what-does-do-here
-    :> wgetrc   # here :> equals to Equivalent to the following: cat /dev/null > wgetrc which Nulls out the file called "wgetrc" in the current directory. As in creates an empty file "wgetrc" if one doesn't exist or overwrites one with nothing if it does.
-    echo "noclobber = off" >> wgetrc
-    echo "dir_prefix = ." >> wgetrc
-    echo "dirstruct = off" >> wgetrc
-    echo "verbose = on" >> wgetrc
-    echo "progress = bar:default" >> wgetrc
-    echo "tries = 3" >> wgetrc
+    wget --directory-prefix="${USER_HOME}/Downloads/" --quiet --no-check-certificate "${target_url}" 2>/dev/null 
 
-    WGETRC=wgetrc wget --quiet --no-check-certificate "${target_url}" 2>/dev/null   # suppress only wget download messages, but keep wget output for variable
-    echo -e "\e[7m*** Download completed.\e[0m"
-    rm -f wgetrc
+    # echo -e "\e[7m*** Downloading file to temp location...\e[0m"
+    # # REF: about :> http://unix.stackexchange.com/questions/37507/what-does-do-here
+    # :> wgetrc   # here :> equals to Equivalent to the following: cat /dev/null > wgetrc which Nulls out the file called "wgetrc" in the current directory. As in creates an empty file "wgetrc" if one doesn't exist or overwrites one with nothing if it does.
+    # echo "noclobber = off" >> wgetrc
+    # echo "dir_prefix = ." >> wgetrc
+    # echo "dirstruct = off" >> wgetrc
+    # echo "verbose = on" >> wgetrc
+    # echo "progress = bar:default" >> wgetrc
+    # echo "tries = 3" >> wgetrc
+
+    # WGETRC=wgetrc wget --quiet --no-check-certificate "${target_url}" 2>/dev/null   # suppress only wget download messages, but keep wget output for variable
+    # echo -e "\e[7m*** Download completed.\e[0m"
+    # rm -f wgetrc
   elif ( command -v type curl >/dev/null 2>&1; ); then
     curl -O "${target_url}" 2>/dev/null   # suppress only wget download messages, but keep wget output for variable
   else
@@ -212,7 +224,7 @@ install_linux_fedora_lastest_sublime_64() {
       download_sublime "${SUBLIMENAME}"
     fi
     wait
-    sudo dnf -y install "./${SUBLIMENAME}"
+    sudo dnf -y install "$USER_HOME/Downloads/${SUBLIMENAME}"
 
     download_install_package_control
     add_to_applications_list
