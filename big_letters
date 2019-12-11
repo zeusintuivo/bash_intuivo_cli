@@ -12,8 +12,7 @@ function big_letter() {
     local ONE
     while read -r ONE ; do
     {
-        #  NOT Colored
-        if [ -z "$COLORED" ] ; then  # is empty
+        if [ -z "$ONE" ] ; then  # is empty
         {
             #| sed 's/o\|p\|\.\|_/o/g' \
             if [[ "$TEST" == 'YES' ]] ; then
@@ -186,7 +185,7 @@ function test_big_letters() {
             COLORED="";
             echo "failed test for letter ($letter): res ($res) length errs ($error_length) "
             cletter=$(figlet -f banner  $letter)
-            #echo -e "$YELLOW_OVER_DARKBLUE$ONE_SEE_LINE$RESET"  | sed 's/ /o/g'
+            # echo -e "$YELLOW_OVER_DARKBLUE$ONE_SEE_LINE$RESET"  | sed 's/ /o/g'
             # echo "${cletter}"  | sed 's/ /_/g'
             OLD_IFS=IFS
             IFS=''
@@ -201,7 +200,7 @@ function test_big_letters() {
                 fi
             }
             done
-            #done <<< "${cletter}"
+            # done <<< "${cletter}"
             IFS=$OLD_IFS
             echo "$bletter"
         }
@@ -218,3 +217,4 @@ COLORED="";
 # debug
 [ ! -z "${1}" ] && [[ "${1}" == "--test" ]] && test_big_letters
 big_letters_breaker "${@}"
+
