@@ -6,9 +6,9 @@
 THISSCRIPTNAME=`basename "$0"`
 
 
-if [ -z "$1" ] && [ -z "$PIPED" ]
+if [ -z "$1" ] ; 
   then
-    echo " "
+    echo "${THISSCRIPTNAME}  replaces a ,,term'' from database, and all files and rename "
     echo "Missing 1st argument "
     echo " "
     echo "Sample Usage:    - expects two arguments  *required"

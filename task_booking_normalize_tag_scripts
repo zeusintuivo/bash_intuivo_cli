@@ -3,7 +3,7 @@
 # @author Zeus Intuivo <zeus@intuivo.com>
 #
 
-if [ -z "$1" ] && [ -z "$PIPED" ]
+if [ -z "$1" ] ;
   then
     echo "
           Missing 1st argument

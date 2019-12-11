@@ -108,7 +108,7 @@ function big_letters_breaker() {
         else
         {
             bletter=$(big_letter $letter)
-            res=$(paste <(echo "$res") <(echo "$bletter") --delimiters ' ')
+            res=$(paste  -d ' ' <(echo "$res") <(echo "$bletter"))
         }
         fi
         let counter=counter+1
@@ -217,4 +217,3 @@ COLORED="";
 # debug
 [ ! -z "${1}" ] && [[ "${1}" == "--test" ]] && test_big_letters
 big_letters_breaker "${@}"
-

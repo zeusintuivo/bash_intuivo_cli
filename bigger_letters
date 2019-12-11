@@ -109,7 +109,7 @@ function bigger_letters_breaker() {
         else
         {
             bletter=$(bigger_letter $letter)
-            res=$(paste <(echo "$res") <(echo "$bletter") --delimiters ' ')
+            res=$(paste  -d ' '  <(echo "$res") <(echo "$bletter"))
         }
         fi
         let counter=counter+1

@@ -9,7 +9,7 @@
 USER_HOME=$(getent passwd $SUDO_USER | cut -d: -f6)
 echo Called by:$USER_HOME
 load_struct_testing_wget(){
-    local provider="/_/clis/execute_command_intuivo_cli/struct_testing"
+    local provider="$HOME/_/clis/execute_command_intuivo_cli/struct_testing"
     [   -e "${provider}"  ] && source "${provider}"
     [ ! -e "${provider}"  ] && eval """$(wget --quiet --no-check-certificate  https://raw.githubusercontent.com/zeusintuivo/execute_command_intuivo_cli/master/struct_testing -O -  2>/dev/null )"""   # suppress only wget download messages, but keep wget output for variable
     ( ( ! command -v type passed >/dev/null 2>&1; ) && echo -e "\n \n  ERROR! Loading struct_testing \n \n " && exit 69; )
@@ -28,10 +28,26 @@ execute_as_sudo(){
 }
 
 get_lastest_sublime_version() {
-    local SUBLIMEDEVLASTESTBUILD=$(curl -L https://www.sublimetext.com/3dev  2>/dev/null | sed -n "/<p\ class=\"latest\">/,/<\/div>/p" | head -1 | grep 'Build ....' | cut -c42-45)  # suppress only wget download messages, but keep wget output for variable
-    wait
-    [[ -z "${SUBLIMEDEVLASTESTBUILD}" ]] && failed "Sublime Version not found!"
-    echo "${SUBLIMEDEVLASTESTBUILD}"
+    local _sublime_string=$(curl -L https://www.sublimetext.com/3dev  2>/dev/null | sed -n "/<p\ class=\"latest\">/,/<\/div>/p" | head -1)  # suppress only wget download messages, but keep wget output for variable
+    local _sublime_build_line=$(echo "${_sublime_string}" | grep 'Build ....')
+    if [ -z "${_sublime_build_line}" ] ; then
+    {
+        echo "error when doing check of line string from website. Got nothing"
+        echo "    _sublime_string: <${_sublime_string}>"
+        echo "                      0123456789 123456789 123456789 123456789 123456789 123456789 1234567889 123456789 123456789 123456789 123456789 "
+        echo "                                1         2         3         4         5         6          7         8         9        10        11"
+        echo "_sublime_build_line: <${_sublime_build_line}>"
+        failed "Error"
+        exit 69;
+    }
+    else
+    {
+        local SUBLIMEDEVLASTESTBUILD=$(echo "${_sublime_build_line}" | cut -c42-45)
+        wait
+        [[ -z "${SUBLIMEDEVLASTESTBUILD}" ]] && failed "Sublime Version not found!"
+        echo "${SUBLIMEDEVLASTESTBUILD}"
+    }
+    fi
 }
 
 download_sublime(){
@@ -152,11 +168,15 @@ EOF
 install_darwin_lastest_sublime_64() {
     local SUBLIMEDEVLASTESTBUILD=$(get_lastest_sublime_version)
     local SUBLIMENAME="Sublime%20Text%20Build%20${SUBLIMEDEVLASTESTBUILD}.dmg"
+    local SUBLIMENAME_4_HDUTIL="Sublime Text Build ${SUBLIMEDEVLASTESTBUILD}.dmg"
     wait
     cd ~/Downloads/
-    download_sublime "${SUBLIMENAME}"
+    [ ! -e "${SUBLIMENAME_4_HDUTIL}" ] || download_sublime "${SUBLIMENAME}"
+    echo "${pwd}"
+    echo "${SUBLIMENAME_4_HDUTIL}"
+    ls -la "${SUBLIMENAME_4_HDUTIL}"
     wait
-    sudo hdiutil attach ${SUBLIMENAME}
+    sudo hdiutil attach "${SUBLIMENAME_4_HDUTIL}"
     wait
     sudo cp -R /Volumes/Sublime\ Text/Sublime\ Text.app /Applications/
     wait
@@ -250,11 +270,16 @@ install_linux_fedora_lastest_sublime_32() {
 install_linux_ubuntu_lastest_sublime_64() {
     execute_as_sudo
     local SUBLIMEDEVLASTESTBUILD=$(get_lastest_sublime_version)
+    echo " version ${SUBLIMEDEVLASTESTBUILD}"
     local SUBLIMENAME="sublime-text_build-${SUBLIMEDEVLASTESTBUILD}_amd64.deb"
+    echo " looking for file ${SUBLIMENAME} online"
     wait
+    echo "changing to Downloads folder  ~/Downloads/"
     cd ~/Downloads/
+    echo "downloading ${SUBLIMENAME}"
     download_sublime "${SUBLIMENAME}"
     wait
+    echo "installing "
     sudo dpkg -i ${SUBLIMENAME}
     wait
 } # end install_linux_ubuntu_lastest_sublime_64

@@ -42,6 +42,8 @@ else
     IFS=''                 # to read line by line and keep space
     IFS= read -r ONEPIPE   # to avoid interpretation of backslashes.
     PIPED="${ONEPIPE}"
+    [ ! -z "$PIPED" ] && COUNTER=$((COUNTER+1))
+
     while read ONEPIPE
     do
 
@@ -264,26 +266,39 @@ fi
 # #             exit
 
 
-red=`tput setaf 1`
-cyan=`tput setaf 6`
-green=`tput setaf 2`
-reset=`tput sgr0`
+ ####        ####       #            ####       #####        ####
+ ####        ####       #            ####       #####        ####
+#    #      #    #      #           #    #      #    #      #
+#    #      #    #      #           #    #      #    #      #
+#           #    #      #           #    #      #    #       ####
+#           #    #      #           #    #      #    #       ####
+#           #    #      #           #    #      #####            #
+#           #    #      #           #    #      #####            #
+#    #      #    #      #           #    #      #   #       #    #
+#    #      #    #      #           #    #      #   #       #    #
+ ####        ####       ######       ####       #    #       ####
+ ####        ####       ######       ####       #    #       ####
 
-BLACK=$(tput setaf 0)
-RED=$(tput setaf 1)
-GREEN=$(tput setaf 2)
-yellow=$(tput setaf 3)
-LIME_YELLOW=$(tput setaf 190)
-POWDER_BLUE=$(tput setaf 153)
-BLUE=$(tput setaf 4)
-MAGENTA=$(tput setaf 5)
-CYAN=$(tput setaf 6)
-WHITE=$(tput setaf 7)
-BRIGHT=$(tput bold)
-NORMAL=$(tput sgr0)
-BLINK=$(tput blink)
-REVERSE=$(tput smso)
-UNDERLINE=$(tput smul)
+#
+# COLORS - Ouput - Start
+#
+
+[[ -z "${BLACK}" ]] && BLACK="\\033[38;5;16m"
+[[ -z "${GREEN}" ]] && GREEN="\\033[38;5;22m"
+[[ -z "${CYAN}" ]] && CYAN="\\033[38;5;123m"
+[[ -z "${PURPLE}" ]] && PURPLE="\\033[01;35m"
+[[ -z "${PURPLE_BLUE}" ]] && PURPLE_BLUE="\\033[38;5;93m"
+[[ -z "${GRAY241}" ]] && GRAY241="\\033[38;5;241m"
+[[ -z "${YELLOW226}" ]] && YELLOW226="\\033[38;5;226m"
+[[ -z "${YELLOW}" ]] && YELLOW="\\033[01;33m"
+[[ -z "${RESET}" ]] && RESET="\\033[0m"
+[[ -z "${RESET_PROMPT}" ]] && RESET_PROMPT="[0m"
+[[ -z "${RED}" ]] && RED="\\033[38;5;1m"
+[[ -z "${BRIGHT_BLUE87}" ]] && BRIGHT_BLUE87="\\033[38;5;87m"
+
+#
+# COLORS - Ouput - end
+#
 
 SEEKER="./ack";
 IGNORE_DIR="ignore";
@@ -291,11 +306,11 @@ FILESCOMMAND="";
 PRINTCOMMAND="-l --print0";
 
 msg_red () {
-    printf "\n${bdr}%s ${off}%s\n" "$@"
+    echo -e "${RED}${@}"
 }
 
-msg_green () {
-    printf "\n${bdg}%s ${off}%s\n" "$@"
+msg_echo () {
+    echo -e "${@}"
 }
 
 trap '{ msg_red " KEYBOARD INTERRUPT."; exit 130; }' INT
@@ -321,6 +336,94 @@ PROCESSOR_ERROR=$(test_positives)
 # C H E C K   H O W   C O M P U T E R   H A N D L E S   E R R O R S   --End
 #
 
+#
+# C H E C K   R E P L A C E   F U N C T I O N S   I N S T A L L E D  --Start
+#
+check_replacer () {
+  local REPLACER="$1"
+  if command -v "${REPLACER}" >/dev/null 2>&1; then
+    # It looks installed
+    # .. is it working properly
+    # msg_green " ${1} INSTALLED."
+
+    #stdout UND stderr -capture  REF: https://www.thomas-krenn.com/de/wiki/Bash_stdout_und_stderr_umleiten
+    ${REPLACER}  --version &> /tmp/ersetze_test_${REPLACER}.txt
+    local PROPERLYWORKING=$(cat /tmp/ersetze_test_${REPLACER}.txt)
+
+    if [[ "$PROPERLYWORKING" == *"dyld:"* ]]; then { echo "error"; return;} fi
+    if [[ $PROPERLYWORKING == *"GNU"* ]]; then { echo "GNU"; return;} else { echo "MAC";return;} fi
+    echo "checked";
+    return;
+  else
+    # msg_red "${green} ${red} CANNOT REPLACE ...${1} IS MISSING ";
+    # msg_red " NEED TO INSTALL ${1}.       Linux:    sudo apt-get install ${1}         Mac:     brew install ${1}   "
+    echo "install";
+    return;
+  fi
+}
+msg_install () {
+  msg_red "${green} ${red} CANNOT REPLACE ...${1} IS MISSING ";
+  msg_red " NEED TO INSTALL ${1}.       Linux:    sudo apt-get install ${1}         Mac:     brew install ${1}   "
+}
+# REPLACER="sed";
+# Try vim's ex
+REPLACER="sed";
+VALIDREPLACER=$(check_replacer "${REPLACER}")
+
+
+if [[ $VALIDREPLACER == "error" ]] ; then
+  msg_red "Error with replacer ${REPLACER}"
+  msg_red " - Error:"
+  cat /tmp/ersetze_test_${REPLACER}.txt
+   rm /tmp/ersetze_test_${REPLACER}.txt
+fi
+
+if [[ $VALIDREPLACER == "install" ]] ; then
+  msg_install "${REPLACER}"
+fi
+rm /tmp/ersetze_test_${REPLACER}.txt
+
+# TODO - Remove Repetition HERE
+# ? empty still
+if [[ $VALIDREPLACER == "install" || $VALIDREPLACER == "error"  ]] ; then
+  REPLACER="sed";
+  VALIDREPLACER=$(check_replacer "${REPLACER}")
+
+  if [[ $VALIDREPLACER == "error" ]] ; then
+    msg_red "Error with replacer ${REPLACER}"
+    msg_red " - Error:"
+    cat /tmp/ersetze_test_${REPLACER}.txt
+     rm /tmp/ersetze_test_${REPLACER}.txt
+    exit 1;
+  fi
+
+  if [[ $VALIDREPLACER == "install" ]] ; then
+    msg_install "${REPLACER}"
+    rm /tmp/ersetze_test_${REPLACER}.txt
+    exit 1;
+  fi
+fi
+
+
+
+REPLACERGNU="NO"
+if [[ $VALIDREPLACER == "GNU" ]] ; then
+  REPLACERGNU="YES"
+fi
+
+# Test
+# echo "REPLACERGNU: $REPLACERGNU"
+# echo "VALIDREPLACER: $VALIDREPLACER"
+# exit
+# C H E C K   R E P L A C E   F U N C T I O N S   I N S T A L L E D  -- RESULTS
+# Results as
+#             $REPLACERGNU  NO OR YES
+#             $REPLACERGNU  ex or sed
+#             halts execution if not found
+#
+# C H E C K   R E P L A C E   F U N C T I O N S   I N S T A L L E D  -- End
+
+
 if command -v sift >/dev/null 2>&1; then
   {
 
@@ -334,7 +437,7 @@ if command -v sift >/dev/null 2>&1; then
                 }
               else
                 {
-                  msg_green " sift INSTALLED."
+                  msg_echo " sift INSTALLED."
                 }
               fi
 
@@ -384,7 +487,7 @@ else
                 }
               else
                 {
-                  msg_green " ag INSTALLED."
+                  msg_echo " ag INSTALLED."
                 }
               fi
         }
@@ -435,7 +538,7 @@ else
                 }
               else
                 {
-                  msg_green " ack INSTALLED."
+                  msg_echo " ack INSTALLED."
                 }
               fi
           }
@@ -490,7 +593,7 @@ else
                   }
                 else
                   {
-                    msg_green " ./ack INSTALLED."
+                    msg_echo " ./ack INSTALLED."
                   }
                 fi
               }
@@ -529,7 +632,7 @@ else
                   }
                 else
                   {
-                    msg_green " ./ack INSTALLED."
+                    msg_echo " ./ack INSTALLED."
                   }
                 fi
               }
@@ -592,7 +695,7 @@ else
                 }
               else
                 {
-                  msg_green " grep INSTALLED."
+                  msg_echo " grep INSTALLED."
                 }
               fi
             }
@@ -629,7 +732,7 @@ else
                 echo "CANNOT SEARCH ....MISSING SEARCHER SIFT, ACK, AG, ./ACK, ./AG, ./SIFT OR GREP  ";
                 exit 1;
               } else {
-                echo "${green} ${red} CANNOT SEARCH ....MISSING SEARCHER SIFT, ACK, AG, ./ACK, ./AG, ./SIFT OR GREP  ";
+                echo -e "${RED} CANNOT SEARCH ....MISSING SEARCHER SIFT, ACK, AG, ./ACK, ./AG, ./SIFT OR GREP  ";
                 exit 1;
               }
             fi
@@ -645,8 +748,8 @@ else
   }
 fi
 # show hiden chars
-# echo -e "${cyan}" | tr -dc '[:print:]' | od -c ;
-# echo -e "${red}" | tr -dc '[:print:]' ;
+# echo -e "${CYAN" | tr -dc '[:print:]' | od -c ;
+# echo -e "${RED}" | tr -dc '[:print:]' ;
 # exit 1;
 
 #CHECK FOR CHOICE FORCE IT
@@ -664,8 +767,8 @@ if command -v ${DEFAULTSEEKER} >/dev/null 2>&1; then
               }
             else
               {
-                echo "${cyan}  using chosen option ... ${SEEKER}  ";
-                msg_green " ${SEEKER} INSTALLED."
+                echo "${CYAN}  using chosen option ... ${SEEKER}  ";
+                msg_echo " ${SEEKER} INSTALLED."
 
               }
             fi
@@ -810,12 +913,25 @@ else
     {
       if [ $VERBOSE -eq 1 ] && [ -z "$PIPED" ] ; then
           {
-          echo "${cyan}  using ...${SEEKER}  "
+          echo "${CYAN}  using ...${SEEKER}  "
           }
         fi
     }
 fi
 
+
+######      #    #       ####       #           #    #       ####       #       ####       #    #       ####
+######      #    #       ####       #           #    #       ####       #       ####       #    #       ####
+#            #  #       #    #      #           #    #      #           #      #    #      ##   #      #
+#            #  #       #    #      #           #    #      #           #      #    #      ##   #      #
+#####         ##        #           #           #    #       ####       #      #    #      # #  #       ####
+#####         ##        #           #           #    #       ####       #      #    #      # #  #       ####
+#             ##        #           #           #    #           #      #      #    #      #  # #           #
+#             ##        #           #           #    #           #      #      #    #      #  # #           #
+#            #  #       #    #      #           #    #      #    #      #      #    #      #   ##      #    #
+#            #  #       #    #      #           #    #      #    #      #      #    #      #   ##      #    #
+######      #    #       ####       ######       ####        ####       #       ####       #    #       ####
+######      #    #       ####       ######       ####        ####       #       ####       #    #       ####
 
 
 #
@@ -824,8 +940,13 @@ fi
 #
 # COMPOSE IGNORE ONELINER - start
 #
-EXCLUDEDIR="--${IGNORE_DIR}="
 EXCLUDEFILE="--${IGNORE_FILE}="
+EXCLUDEDIR="--${IGNORE_DIR}="
+MOREIGNORE_FILES=""
+[ -f .nurignore_files ] && MOREIGNORE_FILES=$(<.nurignore_files)
+MOREIGNORE_DIRS=""
+[ -f .nurignore_dirs ] && MOREIGNORE_DIRS=$(<.nurignore_dirs)
+
 FILESTOEXCLUDE=".dir_bash_history
 .tutorial
 ack
@@ -838,7 +959,8 @@ generateinserts
 generatelocations
 generateparams
 load_insert
-phpunit"
+phpunit
+${MOREIGNORE_FILES}"
 
 DIRSTOEXCLUDE=".cargo
 .nyc_output
@@ -848,7 +970,7 @@ DIRSTOEXCLUDE=".cargo
 .gvfs
 .git
 .vagrant
-.idea
+
 .servo
 coverage
 AbsoluteUrlBundle
@@ -856,20 +978,21 @@ app/Stubs
 bower_components
 cache
 dist
-node_modules
+
 python
 storage/debugbar
 storage/logs
 target
-tmp
-log
+
+
 ports
 var/cache
 var/logs
 var/session
 app/cache
 app/logs
-app/session"
+app/session
+${MOREIGNORE_DIRS}"
 
 IGNORELIST=""
 
@@ -890,16 +1013,6 @@ IGNORELIST=""
 #
 
 
-#
-# COLORS - Ouput - Start
-#
-        #RESET_PROMPT="[38;5;231m"
-        RESET_PROMPT="[0m"
-#
-# COLORS - Ouput - end
-#
-
-
 
 #If NOT verbose  and # not PIPED
 if [ $VERBOSE -eq 0 ] && [ -z "$PIPED" ] ; then
@@ -908,12 +1021,12 @@ if [ $VERBOSE -eq 0 ] && [ -z "$PIPED" ] ; then
             if [ ! -z "$COLORED" ] ; then
               {
                 echo "    ";
-                echo " $SEEKING "
+                echo -e " $SEEKING "
                 echo "    ";
               }
             else
               {
-                msg_green "${cyan} $SEEKING "
+                msg_echo "${CYAN} $SEEKING "
                 echo "    ";
               }
             fi
@@ -934,10 +1047,10 @@ if [ $VERBOSE -eq 1 ] && [ -z "$PIPED" ] ; then
               }
             else
               {
-                echo "${reset} ${green} Finding ${reset} $SEEKING ${green}                 with  ${SEEKER} ."
+                echo "${RESET} ${GREEN} Finding ${RESET} $SEEKING ${GREEN}                 with  ${SEEKER} ."
                 echo "   ";
 
-                echo "${reset} ${green} Seek ignoring ${IGNORELIST} with ${SEEKER} -- "
+                echo "${RESET} ${GREEN} Seek ignoring ${IGNORELIST} with ${SEEKER} -- "
                 echo "   ";
               }
             fi
@@ -945,9 +1058,9 @@ if [ $VERBOSE -eq 1 ] && [ -z "$PIPED" ] ; then
   }
 fi
 
-# echo "${cyan}  ack  --ignore=vendor --ignore-dir=bower_components  --ignore-dir=node_modules --ignore-dir=storage/debugbar  --ignore-dir=storage/logs  --ignore-dir=app/Stubs \"${SEEKING}\" "
-# echo "${cyan}  ag  --ignore-dir=vendor --ignore-dir=bower_components  --ignore-dir=node_modules --ignore-dir=storage/debugbar  --ignore-dir=storage/logs  --ignore-dir=app/Stubs \"${SEEKING}\" "
-# echo "${cyan}  grep  --exclude-dir=vendor --exclude-dir=bower_components  --exclude-dir=node_modules --exclude-dir=storage/debugbar  --exclude-dir=storage/logs  --exclude-dir=app/Stubs \"${SEEKING}\" "
+# echo "${CYAN}  ack  --ignore=vendor --ignore-dir=bower_components  --ignore-dir=node_modules --ignore-dir=storage/debugbar  --ignore-dir=storage/logs  --ignore-dir=app/Stubs \"${SEEKING}\" "
+# echo "${CYAN}  ag  --ignore-dir=vendor --ignore-dir=bower_components  --ignore-dir=node_modules --ignore-dir=storage/debugbar  --ignore-dir=storage/logs  --ignore-dir=app/Stubs \"${SEEKING}\" "
+# echo "${CYAN}  grep  --exclude-dir=vendor --exclude-dir=bower_components  --exclude-dir=node_modules --exclude-dir=storage/debugbar  --exclude-dir=storage/logs  --exclude-dir=app/Stubs \"${SEEKING}\" "
 
 #If verbose  and # not PIPED
 if [ $VERBOSE -eq 1 ] && [ -z "$PIPED" ]; then
@@ -974,7 +1087,7 @@ then
           }
         else
           {
-            echo "${cyan}   ${SEEKER} \"${SEEKING}\" ${FILESCOMMAND}  ${IGNORELIST}  "
+            echo "${CYAN}   ${SEEKER} \"${SEEKING}\" ${FILESCOMMAND}  ${IGNORELIST}  "
           }
         fi
       }
@@ -982,19 +1095,60 @@ then
     # not PIPED
     if [ -z "$PIPED" ]; then
       {
+            if [[ "${REPLACERGNU}" == "YES" ]] ; then
+          # sed GNU
+          {
+            echo "${yellow} sed GNU ";
             #${SEEKER} "$SEEKING" ${FILESCOMMAND}      ${IGNORELIST}  &>/dev/null
-            RESULT=$(${SEEKER} "$SEEKING" ${FILESCOMMAND}      ${IGNORELIST} | sed 's\\\\\\g')
+            RESULT=$(${SEEKER} "$SEEKING" ${FILESCOMMAND}      ${IGNORELIST} | sed -e 's\\\\\\g')
+          }
+        else
+          # sed mac
+          # MAC REPLACER Has to HAVE A FILENAME.EXTENSION provided for the -i (inplace) option
+          {
+            echo "${yellow} sed MAC ";
+            #${SEEKER} "$SEEKING" ${FILESCOMMAND}      ${IGNORELIST}  &>/dev/null
+            RESULT=$(${SEEKER} "$SEEKING" ${FILESCOMMAND}      ${IGNORELIST} | sed -e 's\\\\\\g')
+
+          }
+        fi
       }
     else # YES PIPED
       {
             # NOT Colored
             if [ ! -z "$COLORED" ] ; then
               {
-                echo "$PIPED" | ${SEEKER} "$SEEKING" ${FILESCOMMAND}      ${IGNORELIST}  | sed 's\\\\\\g' | sed s"$SEEKING""$SEEKING"g
+                if [[ "${REPLACERGNU}" == "YES" ]] ; then
+                  # sed GNU
+                  {
+                    echo "${yellow} sed GNU ";
+                    echo "$PIPED" | ${SEEKER} "$SEEKING" ${FILESCOMMAND}      ${IGNORELIST}  | sed 's\\\\\\g' | sed s"$SEEKING""$SEEKING"g
+                  }
+                else
+                  # sed mac
+                  # MAC REPLACER Has to HAVE A FILENAME.EXTENSION provided for the -i (inplace) option
+                  {
+                    echo "${yellow} sed MAC ";
+                    echo "$PIPED" | ${SEEKER} "$SEEKING" ${FILESCOMMAND}      ${IGNORELIST}  | sed 's\\\\\\g' | sed s"$SEEKING""$SEEKING"g
+                  }
+                fi
               }
             else
               {
-                echo "$PIPED" | ${SEEKER} "$SEEKING" ${FILESCOMMAND}      ${IGNORELIST}  | sed 's\\\\\\g' | sed s"$SEEKING""[38;5;196m$SEEKING${RESET_PROMPT}"g
+                if [[ "${REPLACERGNU}" == "YES" ]] ; then
+                  # sed GNU
+                  {
+                    echo "${yellow} sed GNU ";
+                    echo "$PIPED" | ${SEEKER} "$SEEKING" ${FILESCOMMAND}      ${IGNORELIST}  | sed 's\\\\\\g' | sed s"$SEEKING""[38;5;196m$SEEKING${RESET_PROMPT}"g
+                  }
+                else
+                  # sed mac
+                  # MAC REPLACER Has to HAVE A FILENAME.EXTENSION provided for the -i (inplace) option
+                  {
+                    echo "${yellow} sed MAC ";
+                    echo "$PIPED" | ${SEEKER} "$SEEKING" ${FILESCOMMAND}      ${IGNORELIST}  | sed 's\\\\\\g' | sed s"$SEEKING""[38;5;196m$SEEKING${RESET_PROMPT}"g
+                  }
+                fi
               }
             fi
       }
@@ -1013,7 +1167,7 @@ else
         else
           {
 
-            echo "${cyan}   ${SEEKER} \"${SEEKING}\" ${FILESCOMMAND}  ${IGNORELIST}  "
+            echo "${CYAN}   ${SEEKER} \"${SEEKING}\" ${FILESCOMMAND}  ${IGNORELIST}  "
           }
         fi
       }
@@ -1021,9 +1175,22 @@ else
         # not PIPED
     if [ -z "$PIPED" ]; then
       {
-
-            #${SEEKER} "$SEEKING" ${FILESCOMMAND}      ${IGNORELIST}  &>/dev/null
-            RESULT=$(${SEEKER} "$SEEKING" ${FILESCOMMAND}      ${IGNORELIST} | sed 's@\\@\\\\@g')
+                if [[ "${REPLACERGNU}" == "YES" ]] ; then
+                  # sed GNU
+                  {
+                    echo "${yellow} sed GNU ";
+                    #${SEEKER} "$SEEKING" ${FILESCOMMAND}      ${IGNORELIST}  &>/dev/null
+                    RESULT=$(${SEEKER} "$SEEKING" ${FILESCOMMAND}      ${IGNORELIST} | sed 's@\\@\\\\@g')
+                  }
+                else
+                  # sed mac
+                  # MAC REPLACER Has to HAVE A FILENAME.EXTENSION provided for the -i (inplace) option
+                  {
+                    echo "${yellow} sed MAC ";
+                    #${SEEKER} "$SEEKING" ${FILESCOMMAND}      ${IGNORELIST}  &>/dev/null
+                    RESULT=$(${SEEKER} "$SEEKING" ${FILESCOMMAND}      ${IGNORELIST} | sed 's@\\@\\\\@g')
+                  }
+                fi
 
       }
     else # YES PIPED
@@ -1031,11 +1198,37 @@ else
             # NOT Colored
             if [ ! -z "$COLORED" ] ; then
               {
-                echo "$PIPED" | ${SEEKER} "$SEEKING" ${FILESCOMMAND}      ${IGNORELIST} | sed 's@\\@\\\\@g'  | sed s/"$SEEKING"/"$SEEKING"/g
+                if [[ "${REPLACERGNU}" == "YES" ]] ; then
+                  # sed GNU
+                  {
+                    echo "${yellow} sed GNU ";
+                    echo "$PIPED" | ${SEEKER} "$SEEKING" ${FILESCOMMAND}      ${IGNORELIST} | sed 's@\\@\\\\@g'  | sed s/"$SEEKING"/"$SEEKING"/g
+                  }
+                else
+                  # sed mac
+                  # MAC REPLACER Has to HAVE A FILENAME.EXTENSION provided for the -i (inplace) option
+                  {
+                    echo "${yellow} sed MAC ";
+                    echo "$PIPED" | ${SEEKER} "$SEEKING" ${FILESCOMMAND}      ${IGNORELIST} | sed 's@\\@\\\\@g'  | sed s/"$SEEKING"/"$SEEKING"/g
+                  }
+                fi
               }
             else
               {
-                echo "$PIPED" | ${SEEKER} "$SEEKING" ${FILESCOMMAND}      ${IGNORELIST} | sed 's@\\@\\\\@g' | sed s/"$SEEKING"/"[38;5;196m$SEEKING${RESET_PROMPT}"/g
+                if [[ "${REPLACERGNU}" == "YES" ]] ; then
+                  # sed GNU
+                  {
+                    echo "${yellow} sed GNU ";
+                    echo "$PIPED" | ${SEEKER} "$SEEKING" ${FILESCOMMAND}      ${IGNORELIST} | sed 's@\\@\\\\@g' | sed s/"$SEEKING"/"[38;5;196m$SEEKING${RESET_PROMPT}"/g
+                  }
+                else
+                  # sed mac
+                  # MAC REPLACER Has to HAVE A FILENAME.EXTENSION provided for the -i (inplace) option
+                  {
+                    echo "${yellow} sed MAC ";
+                    echo "$PIPED" | ${SEEKER} "$SEEKING" ${FILESCOMMAND}      ${IGNORELIST} | sed 's@\\@\\\\@g' | sed s/"$SEEKING"/"[38;5;196m$SEEKING${RESET_PROMPT}"/g
+                  }
+                fi
               }
             fi
       }
@@ -1098,7 +1291,20 @@ if [[ "${FOUND}" == "YES" ]] ; then
         cut -f1 -d":" <<< "$RESULT" > /tmp/tmp1.txt #filename     or      'binary file matches'
         # File linenumber
         cut -f2 -d":" <<< "$RESULT" > /tmp/tmp2.txt #line number  or 'filename' with ^ the above
-        cut -f3 -d":" <<< "$RESULT" | sed 's^ *g' | sed 's^\t*g' > /tmp/tmp4.txt #first results
+        if [[ "${REPLACERGNU}" == "YES" ]] ; then
+          # sed GNU
+          {
+            echo "${yellow} sed GNU ";
+            cut -f3 -d":" <<< "$RESULT" | sed 's^ *g' | sed 's^\t*g' > /tmp/tmp4.txt #first results
+          }
+        else
+          # sed mac
+          # MAC REPLACER Has to HAVE A FILENAME.EXTENSION provided for the -i (inplace) option
+          {
+            echo "${yellow} sed MAC ";
+            cut -f3 -d":" <<< "$RESULT" | sed 's^ *g' | sed 's^\t*g' > /tmp/tmp4.txt #first results
+          }
+        fi
 
         #RESULT=$(cat /tmp/tmp4.txt)
         cut -f4 -d":" <<< "$RESULT" > /tmp/tmp6.txt
@@ -1115,19 +1321,39 @@ if [[ "${FOUND}" == "YES" ]] ; then
             # Filename
             awk '{print $0}' /tmp/tmp1.txt > /tmp/temp1.txt   # pink    #filename
             # File linenumber
-            awk '{print $0}'  /tmp/tmp2.txt > /tmp/temp2.txt # green     #line number
-            #  reset color ---mm nothing to reset hehe.
-            awk '{print $0}' /tmp/tmp4.txt > /tmp/tomp4.txt #reset color  # first results
+            awk '{print $0}'  /tmp/tmp2.txt > /tmp/temp2.txt # GREEN     #line number
+            #  RESET color ---mm nothing to RESET hehe.
+            awk '{print $0}' /tmp/tmp4.txt > /tmp/tomp4.txt #RESET color  # first results
 
             # the rest of the results
-            cat /tmp/tomp4.txt | sed s"$SEEKING""$SEEKING"g > /tmp/temp4.txt   #first results
-            cat /tmp/tmp6.txt  | sed s"$SEEKING""$SEEKING"g > /tmp/temp6.txt
-            cat /tmp/tmp8.txt  | sed s"$SEEKING""$SEEKING"g > /tmp/temp8.txt
-            cat /tmp/tmp10.txt | sed s"$SEEKING""$SEEKING"g > /tmp/temp10.txt
-            cat /tmp/tmp12.txt | sed s"$SEEKING""$SEEKING"g > /tmp/temp12.txt
-            cat /tmp/tmp14.txt | sed s"$SEEKING""$SEEKING"g > /tmp/temp14.txt
-            cat /tmp/tmp16.txt | sed s"$SEEKING""$SEEKING"g > /tmp/temp16.txt
-            cat /tmp/tmp18.txt | sed s"$SEEKING""$SEEKING"g > /tmp/temp18.txt
+            if [[ "${REPLACERGNU}" == "YES" ]] ; then
+              # sed GNU
+              {
+                echo "${yellow} sed GNU ";
+                cat /tmp/tomp4.txt | sed s"$SEEKING""$SEEKING"g > /tmp/temp4.txt   #first results
+                cat /tmp/tmp6.txt  | sed s"$SEEKING""$SEEKING"g > /tmp/temp6.txt
+                cat /tmp/tmp8.txt  | sed s"$SEEKING""$SEEKING"g > /tmp/temp8.txt
+                cat /tmp/tmp10.txt | sed s"$SEEKING""$SEEKING"g > /tmp/temp10.txt
+                cat /tmp/tmp12.txt | sed s"$SEEKING""$SEEKING"g > /tmp/temp12.txt
+                cat /tmp/tmp14.txt | sed s"$SEEKING""$SEEKING"g > /tmp/temp14.txt
+                cat /tmp/tmp16.txt | sed s"$SEEKING""$SEEKING"g > /tmp/temp16.txt
+                cat /tmp/tmp18.txt | sed s"$SEEKING""$SEEKING"g > /tmp/temp18.txt
+              }
+            else
+              # sed mac
+              # MAC REPLACER Has to HAVE A FILENAME.EXTENSION provided for the -i (inplace) option
+              {
+                echo "${yellow} sed MAC ";
+                cat /tmp/tomp4.txt | sed s"$SEEKING""$SEEKING"g > /tmp/temp4.txt   #first results
+                cat /tmp/tmp6.txt  | sed s"$SEEKING""$SEEKING"g > /tmp/temp6.txt
+                cat /tmp/tmp8.txt  | sed s"$SEEKING""$SEEKING"g > /tmp/temp8.txt
+                cat /tmp/tmp10.txt | sed s"$SEEKING""$SEEKING"g > /tmp/temp10.txt
+                cat /tmp/tmp12.txt | sed s"$SEEKING""$SEEKING"g > /tmp/temp12.txt
+                cat /tmp/tmp14.txt | sed s"$SEEKING""$SEEKING"g > /tmp/temp14.txt
+                cat /tmp/tmp16.txt | sed s"$SEEKING""$SEEKING"g > /tmp/temp16.txt
+                cat /tmp/tmp18.txt | sed s"$SEEKING""$SEEKING"g > /tmp/temp18.txt
+              }
+            fi
           }
         else
           {
@@ -1135,23 +1361,43 @@ if [[ "${FOUND}" == "YES" ]] ; then
             awk '{print "[38;5;13m" $0}' /tmp/tmp1.txt > /tmp/temp1.txt   # pink    #filename
             #awk '{print $0}' /tmp/tmp1.txt > /tmp/temp1.txt # nocolor
             # File linenumber
-            awk '{print "[38;5;28m" $0}'  /tmp/tmp2.txt > /tmp/temp2.txt # green     #line number
+            awk '{print "[38;5;28m" $0}'  /tmp/tmp2.txt > /tmp/temp2.txt # GREEN     #line number
             #awk '{print $0}'  /tmp/tmp2.txt > /tmp/temp2.txt  #      #line number
             #awk '{print $0}'  /tmp/tmp2.txt > /tmp/temp2.txt  # nocolor
-            #  reset color
-            #awk '{print "[38;5;231m" $0}' /tmp/tmp4.txt > /tmp/tomp4.txt #reset color  # first results
+            #  RESET color
+            #awk '{print "[38;5;231m" $0}' /tmp/tmp4.txt > /tmp/tomp4.txt #RESET color  # first results
 
-            awk '{print "[0m" $0}' /tmp/tmp4.txt  > /tmp/tomp4.txt #reset color  # first results
+            awk '{print "[0m" $0}' /tmp/tmp4.txt  > /tmp/tomp4.txt #RESET color  # first results
 
             # the rest of the results
-            cat /tmp/tomp4.txt | sed s"$SEEKING""[38;5;9m$SEEKING${RESET_PROMPT}"g > /tmp/temp4.txt
-            cat /tmp/tmp6.txt  | sed s"$SEEKING""[38;5;9m$SEEKING${RESET_PROMPT}"g > /tmp/temp6.txt
-            cat /tmp/tmp8.txt  | sed s"$SEEKING""[38;5;9m$SEEKING${RESET_PROMPT}"g > /tmp/temp8.txt
-            cat /tmp/tmp10.txt | sed s"$SEEKING""[38;5;9m$SEEKING${RESET_PROMPT}"g > /tmp/temp10.txt
-            cat /tmp/tmp12.txt | sed s"$SEEKING""[38;5;9m$SEEKING${RESET_PROMPT}"g > /tmp/temp12.txt
-            cat /tmp/tmp14.txt | sed s"$SEEKING""[38;5;9m$SEEKING${RESET_PROMPT}"g > /tmp/temp14.txt
-            cat /tmp/tmp16.txt | sed s"$SEEKING""[38;5;9m$SEEKING${RESET_PROMPT}"g > /tmp/temp16.txt
-            cat /tmp/tmp18.txt | sed s"$SEEKING""[38;5;9m$SEEKING${RESET_PROMPT}"g > /tmp/temp18.txt
+            if [[ "${REPLACERGNU}" == "YES" ]] ; then
+              # sed GNU
+              {
+                echo "${yellow} sed GNU ";
+                cat /tmp/tomp4.txt | sed s"$SEEKING""[38;5;9m$SEEKING${RESET_PROMPT}"g > /tmp/temp4.txt
+                cat /tmp/tmp6.txt  | sed s"$SEEKING""[38;5;9m$SEEKING${RESET_PROMPT}"g > /tmp/temp6.txt
+                cat /tmp/tmp8.txt  | sed s"$SEEKING""[38;5;9m$SEEKING${RESET_PROMPT}"g > /tmp/temp8.txt
+                cat /tmp/tmp10.txt | sed s"$SEEKING""[38;5;9m$SEEKING${RESET_PROMPT}"g > /tmp/temp10.txt
+                cat /tmp/tmp12.txt | sed s"$SEEKING""[38;5;9m$SEEKING${RESET_PROMPT}"g > /tmp/temp12.txt
+                cat /tmp/tmp14.txt | sed s"$SEEKING""[38;5;9m$SEEKING${RESET_PROMPT}"g > /tmp/temp14.txt
+                cat /tmp/tmp16.txt | sed s"$SEEKING""[38;5;9m$SEEKING${RESET_PROMPT}"g > /tmp/temp16.txt
+                cat /tmp/tmp18.txt | sed s"$SEEKING""[38;5;9m$SEEKING${RESET_PROMPT}"g > /tmp/temp18.txt
+              }
+            else
+              # sed mac
+              # MAC REPLACER Has to HAVE A FILENAME.EXTENSION provided for the -i (inplace) option
+              {
+                echo "${yellow} sed MAC ";
+                cat /tmp/tomp4.txt | sed s"$SEEKING""[38;5;9m$SEEKING${RESET_PROMPT}"g > /tmp/temp4.txt
+                cat /tmp/tmp6.txt  | sed s"$SEEKING""[38;5;9m$SEEKING${RESET_PROMPT}"g > /tmp/temp6.txt
+                cat /tmp/tmp8.txt  | sed s"$SEEKING""[38;5;9m$SEEKING${RESET_PROMPT}"g > /tmp/temp8.txt
+                cat /tmp/tmp10.txt | sed s"$SEEKING""[38;5;9m$SEEKING${RESET_PROMPT}"g > /tmp/temp10.txt
+                cat /tmp/tmp12.txt | sed s"$SEEKING""[38;5;9m$SEEKING${RESET_PROMPT}"g > /tmp/temp12.txt
+                cat /tmp/tmp14.txt | sed s"$SEEKING""[38;5;9m$SEEKING${RESET_PROMPT}"g > /tmp/temp14.txt
+                cat /tmp/tmp16.txt | sed s"$SEEKING""[38;5;9m$SEEKING${RESET_PROMPT}"g > /tmp/temp16.txt
+                cat /tmp/tmp18.txt | sed s"$SEEKING""[38;5;9m$SEEKING${RESET_PROMPT}"g > /tmp/temp18.txt
+              }
+            fi
           }
         fi
 
@@ -1183,7 +1429,7 @@ if [[ "${FOUND}" == "YES" ]] ; then
         #else
         #  echo "" > /tmp/temp17.txt
         #fi
-        #ALT!echo -e "${reset}Results:\n" > /tmp/temp19.txt
+        #ALT!echo -e "${RESET}Results:\n" > /tmp/temp19.txt
         if [ ! -s /tmp/temp18.txt ] ; then
           #ALT!$(paste -d' ' /tmp/temp17.txt /tmp/temp18.txt >> /tmp/temp19.txt)
           $(paste -d':' /tmp/temp17.txt /tmp/temp18.txt > /tmp/temp19.txt)
@@ -1196,7 +1442,20 @@ if [[ "${FOUND}" == "YES" ]] ; then
         #cat /tmp/temp19.txt # This cat was leading errors in display  ...notice the missing chars before "uiload"
         # Fixed cat version
         #cat /tmp/temp19.txt | sed 's^:g' | sed 's:$g' | sed 's:.$g' | sed 's:.$g'  | sed 's.$g'
-        cat /tmp/temp19.txt | sed 's^:g' | sed 's:*$g' #| sed 's:*$g' #| sed 's:$g'  #| sed 's.$g'
+        if [[ "${REPLACERGNU}" == "YES" ]] ; then
+          # sed GNU
+          {
+            echo "${yellow} sed GNU ";
+            cat /tmp/temp19.txt | sed 's^:g' | sed 's:*$g' #| sed 's:*$g' #| sed 's:$g'  #| sed 's.$g'
+          }
+        else
+          # sed mac
+          # MAC REPLACER Has to HAVE A FILENAME.EXTENSION provided for the -i (inplace) option
+          {
+            echo "${yellow} sed MAC ";
+            cat /tmp/temp19.txt | sed 's^:g' | sed 's:*$g' #| sed 's:*$g' #| sed 's:$g'  #| sed 's.$g'
+          }
+        fi
         #        ➜  en ü download_and_write
         #
         # download_and_write
@@ -1230,7 +1489,7 @@ if [[ "${FOUND}" == "YES" ]] ; then
               }
             else
               {
-                msg_green "${green} FOUND !"
+                msg_echo "${GREEN} FOUND !"
               }
             fi
           }
@@ -1249,7 +1508,7 @@ else
               }
             else
               {
-                msg_red "${red} SORRY NO OCCURENCES FOUND !"
+                msg_red "SORRY NO OCCURENCES FOUND !"
                 echo "    ";
                 exit 1;
               }

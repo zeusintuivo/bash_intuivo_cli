@@ -42,6 +42,7 @@ else
     IFS=''                 # to read line by line and keep space
     IFS= read -r ONEPIPE   # to avoid interpretation of backslashes.
     PIPED="${ONEPIPE}"
+    [ ! -z "$PIPED" ] && COUNTER=$((COUNTER+1))
     while read ONEPIPE
     do
 

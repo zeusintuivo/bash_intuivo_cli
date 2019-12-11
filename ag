@@ -7,13 +7,21 @@
 # check operation systems
 if [[ "$(uname)" == "Darwin" ]] ; then
   # Do something under Mac OS X platform
-    [[ "$(uname -m)" == "x86_64" ]] && ag_mac_64 "$@"
-    [[ "$(uname -m)" == "i686"   ]] && ag_mac_32 "$@"
+      if [[ "$(uname -m)" == "x86_64" ]] ; then  
+        # echo "err_buff1=$?"
+        ag_mac_64 "$@"
+        # echo "err_buff2=$?"
+      elif  [[ "$(uname -m)" == "i686"   ]] ; then
+        ag_mac_32 "$@"
+      fi  
 elif [[ "$(expr substr $(uname -s) 1 5)" == "Linux" ]] ; then
   # Do something under GNU/Linux platform
   # ubuntu lsb_release -i | sed 's/Distributor\ ID://g' = \tUbuntu\n
-    [[ "$(uname -i)" == "x86_64" ]] && ag_linux_64 "$@"
-    [[ "$(uname -i)" == "i686"   ]] && ag_linux_32 "$@"
+      if [[ "$(uname -i)" == "x86_64" ]] ; then 
+        ag_linux_64 "$@"
+      elif [[ "$(uname -i)" == "i686"   ]] ; then 
+        ag_linux_32 "$@"
+      fi  
 elif [[ "$(expr substr $(uname -s) 1 10)" == "MINGW32_NT" ]] ; then
   # Do something under Windows NT platform
   ag_win_64 "$*"

@@ -5,27 +5,123 @@
 #
 THISSCRIPTNAME=`basename "$0"`
 
-if [[ -z "$1"  ]] || [[ -z "$2"  ]] ; then   # empty value
-  echo "
+if [[ -z "$1"  ]] || [[ -z "$2"  ]] || [[ -z "$3"  ]]; then   # empty value
+  echo -e "\\033[38;5;123m
 
-From one folder to another  using batch in subfolders, you don't gets stoped while the computer 'builds' a list
-using rsync which is suppoused to be faster at the time I did this (2017)
+\\033[38;5;227mFrom one folder to another  using batch in subfolders, you don't get stopped while the computer 'builds' a list
+using rsync which is supposed to be faster at the time I did this (2017)
 
+Only tested on Linux Ubuntu now 14,15, and 16
 
-${THISSCRIPTNAME}   from_path   to_path   number_per_block
+\\033[0m${THISSCRIPTNAME}   \\033[38;5;227mfrom_path   \\033[38;5;123mto_path  \\033[38;5;1m number_per_block \\033[0m
+
+${THISSCRIPTNAME}  bash_intuivo_cli2    new_path   3
+  + This will copy from \"bash_intuivo_cli\"  to \"new_path\"  --it will create it if not, into amounts of '3' per folder groups named with numbers 1,2,3,4,5,6 until done
+  + It will make a backup folder \"bash_intuivo_cli/original\"  just in case
   "
     exit 0
 fi
 
-load_execute_command(){
+function load_execute_command {
     EXECOMCLI=$(wget --quiet --no-check-certificate https://raw.githubusercontent.com/zeusintuivo/execute_command_intuivo_cli/master/execute_command -O -  2>/dev/null )   # suppress only curl download messages, but keep curl output for variable
     eval """${EXECOMCLI}"""
     ( ( ! command -v type passed >/dev/null 2>&1; ) && echo -e "\n \n  ERROR! Loading execute_command \n \n " && exit 130; )
 } # end function load_execute_command
 load_execute_command
 
-check_path(){
-    local path=$(echo "${2}" | sed 's/\/$//g') # remove last slash
+function slashes_to_newlines {
+    sed -e 's/'"\/"'/'"\n"'/g' #splits slashed into enters with newlines divides slashes
+}
+# TEST: echo "/_/work/savedo/projects/savedo-cms-wagon-de/app/assets/fonts/bootstrap/" | slashes_to_newlines
+# EXPECTATION:
+# _
+# work
+# savedo
+# projects
+# savedo-cms-wagon-de
+# app
+# assets
+# fonts
+# bootstrap
+#
+function remove_double_slashes { #removes double slashes in path and converts ./ to PWD
+    # usage
+    #        1. FOLDER=$(remove_double_slashes <<< "$@")
+    #        2. remove_double_slashes ".//_/work/savedo/projects/savedo-cms-wagon-de///app/assets///fonts/bootstrap///"
+    local incoming_string="${@}"
+    local PARTS=$(slashes_to_newlines <<< "${incoming_string}")
+    local ONE_PART
+    local result=""
+    local COUNTER=0
+    local using_string=""
+    while read -r ONE_PART; do
+    # for ONE_PART in ${PARTS}; do
+    {
+        if [ ! -z "${ONE_PART}" ] ; then # if not empty
+        {
+            using_string="${ONE_PART}"
+            if [ $COUNTER -eq 0 ] && ( [ "${using_string}" == "." ] || [ -d "${using_string}" ] ) ; then
+            {
+                result="$(pwd)"
+                [ -d "${using_string}" ] && result="$(pwd)/${using_string}"
+            } else {
+                if [ $COUNTER -eq 0 ] ; then
+                {
+                    result="${using_string}"
+                    [ -d "${using_string}" ] && [[ ${incoming_string:0:1} != "/" ]] && result="$(pwd)/${using_string}"
+                } else {
+                    result="${result}/${using_string}"
+                }
+                fi
+
+            }
+            fi
+            (( COUNTER++ ))
+        }
+        fi
+    }
+    done <<< "${PARTS}"
+    if [[ ${incoming_string:0:1} == "/" ]] ; then # get first char from string
+    {
+       [[ ${result:0:1} != "/" ]] && result="/${result}"
+    }
+    fi
+    echo "${result}"
+    return 0
+}
+# TEST: remove_double_slashes "/_/work/savedo/projects/savedo-cms-wagon-de///app/assets///fonts/bootstrap///"
+# EXPECTATION: /_/work/savedo/projects/savedo-cms-wagon-de/app/assets/fonts/bootstrap
+
+# TEST: remove_double_slashes "./work/savedo/projects/savedo-cms-wagon-de///app/assets///fonts/bootstrap///"
+# EXPECTATION: ${PWD}/work/savedo/projects/savedo-cms-wagon-de/app/assets/fonts/bootstrap
+
+function remove_dot_slash_from_begining {
+    sed 's/\.\///g'
+}
+
+function remove_lonely_dot {
+    sed '/^\.$/d'
+}
+
+function remove_lonely_double_dots {
+    sed '/^\.\.$/d'
+}
+
+function get_all_files {
+    local folder="${1}"
+    [ "${folder}" == "." ] && folder=$(pwd)
+    local all_files=$(find "${folder}" -maxdepth 1  | remove_dot_slash_from_begining | remove_lonely_dot | remove_lonely_double_dots | sed s@"${folder}\/"@@g)
+    #anounce Found:"${all_files}"
+    #exit
+    echo "${all_files}"
+} #end get_all_files
+
+function remove_last_slash {
+    sed 's/\/$//g'  # remove last slash
+}
+
+function check_path {
+    local path=$(echo "${2}" | remove_last_slash)
     local cwd=$(pwd)
     local result
     # Find paths
@@ -34,21 +130,16 @@ check_path(){
     elif [ -e "${cwd}/${2}" ] ; then
         result="${cwd}/${2}"
     else
-        !!! "${1} PATH Not found: ${2}"
+        echo -e "\\033[38;5;1m ${1} \\033[01;33m PATH Not found: \\033[38;5;1m ${2}\\033[0m"
+        return 1
     fi
     echo "${result}"
+    return 0
 } # end check_path
 
-get_all_files(){
-    local all_files=$(find "${1}" -maxdepth 1 | sed s"${1}"/g | sed 's/\.\///g' | sed '/^\.$/d' )
-    #anounce Found:"${all_files}"
-    #exit
-    echo "${all_files}"
-} #edn get_all_files
-
-divide_using_rsync() {
-    local from_path=$(check_path "FROM" "${1}")
-    local base_path=$(check_path "FROM" "${2}")
+function divide_using_rsync() {
+    local from_path=$(remove_double_slashes "${1}")
+    local base_path=$(remove_double_slashes "${2}")
     local backup_path="${from_path}/original"
     local GOAL=${3}
     local to_path
@@ -57,10 +148,12 @@ divide_using_rsync() {
     local blocks=1
 
     anounce Copy Batch
-    anounce Found:"${all_files}"
+    anounce Found files:"${all_files}"
     anounce Found from_path:"${from_path}"
+    anounce Found to_path:"${base_path}/#${GOAL}#"
     anounce Found base_path:"${base_path}"
-    anounce Found backup_path:"${base_path}"
+    anounce Found backup_path:"${backup_path}"
+    anounce Found GOAL:"${GOAL}"
 
     [ ! -d "${backup_path}/" ] && mkdir -p "${backup_path}/"
 
@@ -70,9 +163,12 @@ divide_using_rsync() {
         if [ ! -z "${one_item}" ] && [[ "${from_path}/${one_item}" != "${from_path}/${from_path}" ]]; then
         {
             to_path="${base_path}/${blocks}"
+            [ ! -d "${to_path}" ] && mkdir -p "${to_path}"
             anounce base_path:"${to_path}"
             local filename=$(escape_filename <<< "${one_item}")
-            [ -d "${from_path}/${filename}/" ] && [ ! -d "${to_path}/${filename}/" ] && mkdir -p "${to_path}/${filename}"
+            # if source file is a directory    and  target file directory does not exists     then create
+            [ -d "${from_path}/${filename}/" ] && [ ! -d "${to_path}/${filename}/" ] && mkdir -p "${to_path}/${filename}"  # make directory if it does not exist
+            # [ -d "${from_path}/${filename}/" ] && [ ! -d "${to_path}" ] && mkdir -p "${to_path}"
             anounce "\\033[38;5;30m${filename} \\033[38;5;242mmoving to \\033[38;5;30m${to_path}/"
             rsync -av "${from_path}/${filename}" "${to_path}/"
             rsync -av "${from_path}/${filename}" "${backup_path}/"

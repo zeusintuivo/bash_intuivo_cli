@@ -1,0 +1,307 @@
+#!/usr/bin/env bash
+#
+# @author Zeus Intuivo <zeus@intuivo.com>
+#
+
+DOCKER_RUNNING=$(docker inspect -f '{{.State.Running}}' postgres)
+if [[ "${DOCKER_RUNNING}" !=  "true" ]] ; then
+{
+    docker-compose up &
+    wait
+}
+fi
+
+docker-compose ps
+
+# Check again
+DOCKER_RUNNING=$(docker inspect -f '{{.State.Running}}' postgres)
+if [[ "${DOCKER_RUNNING}" !=  "true" ]] ; then
+{
+    echo "ERROR - NO DOCKER RUNNING Failed!!! "
+    exit 69;
+}
+fi
+
+
+msg_red() {
+    printf "\n${bdr}%s ${off}%s\n" "$@"
+}
+
+
+pull
+wait
+
+
+kill_node_and_ruby(){
+    trap '{ msg_red " KEYBOARD INTERRUPT 1."; }' INT
+    local NODETOKILL NODES=$(pgrep node)
+    if [ ! -z "${NODES}" ]; then {
+        echo Killing nodes:"${NODES}":
+        while read -r NODETOKILL; do
+            if [ ! -z "${NODETOKILL}" ] ; then
+                echo Killing node process:"${NODETOKILL}":
+                ps "${NODETOKILL}"
+                kill "${NODETOKILL}"
+            fi
+        done <<< "$NODES"
+    } else {
+                     echo "No node processes found to kill"
+    }
+    fi
+    local RUBYTOKILL
+    local RUBYSERVER=""
+    [ -e ./tmp/pids/server.pid ] && RUBYSERVER=$(< ./tmp/pids/server.pid)
+    local RUBYMINE=$(pgrep rubymine)
+    local VIRTUALS=$(pgrep Virtual)
+    local VAGRANT=$(pgrep vagrant)
+    local CHECKAGAIN EXCLUDE EXCLUSIONS=$(echo -e "${RUBYMINE}\n${VIRTUALS}\n${VAGRANT}")
+    local RUBYS=$(pgrep ruby)
+    if [ ! -z "${RUBYS}" ]; then {
+        if [ ! -z "${EXCLUSIONS}" ] ; then
+        {
+                while read -r EXCLUDE; do
+                    if [ ! -z "${EXCLUDE}" ] ; then
+                            echo Excluding process:"${EXCLUDE}":
+                            ps ${EXCLUDE}
+                            if [ ! -z "${RUBYS}" ] ; then
+                                RUBYS=$(sed s/${EXCLUDE}//g <<< "${RUBYS}")
+                            fi
+                    fi
+                done <<< ${EXCLUSIONS}
+        }
+        fi
+        if [ ! -z "${RUBYS}" ]; then {
+            local ALLRUBYS=$(echo -e "${RUBYS}\n${RUBYSERVER}\n")
+
+            while read -r RUBYTOKILL; do
+                CHECKAGAIN=$(ps ${RUBYTOKILL} | tail -1 | grep vagrant)
+                if [ ! -z "${CHECKAGAIN}" ] ; then
+                    echo Excluding process:"${RUBYTOKILL}":
+                    ps ${RUBYTOKILL}
+                    VAGRANT=$(echo -e "${VAGRANT}\n${RUBYTOKILL}")
+                    ALLRUBYS=$(sed s/${RUBYTOKILL}//g <<< "${ALLRUBYS}")
+                    RUBYTOKILL=""
+                fi
+                CHECKAGAIN=$(ps ${RUBYTOKILL} | tail -1 | grep Virtual)
+                if [ ! -z "${CHECKAGAIN}" ] ; then
+                    echo Excluding process:"${RUBYTOKILL}":
+                    ps ${RUBYTOKILL}
+                    VIRTUALS=$(echo -e "${VIRTUALS}\n${RUBYTOKILL}")
+                    RUBYS=$(sed s/${RUBYTOKILL}//g <<< "${RUBYS}")
+                    RUBYTOKILL=""
+                fi
+
+                  if [ ! -z "${RUBYTOKILL}" ] ; then
+                    echo Killing rubys processes:"${ALLRUBYS}":
+                    echo Killing ruby 1 process:"${RUBYTOKILL}":
+                    ps ${RUBYTOKILL}
+                    kill "${RUBYTOKILL}"
+                  fi
+            done <<< ${ALLRUBYS}
+
+            echo "Left alive RubyMine: ${RUBYMINE}==$(pgrep rubymine)"
+            echo "Left alive Vagrants: ${VAGRANT}==$(pgrep vagrant)"
+            echo "Left alive Virtuals: ${VIRTUALS}==$(pgrep Virtual)"
+        } else {
+                echo "No ruby processes found to kill"
+        }
+        fi
+    } else {
+                echo "No ruby processes found to kill"
+    }
+    fi
+}
+
+kill_node_and_ruby
+
+trap '{ msg_red " KEYBOARD INTERRUPT 2."; kill_node_and_ruby; }' INT
+
+
+
+task(){
+    trap '{ msg_red " KEYBOARD INTERRUPT 3."; kill_node_and_ruby; }' INT
+
+    # rubyversion nodeversion pull && bundle &&  && rails s thin -b 127.0.0.1
+    # pull bundle migrate yarn
+    # sleep 0.5; echo "$1";
+    # big_letters $1
+    case $1 in
+    rubyversion)
+        local CURRENT_RUBY_VERSION=$(ruby --version | cut -d' ' -f2)
+        if [[ "${CURRENT_RUBY_VERSION}" != "2.5.3p105" ]] ; then
+            # Add RVM to PATH for scripting. Make sure this is the last PATH variable change.
+            export PATH="$PATH:$HOME/.rvm/bin"
+            rvm use $(<.ruby-version)
+        fi
+      ;;
+    nodeversion)
+       local CURRENT_NODE_VERSION=$(node --version)
+       if [[ "${CURRENT_NODE_VERSION}" != "v10.15.1" ]] ; then
+          export NVM_DIR="$HOME/.nvm"
+          [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
+          [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
+          nvm use $(<.nvmrc)
+       fi
+      ;;
+    pull)
+      pull
+      ;;
+    bundle)
+      bundle
+      ;;
+    migrate)
+      echo "Migration"
+      bin/rails db:migrate RAILS_ENV=development
+      wait
+      ;;
+    yarn)
+      yarn
+      ;;
+    dev)
+      Message="yarn dev"
+      yarn dev&
+      ;;
+    thin)
+      Message="rails s thin -b 127.0.0.1"
+      rails s thin -b 127.0.0.1
+      ;;
+    sequential_migrate_up)
+      sequential_migrate_up
+      ;;
+    sequential_yarn_dev)
+      sequential_yarn_dev
+      ;;
+    *)
+      Message="I don't know this task:${1}:"
+      ;;
+    esac
+    wait
+    echo "$Message";
+}
+sequential_pull(){
+    for thing in pull ; do
+       task "$thing"
+       wait
+    done
+}
+#  sequential_pull
+
+
+
+# REF: https://unix.stackexchange.com/questions/103920/parallelize-a-bash-for-loop
+open_sem(){
+    mkfifo pipe-$$
+    exec 3<>pipe-$$
+    rm pipe-$$
+    local i=$1
+    for((;i>0;i--)); do
+        printf %s 000 >&3
+    done
+}
+
+run_with_lock(){
+    local x
+    read -u 3 -n 3 x && ((0==x)) || exit $x
+    (
+     ( "$@"; )
+    printf '%.3d' $? >&3
+    )&
+}
+
+
+parallel_kill(){
+    for thing in rubyversion nodeversion; do
+      task "$thing" &
+    done
+}
+parallel_kill
+
+
+bundle
+wait
+bin/rails db:migrate RAILS_ENV=development
+wait
+
+
+
+do_bundle_and_yarn() {
+    N=1
+    open_sem $N
+    trap '{ msg_red " KEYBOARD INTERRUPT 4."; kill_node_and_ruby; }' INT
+    # for thing in pull rubyversion nodeversion bundle migrate yarn dev thin; do
+    for thing in bundle bundle migrate yarn; do
+        run_with_lock task $thing
+        if [ $0 != 0 ] ; then
+            echo -e "There was an error!! with: ${thing}"
+            # exit 69
+        fi
+    done
+}
+
+sequential_migrate_up(){
+    for thing in migrate thin; do
+       task "$thing"
+    done
+}
+# sequential_migrate_up
+
+sequential_yarn_dev(){
+    for thing in yarn dev; do
+       task "$thing"
+    done
+}
+# sequential_yarn_dev
+
+parallel_items(){
+    N=4
+    (
+        # for thing in pull rubyversion nodeversion bundle migrate yarn dev thin; do
+        for thing in sequential_migrate_up sequential_yarn_dev; do
+           ((i=i%N)); ((i++==0)) && wait
+           task "$thing" &
+        done
+    )
+}
+parallel_items
+
+exit 0
+
+
+
+
+################## LOCK SEQUENTIAL #####################
+
+N=1
+open_sem $N
+trap '{ msg_red " KEYBOARD INTERRUPT 5."; kill_node_and_ruby; }' INT
+# for thing in pull rubyversion nodeversion bundle migrate yarn dev thin; do
+for thing in sequential_migrate_up sequential_yarn_dev; do
+    run_with_lock task $thing
+    if [ $0 != 0 ] ; then
+        echo -e "There was an error!! with: ${thing}"
+        #exit 69
+    fi
+done
+
+exit 0
+
+
+
+pull
+wait
+{
+ bundle
+}
+{
+  yarn
+}
+wait
+bin/rails db:migrate RAILS_ENV=development
+wait
+$( yarn dev )
+{
+ rails s thin -b 127.0.0.1
+}
+wait
+
+

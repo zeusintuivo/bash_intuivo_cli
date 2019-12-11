@@ -42,6 +42,8 @@ else
     IFS=''                 # to read line by line and keep space
     IFS= read -r ONEPIPE   # to avoid interpretation of backslashes.
     PIPED="${ONEPIPE}"
+    [ ! -z "$PIPED" ] && COUNTER=$((COUNTER+1))
+
     while read ONEPIPE
     do
 
@@ -273,26 +275,40 @@ fi
 # #             exit
 
 
-red=`tput setaf 1`
-cyan=`tput setaf 6`
-green=`tput setaf 2`
-reset=`tput sgr0`
+ ####        ####       #            ####       #####        ####
+ ####        ####       #            ####       #####        ####
+#    #      #    #      #           #    #      #    #      #
+#    #      #    #      #           #    #      #    #      #
+#           #    #      #           #    #      #    #       ####
+#           #    #      #           #    #      #    #       ####
+#           #    #      #           #    #      #####            #
+#           #    #      #           #    #      #####            #
+#    #      #    #      #           #    #      #   #       #    #
+#    #      #    #      #           #    #      #   #       #    #
+ ####        ####       ######       ####       #    #       ####
+ ####        ####       ######       ####       #    #       ####
 
-BLACK=$(tput setaf 0)
-RED=$(tput setaf 1)
-GREEN=$(tput setaf 2)
-yellow=$(tput setaf 3)
-LIME_YELLOW=$(tput setaf 190)
-POWDER_BLUE=$(tput setaf 153)
-BLUE=$(tput setaf 4)
-MAGENTA=$(tput setaf 5)
-CYAN=$(tput setaf 6)
-WHITE=$(tput setaf 7)
-BRIGHT=$(tput bold)
-NORMAL=$(tput sgr0)
-BLINK=$(tput blink)
-REVERSE=$(tput smso)
-UNDERLINE=$(tput smul)
+#
+# COLORS - Ouput - Start
+#
+
+[[ -z "${BLACK}" ]] && BLACK="\\033[38;5;16m"
+[[ -z "${GREEN}" ]] && GREEN="\\033[38;5;22m"
+[[ -z "${CYAN}" ]] && CYAN="\\033[38;5;123m"
+[[ -z "${PURPLE}" ]] && PURPLE="\\033[01;35m"
+[[ -z "${PURPLE_BLUE}" ]] && PURPLE_BLUE="\\033[38;5;93m"
+[[ -z "${GRAY241}" ]] && GRAY241="\\033[38;5;241m"
+[[ -z "${YELLOW226}" ]] && YELLOW226="\\033[38;5;226m"
+[[ -z "${YELLOW}" ]] && YELLOW="\\033[01;33m"
+[[ -z "${RESET}" ]] && RESET="\\033[0m"
+[[ -z "${RESET_PROMPT}" ]] && RESET_PROMPT="[0m"
+[[ -z "${RED}" ]] && RED="\\033[38;5;1m"
+[[ -z "${BRIGHT_BLUE87}" ]] && BRIGHT_BLUE87="\\033[38;5;87m"
+
+#
+# COLORS - Ouput - end
+#
+
 
 SEEKER="./ack";
 IGNORE_DIR="ignore";
@@ -595,7 +611,7 @@ else
 	}
 fi
 # show hiden chars
-# echo -e "${cyan}" | tr -dc '[:print:]' | od -c ;
+# echo -e "${CYAN}" | tr -dc '[:print:]' | od -c ;
 # echo -e "${red}" | tr -dc '[:print:]' ;
 # exit 1;
 
@@ -614,7 +630,7 @@ if command -v ${DEFAULTSEEKER} >/dev/null 2>&1; then
               }
             else
               {
-                echo "${cyan}  using chosen option ... ${SEEKER}  ";
+                echo "${CYAN}  using chosen option ... ${SEEKER}  ";
                 msg_green " ${SEEKER} INSTALLED."
 
               }
@@ -760,7 +776,7 @@ else
     {
 	    if [ $VERBOSE -eq 1 ] && [ -z "$PIPED" ] ; then
         	{
-    			echo "${cyan}  using ...${SEEKER}  "
+    			echo "${CYAN}  using ...${SEEKER}  "
         	}
         fi
     }
@@ -856,7 +872,7 @@ if [ $VERBOSE -eq 0 ] && [ -z "$PIPED" ] ; then
               }
             else
               {
-                msg_green "${cyan} $SEEKING "
+                msg_green "${CYAN} $SEEKING "
                 echo "    ";
               }
             fi
@@ -888,9 +904,9 @@ if [ $VERBOSE -eq 1 ] && [ -z "$PIPED" ] ; then
 	}
 fi
 
-# echo "${cyan}  ack  --ignore=vendor --ignore-dir=bower_components  --ignore-dir=node_modules --ignore-dir=storage/debugbar  --ignore-dir=storage/logs  --ignore-dir=app/Stubs \"${SEEKING}\" "
-# echo "${cyan}  ag  --ignore-dir=vendor --ignore-dir=bower_components  --ignore-dir=node_modules --ignore-dir=storage/debugbar  --ignore-dir=storage/logs  --ignore-dir=app/Stubs \"${SEEKING}\" "
-# echo "${cyan}  grep  --exclude-dir=vendor --exclude-dir=bower_components  --exclude-dir=node_modules --exclude-dir=storage/debugbar  --exclude-dir=storage/logs  --exclude-dir=app/Stubs \"${SEEKING}\" "
+# echo "${CYAN}  ack  --ignore=vendor --ignore-dir=bower_components  --ignore-dir=node_modules --ignore-dir=storage/debugbar  --ignore-dir=storage/logs  --ignore-dir=app/Stubs \"${SEEKING}\" "
+# echo "${CYAN}  ag  --ignore-dir=vendor --ignore-dir=bower_components  --ignore-dir=node_modules --ignore-dir=storage/debugbar  --ignore-dir=storage/logs  --ignore-dir=app/Stubs \"${SEEKING}\" "
+# echo "${CYAN}  grep  --exclude-dir=vendor --exclude-dir=bower_components  --exclude-dir=node_modules --exclude-dir=storage/debugbar  --exclude-dir=storage/logs  --exclude-dir=app/Stubs \"${SEEKING}\" "
 
 #If verbose  and # not PIPED
 if [ $VERBOSE -eq 1 ] && [ -z "$PIPED" ]; then
@@ -918,7 +934,7 @@ then
           }
         else
           {
-		        echo "${cyan}   ${SEEKER} \"${SEEKING}\" ${FILESCOMMAND}  ${IGNORELIST}  "
+		        echo "${CYAN}   ${SEEKER} \"${SEEKING}\" ${FILESCOMMAND}  ${IGNORELIST}  "
           }
         fi
     	}
@@ -957,7 +973,7 @@ else
           }
         else
           {
-            echo "${cyan}   ${SEEKER} \"${SEEKING}\" ${FILESCOMMAND}  ${IGNORELIST}  "
+            echo "${CYAN}   ${SEEKER} \"${SEEKING}\" ${FILESCOMMAND}  ${IGNORELIST}  "
           }
         fi
     	}

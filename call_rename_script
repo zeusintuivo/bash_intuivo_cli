@@ -1,0 +1,124 @@
+#!/bin/bash
+#
+# @author Zeus Intuivo <zeus@intuivo.com>
+#
+
+# check to see if I used a message, then it will behave as a put 
+#bash shell script check input argument
+
+# set working directory as the scripts location during the execution of script 
+# cd "$(dirname "$0")"
+
+
+# Bash: Detect pipe/file input in a shell script
+# REF: https://gist.github.com/davejamesmiller/1966557
+
+# How to detect whether input is from keyboard, a file, or another process.
+# Useful for writing a script that can read from standard input, or prompt the
+# user for input if there is none.
+
+# Source: http://www.linuxquestions.org/questions/linux-software-2/bash-scripting-pipe-input-to-script-vs.-1-570945/
+PIPED="";
+
+
+
+# In Bash you can also use test -t to check for a terminal:
+
+if [ -t 0 ]; then
+    # Terminal input (keyboard) - interactive
+    PIPED=""
+else
+    # File or pipe input - non-interactive
+    PIPED="YES"
+    
+fi
+
+# Piped Input 
+#if [ ! -z "$PIPED" ]
+# then
+# echo "this is pipe..die "
+# exit 0;
+#fi
+# NOT Piped Input 
+#if [ -z "$PIPED" ]
+# then
+# echo "this NOT pipe..die "
+# exit 0;
+#fi
+#echo "PIPED:$PIPED";
+#exit;
+
+# ALTERNATIVE:
+#if readlink /proc/$$/fd/0 | grep -q "^pipe:"; then
+    # Pipe input (echo abc | myscript)
+#    PIPED="YES"
+#elif file $( readlink /proc/$$/fd/0 ) | grep -q "character special"; then
+    # Terminal input (keyboard)
+#    PIPED=""
+#else
+    # File input (myscript < file.txt)
+#    PIPED=""
+
+#fi
+
+
+# CURRENT SCRIPT EXECUTING
+THISSCRIPTNAME=`basename "$0"`
+
+# echo "Called $1, $2, $3" 
+# exit 0 
+#bash shell script check input argument
+FAIL=0;
+# echo "   ";
+if [ -z "$1" ] && [ -z "$PIPED" ] ; then
+  { 
+    echo "Missing 1st argument "
+    FAIL=1;
+  }
+fi
+if [ "$1" == "-h" ] && [ -z "$PIPED" ] ; then 
+  {
+    echo "Help "
+    echo "  "
+    FAIL=1;
+  }
+fi
+if [ -z "$2" ] ;  then
+  {
+    echo "Missing 2nd argument "
+    FAIL=1;
+  }
+fi
+if [ -z "$3" ] && [ "$1" != "-h" ] ;  then
+  {
+    echo "Missing 3rd argument "
+    FAIL=1;
+  }
+fi
+if [ $FAIL -eq 1 ] ; then
+  {
+    echo " ${THISSCRIPTNAME} - Used to call renamescript "
+    echo " "
+    echo " Examples: "
+    echo " "
+    echo "     EXTENSION: js es6 js/cards.js "
+    echo " "
+    echo "     # The find all the scripts with .js   "
+    echo "     # Resulting in:  al scripts found renamed to .es6 filename and all references to it also"
+    echo "  "
+    echo " Sample Usage:    - expects three arguments "
+    echo "  "
+    echo "    ${THISSCRIPTNAME}    js      es6  js/cards.js "
+    echo "    ";
+    exit 1;
+  }
+fi
+
+
+fromext="$1"
+toext="$2"
+from="$3"
+# echo "Called $fromext, $toext, $from" 
+newname=$(echo "$from" | sed -e s@."$fromext"@."$toext"@g)
+# echo "Called $from  to $newname" 
+renamescript  "$from" "$newname"

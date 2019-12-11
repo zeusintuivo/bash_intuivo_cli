@@ -1,0 +1,126 @@
+#!/bin/bash
+#
+# @author Zeus Intuivo <zeus@intuivo.com>
+#
+# CURRENT SCRIPT EXECUTING
+THISSCRIPTNAME=`basename "$0"`
+
+
+if [ -z "$1" ] ;
+  then
+    echo "${THISSCRIPTNAME}  replaces a ,,term'' from database, and all files and rename "
+    echo "Missing 1st argument "
+    echo " "
+    echo "Sample Usage:    - expects two arguments  *required"
+    echo " "
+    echo "    ${THISSCRIPTNAME}    term-to-find    replace-with-this"
+    echo "    "
+    echo "    "
+    echo "    sample:    "
+    echo "        "
+    echo "    ${THISSCRIPTNAME}    TREEHOUSE.jpg     trees_gmbh_asa_sa_de_cv_logo.jpg"
+    echo "    ";
+    echo "       term-to-find        - is in concept the filename like TREEHOUSE.jpg ";
+    echo "        ";
+    echo "       replace-with-this   - is the new name 'trees_gmbh_asa_sa_de_cv_logo.jpg'  ";
+    echo "    ";
+    echo "     • it will download SQL form database ";
+    echo "     • it will rename the filename from TREEHOUSE.jpg to trees_gmbh_asa_sa_de_cv_logo.jpg ";
+    echo "     • it find any strings inside the SQL and change it to the new SEO term";
+    echo "     • it upload SQL to database rewriting the whole contents";
+    echo "     • cavead would be if the SQL is too big. ";
+    echo "     • created to use with a small Wordpress Joomla project";
+    echo "  ";
+  exit
+fi
+
+#1 Download SQL
+mysqldump --routines -uroot -ptoor  nirvana9_rowwp > nirvana9_rowwp.sql | grep -v 'insecure'
+
+#2 REPLACE in SQL
+SEEKING="$1";
+IMPLACING="$2";
+#sed -i -e s/"pinchepinche-pinche"/"punchepunche-punche"/g nirvana9_rowwp.sql
+sed -i -e s/"$SEEKING"/"$IMPLACING"/g nirvana9_rowwp.sql
+
+function replace_this_to_that {
+    sed s/"${1}"/"${2}"/g
+}
+
+#3 RENAME FILE / FILES
+FOUNDALL=$(find -L * | ag --nocolor "/.*${SEEKING}[^/]*$")
+
+  if [ ! -z "${FOUNDALL}" ] ; then  # if not empty
+  {
+    echo "FOUND: ${FOUNDALL}"
+    ## loop in case we find more than one file
+    while read -r FOUND_ONE_WHOLE_PATH; do
+
+      if [ ! -z "${FOUND_ONE_WHOLE_PATH}" ] ; then  # if not empty
+      {
+        # REF http://stackoverflow.com/questions/1371261/get-current-directory-name-without-full-path-in-bash-script
+        FOUNDNAMELAST=${FOUND_ONE_WHOLE_PATH##*/}          # get name of directory name without full path in bash,, or last string after last slash /
+        # REF http://stackoverflow.com/questions/6121091/get-file-directory-path-from-file-path
+        FOUND_DIR_NO_NAME=${FOUND_ONE_WHOLE_PATH%/*}      # get only directoy, --or everything before the last slash /
+        # 3.1 build new filename
+        #if [ "${FOUNDNAMELAST}" == "${SEEKING}" ] ; then
+        # {
+          # we if the past por of dir is the same as the string, we are looking at the correct string
+          # to is to avoid finding strings on the middle that not the same
+          #                  NEW_FILENAME_WHOLE_PATH="${FOUND_DIR_NO_NAME}/${IMPLACING}"
+          NEW_FILENAME_WHOLE_PATH=$(echo ${FOUND_ONE_WHOLE_PATH} | replace_this_to_that "${SEEKING}" "${IMPLACING}")
+
+          mv "${FOUND_ONE_WHOLE_PATH}" "${NEW_FILENAME_WHOLE_PATH}"
+          echo "RENAMED: ${FOUND_ONE_WHOLE_PATH}    -> ${NEW_FILENAME_WHOLE_PATH}"
+        # }
+        #fi
+
+      }
+      fi
+    done <<< "${FOUNDALL}"
+  }
+  fi
+
+
+# 4. Push Updated SQL
+mysql -A  -uroot -ptoor nirvana9_rowwp < nirvana9_rowwp.sql
+
+# 5. Clean TEMP FILE
+rm -rf nirvana9_rowwp.sql
+
+
+replace_this_to_that() {
+    sed s/"${1}"/"${2}"/g
+}
+
+list_all_files() {
+  local FOUNDALL=$(find -L * | ag --nocolor "/.*${SEEKING}[^/]*$")
+  if [ ! -z "${FOUNDALL}" ] ; then  # if not empty
+  {
+    echo "${FOUNDALL}"
+  }
+  fi
+}
+
+
+
+
+reference_sift_big_files(){
+  #
+  # REFERENCE Search and replace in big files, present only the filenames, pass the name with null char, use xargs to collect the name, and pass it inside {} to sed to do inline replacement, this is for gnu SED command, mac sed command is a little different, and this will fail, look script "nur" for more info
+
+  # sift -nQ  --blocksize 50M "pinchepinche-pinche"  -l  --output-sep="\x00" | xargs -I {} sed -i -e s/"pinchepinche-pinche"/"punchepunche-punche"/g {}
+
+  # Just replace : sed -i -e s/"pinchepinche-pinche"/"punchepunche-punche"/g {}
+  # Get SQL from database
+  # mysqldump --routines -uroot -ptoor  nirvana9_rowwp > nirvana9_rowwp.sql
+  # Get string to copy
+  #
+
+}
+
+# 6. Look for other filename that might have refereces, one last sweep.
+sift -nQ  --blocksize 50M "${SEEKING}"  -l  --output-sep="\x00" | xargs -I {} sed -i -e s/"${SEEKING}"/"${IMPLACING}"/g {}
+
+
+

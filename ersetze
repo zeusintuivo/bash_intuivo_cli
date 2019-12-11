@@ -83,6 +83,7 @@ SEEKER="./ack";
 IGNORE_DIR="ignore";
 FILESCOMMAND="";
 PRINTCOMMAND="-l --print0";
+FOUND=0
 
 msg_red () {
     printf "\n${bdr}%s ${off}%s\n" "${red} $@"
@@ -109,7 +110,7 @@ test_positives(){
   echo "${KIND}"
 }
 PROCESSOR_ERROR=$(test_positives)
-# DEBUG MACPOSITIVE MACPOSITIVE echo "${MACPOSITIVE}"
+# DEBUG MACPOSITIVE MACPOSITIVE echo "${PROCESSOR_ERROR}"
 # DEBUG MACPOSITIVE exit 1
 #
 # C H E C K   H O W   C O M P U T E R   H A N D L E S   E R R O R S   --End
@@ -268,7 +269,7 @@ else
 
             ls ./ack  | egrep 'ack' &>/dev/null
             err_buff=$?
-            if [[ "${PROCESSOR_ERROR}" == "MAC" ]] && [ $err_buff == 0 ]; then
+            if [[ "${PROCESSOR_ERROR}" == "MAC" ]] && [ $err_buff == 1 ]; then
             {
                 msg_green " ./ack INSTALLED."
                 SEEKER="./ack -Q ";
@@ -412,41 +413,80 @@ else
     }
 fi
 
+
+
+######      #    #       ####       #           #    #       ####       #       ####       #    #       ####
+######      #    #       ####       #           #    #       ####       #       ####       #    #       ####
+#            #  #       #    #      #           #    #      #           #      #    #      ##   #      #
+#            #  #       #    #      #           #    #      #           #      #    #      ##   #      #
+#####         ##        #           #           #    #       ####       #      #    #      # #  #       ####
+#####         ##        #           #           #    #       ####       #      #    #      # #  #       ####
+#             ##        #           #           #    #           #      #      #    #      #  # #           #
+#             ##        #           #           #    #           #      #      #    #      #  # #           #
+#            #  #       #    #      #           #    #      #    #      #      #    #      #   ##      #    #
+#            #  #       #    #      #           #    #      #    #      #      #    #      #   ##      #    #
+######      #    #       ####       ######       ####        ####       #       ####       #    #       ####
+######      #    #       ####       ######       ####        ####       #       ####       #    #       ####
+
+
+#
 # TARGET COMPOSITION
-# IGNORELIST="--${IGNORE_FILE}=composer.phar --${IGNORE_DIR}=vendor --${IGNORE_DIR}=.git --${IGNORE_DIR}=bower_components  --${IGNORE_DIR}=node_modules --${IGNORE_DIR}=storage/debugbar  --${IGNORE_DIR}=storage/logs  --${IGNORE_DIR}=app/Stubs "
+# IGNORELIST="--${IGNORE_FILE}=composer.phar --${IGNORE_FILE}=phpunit  --${IGNORE_FILE}=ack --${IGNORE_FILE}=dBug.php --${IGNORE_FILE}=bootstrap.php.cache --${IGNORE_FILE}=model --${IGNORE_FILE}=load_insert --${IGNORE_FILE}=generateparams --${IGNORE_FILE}=generatelocations --${IGNORE_FILE}=generateinserts --${IGNORE_FILE}=countalltables --${IGNORE_FILE}=conflicts --${IGNORE_DIR}=AbsoluteUrlBundle --${IGNORE_DIR}=cache --${IGNORE_DIR}=vendor --${IGNORE_DIR}=bower_components  --${IGNORE_DIR}=node_modules --${IGNORE_DIR}=storage/debugbar  --${IGNORE_DIR}=.idea  --${IGNORE_DIR}=.git --${IGNORE_DIR}=storage/logs  --${IGNORE_DIR}=app/Stubs "
 #
 # COMPOSE IGNORE ONELINER - start
 #
-EXCLUDEDIR="--${IGNORE_DIR}="
 EXCLUDEFILE="--${IGNORE_FILE}="
+EXCLUDEDIR="--${IGNORE_DIR}="
+MOREIGNORE_FILES=""
+[ -f .ersetzeignore_files ] && MOREIGNORE_FILES=$(<.ersetzeignore_files)
+MOREIGNORE_DIRS=""
+[ -f .ersetzeignore_dirs ] && MOREIGNORE_DIRS=$(<.ersetzeignore_dirs)
+
 FILESTOEXCLUDE=".dir_bash_history
 .tutorial
-.description
-.env
-.env.development
-.env.test
-composer.phar"
+ack
+bootstrap.php.cache
+conflicts
+composer.phar
+countalltables
+dBug.php
+generateinserts
+generatelocations
+generateparams
+load_insert
+phpunit
+${MOREIGNORE_FILES}"
 
-DIRSTOEXCLUDE=".git
+DIRSTOEXCLUDE=".cargo
 .nyc_output
 .serverless
 .tmp
 .ecryptfs
 .gvfs
-.idea
+.git
 .vagrant
-.vscode
+.servo
+coverage
+AbsoluteUrlBundle
+app/Stubs
 bower_components
-node_modules
+cache
+dist
+python
 storage/debugbar
 storage/logs
-app/Stubs
+target
+
+log
+ports
 var/cache
 var/logs
 var/session
-tmp
-log
-vendor"
+app/cache
+app/logs
+app/session
+${MOREIGNORE_DIRS}"
+
 
 
     while read -r ONE_FILENAME; do
@@ -490,6 +530,7 @@ echo "${reset} ${green} Seek ignoring $(echo ${IGNORELIST} | sed  "s@${EXCLUDEDI
 # echo "${cyan}  ag  --ignore-dir=vendor --ignore-dir=bower_components  --ignore-dir=node_modules --ignore-dir=storage/debugbar  --ignore-dir=storage/logs  --ignore-dir=app/Stubs \"${SEEKING}\" "
 # echo "${cyan}  grep  --exclude-dir=vendor --exclude-dir=bower_components  --exclude-dir=node_modules --exclude-dir=storage/debugbar  --exclude-dir=storage/logs  --exclude-dir=app/Stubs \"${SEEKING}\" "
 echo "   ";
+err_buff=$?;
 # THIS IS GREP FOR LINUX
 # ack  --ignore-dir=vendor --ignore-dir=bower_components  --ignore-dir=node_modules --ignore-dir=storage/debugbar  --ignore-dir=storage/logs  --ignore-dir=app/Stubs "$SEEKING"
 # ag  --ignore-dir=vendor --ignore-dir=bower_components  --ignore-dir=node_modules --ignore-dir=storage/debugbar  --ignore-dir=storage/logs  --ignore-dir=app/Stubs "$SEEKING"
@@ -518,22 +559,42 @@ fi
 # If  | egrep "$SEEKING" &>/dev/null | returned an error....so it was... it was found/not found say it and stop execution for not found
 #if [ ! $? -eq 0 ] ; then #mac
 #if (( $? == 0 )) ;  then #work
+################       ##############         ####          ####    ####        ####    ################
+################       ##############         ####          ####    ####        ####    ################
+####                 ####          ####       ####          ####    ######      ####    ####          ####
+####                 ####          ####       ####          ####    ######      ####    ####          ####
+####                 ####          ####       ####          ####    ##########  ####    ####          ####
+####                 ####          ####       ####          ####    ##########  ####    ####          ####
+############         ####          ####       ####          ####    ####  ####  ####    ####          ####
+############         ####          ####       ####          ####    ####  ####  ####    ####          ####
+####                 ####          ####       ####          ####    ####    ########    ####          ####
+####                 ####          ####       ####          ####    ####    ########    ####          ####
+####                 ####          ####       ####          ####    ####      ######    ####          ####
+####                 ####          ####       ####          ####    ####      ######    ####          ####
+####                   ##############           ##############      ####        ####    ################
+####                   ##############           ##############      ####        ####    ################
+
 err_buff=$?
+# echo "err_buff=$err_buff"
+# echo "PROCESSOR_ERROR=$PROCESSOR_ERROR"
 if [[ "${PROCESSOR_ERROR}" == "INTEL" ]] && (( $err_buff == 0 )); then
 {
     msg_green "${green} FOUND !"
     echo "    ";
+    FOUND=1
 }
 elif [[ "${PROCESSOR_ERROR}" == "MAC" ]] && [ $err_buff == 0 ]; then
 {
     msg_green "${green} FOUND !"
     echo "    ";
+    FOUND=1
 }
 else
 {
-    msg_red "${red} SORRY NO OCCURENCES FOUND !"
+    msg_red "${red} SORRY NO FOUND OCCURENCES !"
     echo "    ";
-    #exit 1;
+    FOUND=0
+    exit 1;
 }
 fi
 
@@ -602,6 +663,7 @@ if [[ $SEEKING == *"/"* || $IMPLACING == *"/"* ]]; then
         if [[ "${REPLACERGNU}" == "YES" ]] ; then
           # sed GNU
           {
+            echo "${yellow} sed GNU ";
             # Get list and scroll through the list
             # FILES=$(${SEEKER} "$SEEKING"     ${FILESCOMMAND} ${PRINTCOMMAND} ${IGNORELIST})
             # echo "FILES FOUND: $FILES"
@@ -620,9 +682,12 @@ if [[ $SEEKING == *"/"* || $IMPLACING == *"/"* ]]; then
           # sed mac
           # MAC REPLACER Has to HAVE A FILENAME.EXTENSION provided for the -i (inplace) option
           {
-          # Sample use: ${THISSCRIPTNAME} /usr/bin/env\ bash  /bin/bash
-          echo "${cyan}   ${SEEKER} \"${SEEKING}\" ${FILESCOMMAND} ${PRINTCOMMAND} ${IGNORELIST}   | xargs -0 sed -i'.sedbak'  -e s\"${SEEKING}\"\"${IMPLACING}\"g"
-                          ${SEEKER} "$SEEKING"     ${FILESCOMMAND} ${PRINTCOMMAND} ${IGNORELIST}   | xargs -0 sed -i'.sedbak'  -e s"$SEEKING""$IMPLACING"g | ${SEEKER} "$SEEKING" ${FILESCOMMAND}  &>/dev/null
+            echo "${yellow} sed MAC ";
+            # Sample use: ${THISSCRIPTNAME} /usr/bin/env\ bash  /bin/bash
+            # echo "${cyan}   ${SEEKER} \"${SEEKING}\" ${FILESCOMMAND} ${PRINTCOMMAND} ${IGNORELIST}   | xargs -0 sed -i'.sedbak'  -e s\"${SEEKING}\"\"${IMPLACING}\"g"
+            echo "${cyan}   ${SEEKER} \"${SEEKING}\" ${FILESCOMMAND} ${PRINTCOMMAND} ${IGNORELIST}   | xargs -I {} sed -i'.sedbak'  -e s\"${SEEKING}\"\"${IMPLACING}\"g {}"
+            #                ${SEEKER} "$SEEKING"     ${FILESCOMMAND} ${PRINTCOMMAND} ${IGNORELIST}   | xargs -0 sed -i'.sedbak'  -e s"$SEEKING""$IMPLACING"g | ${SEEKER} "$SEEKING" ${FILESCOMMAND}  &>/dev/null
+                            ${SEEKER} "$SEEKING"     ${FILESCOMMAND} ${PRINTCOMMAND} ${IGNORELIST}   | xargs -I {} sed -i'.sedbak'  -e s"$SEEKING""$IMPLACING"g {} | ${SEEKER} "$SEEKING" ${FILESCOMMAND}  &>/dev/null
           }
         fi
       }
@@ -643,6 +708,7 @@ if [[ $SEEKING == *"/"* || $IMPLACING == *"/"* ]]; then
         if [[ "${REPLACERGNU}" == "YES" ]] ; then
           # sed GNU
           {
+            echo "${yellow} sed GNU ";
             # Get list and scroll through the list
             # FILES=$(${SEEKER} "$SEEKING"     ${FILESCOMMAND} ${PRINTCOMMAND} ${IGNORELIST})
             # echo "FILES FOUND: $FILES"
@@ -660,8 +726,9 @@ if [[ $SEEKING == *"/"* || $IMPLACING == *"/"* ]]; then
           # sed 2.5.1-FreeBSD mac
           # MAC REPLACER Has to HAVE A FILENAME.EXTENSION provided for the -i (inplace) option
           {
-            echo "${cyan}   ${SEEKER} \"${SEEKING}\" ${FILESCOMMAND} ${PRINTCOMMAND} ${IGNORELIST}   | xargs -0 sed -i'.sedbak'  -e s/\"${SEEKING}\"/\"${IMPLACING}\"/g"
-                            ${SEEKER} "$SEEKING"     ${FILESCOMMAND} ${PRINTCOMMAND} ${IGNORELIST}   | xargs -0 sed -i'.sedbak'  -e s/"$SEEKING"/"$IMPLACING"/g | ${SEEKER} "$SEEKING" ${FILESCOMMAND}  &>/dev/null
+            echo "${yellow} sed MAC ";
+            echo "${cyan}   ${SEEKER} \"${SEEKING}\" ${FILESCOMMAND} ${PRINTCOMMAND} ${IGNORELIST}   | xargs -I {} sed -i'.sedbak'  -e s/\"${SEEKING}\"/\"${IMPLACING}\"/g {}"
+                            ${SEEKER} "$SEEKING"     ${FILESCOMMAND} ${PRINTCOMMAND} ${IGNORELIST}   | xargs -I {} sed -i'.sedbak'  -e s/"$SEEKING"/"$IMPLACING"/g {} | ${SEEKER} "$SEEKING" ${FILESCOMMAND} &>/dev/null
           }
         fi
       }
@@ -689,17 +756,20 @@ if [[ "${PROCESSOR_ERROR}" == "INTEL" ]] && (( $err_buff != 0 )); then
     {
     msg_green "${green} REPLACED !"
     echo "    ";
+    FOUND=1
     }
 elif [[ "${PROCESSOR_ERROR}" == "MAC" ]] && [ $err_buff != 0 ]; then
     {
     msg_green "${green} REPLACED !"
     echo "    ";
+    FOUND=1
     }
 else
     {
     msg_red "${red} SORRY NO REPLACEMENTS MADE !"
     echo "    ";
     exit 0;
+    FOUND=0
     }
 fi
 
@@ -745,6 +815,7 @@ fi
 #if (( $? == 0 )) ;  then #work
 #if [ ! $? == 0 ]; then #mac
 err_buff=$?
+# echo "err_buff=$err_buff"
 if [[ "${PROCESSOR_ERROR}" == "INTEL" ]] && (( $err_buff == 0 )); then
     {
     echo "    ";

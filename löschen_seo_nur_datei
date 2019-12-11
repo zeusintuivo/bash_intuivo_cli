@@ -6,7 +6,7 @@
 THISSCRIPTNAME=`basename "$0"`
 
 
-if [ -z "$1" ] && [ -z "$PIPED" ]
+if [ -z "$1" ] ; 
   then
     echo "
           Missing 1st argument

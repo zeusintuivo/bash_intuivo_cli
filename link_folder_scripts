@@ -16,9 +16,7 @@ load_execute_command(){
     #
     local URL=""
     local EXECOMCLI=""
-    local provider=""
-    [ -d "/_/clis/execute_command_intuivo_cli/" ] &&  provider="file:///_/clis/execute_command_intuivo_cli/"
-    [ ! -d "/_/clis/execute_command_intuivo_cli/" ] && provider="https://raw.githubusercontent.com/zeusintuivo/execute_command_intuivo_cli/master/"
+    local provider=$([ -d "$HOME/_/clis/execute_command_intuivo_cli/" ] && echo "file://$HOME/_/clis/execute_command_intuivo_cli/" || echo "https://raw.githubusercontent.com/zeusintuivo/execute_command_intuivo_cli/master/")
     local BASH_SCRIPTS="
 execute_command
 "
@@ -30,7 +28,6 @@ execute_command
             EXECOMCLI=$(curl $URL  2>/dev/null )   # suppress only curl download messages, but keep curl output for variable
             eval """${EXECOMCLI}"""
             anounce $URL Loaded
-
         fi
     done <<< "${BASH_SCRIPTS}"
     unset URL
@@ -138,14 +135,15 @@ while read -r SCRIPT_NAME; do
 
   if [ ! -z "${SCRIPT_NAME}" ]  && [ ! -d "${SCRIPT_NAME}/" ] ; then   # Not empty and is not a directory
     {
-      anounce_command chmod +x "${CURRENT_PATH}/${SCRIPT_NAME}"
-      target_link="/usr/local/bin/${SCRIPT_NAME}"
-      if [[ -e "${target_link}" ]] && [[ -L "${target_link}" ]]; then # Symlink softlink exists REF: http://stackoverflow.com/questions/5767062/how-to-check-if-symlink-exists
+      to_link=$(echo "${CURRENT_PATH}/${SCRIPT_NAME}" | sed 's/ /\\ /g') # escape spaces
+      anounce_command chmod +x "${to_link}"
+      from_link=$(echo "/usr/local/bin/${SCRIPT_NAME}" | sed 's/ /\\ /g') # escape spaces
+      if [[ -e "${from_link}" ]] && [[ -L "${from_link}" ]]; then # Symlink softlink exists REF: http://stackoverflow.com/questions/5767062/how-to-check-if-symlink-exists
         {
-          anounce_command sudo unlink "${target_link}"
+          anounce_command sudo unlink "${from_link}"
         }
       fi
-      anounce_command sudo ln -sf "${CURRENT_PATH}/${SCRIPT_NAME}" "${target_link}"
+      anounce_command sudo ln -sf "${to_link}" "${from_link}"
     }
   fi
 done <<< "${LIST_OF_BASH_SCRIPTS}"
@@ -158,13 +156,11 @@ patch_utf_names(){
       PROVIDED_USER="${1}"
   fi
 
-  TARGET_DIRECTORY="/_/clis"
+  TARGET_DIRECTORY="$HOME/_/clis"
   if [ ! -z "${2}" ] ;  then
       TARGET_DIRECTORY="${2}"
+      TARGET_DIRECTORY=$(echo "${TARGET_DIRECTORY}" | sed 's/ /\\ /g')
   fi
-
-  [ ! -d "${TARGET_DIRECTORY}/"   ] && return 0
-  [ ! -d "/usr/local/bin/"  ] && return 0
 
   anounce Patching UTF-8 Filenames
   anounce_command sudo ln -sf  "${TARGET_DIRECTORY}/cuet" /usr/local/bin/cüt
@@ -189,8 +185,10 @@ patch_utf_names(){
   anounce_command sudo unlink  /usr/local/bin/ue
 
 } # end patch_utf_names
-[[ "${PWD}" == *"bash_intuivo_cli"* ]] && [ -d "${PWD}/"  ] && patch_utf_names "${USER}" "/_/clis/bash_intuivo_cli"
 
+
+[[ "${PWD}" == *"bash_intuivo_cli"* ]] && [ -d "${PWD}/"  ] && patch_utf_names "${USER}" "$HOME/_/clis/bash_intuivo_cli"
+[[ "${PWD}" == *"bash_intuivo_cli"* ]] && patch_utf_names "${USER}" "${PWD}"
 
 
 
