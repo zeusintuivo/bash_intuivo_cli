@@ -3,7 +3,6 @@
 # @author Zeus Intuivo <zeus@intuivo.com>
 #
 #
-sudo echo "Starting"
 
 load_execute_command(){
     # : Execute "${@}"
@@ -19,8 +18,8 @@ load_execute_command(){
     local provider=$([ -d "$HOME/_/clis/execute_command_intuivo_cli/" ] && echo "file://$HOME/_/clis/execute_command_intuivo_cli/" || echo "https://raw.githubusercontent.com/zeusintuivo/execute_command_intuivo_cli/master/")
     local BASH_SCRIPTS="
 execute_command
+struct_testing
 "
-#struct_testing
     while read -r ONE_SCRIPT; do
         # if not empty
         if [ ! -z "${ONE_SCRIPT}" ] ; then
@@ -38,6 +37,8 @@ execute_command
 } # end function load_execute_command
 load_execute_command
 
+sudo echo "Starting"
+
 remove_all_starting_with_journal_get(){
   sed  '/^journal_get_/d'
 }
@@ -47,46 +48,42 @@ THIS_SCRIPT_NAME=`basename "$0"`
 
 heading Reads all \#\!\/bin\/bash  scripts and links it to /usr/local/bin/ as a softlink from this current folder
 
-# Add virianten of bash hashbans
+announce Varianten of bash hashbans
 
-FILES_BASH=$(grep -l  \#\!\/bin\/bash $(find  * -maxdepth 0 -type f ))                   #!/bin/bash   get all files that have this string at the start of the contents
-LIST_OF_BASH_SCRIPTS="${FILES_BASH}"
+            # Sample use
+            #           Prepare .each
+            #           ITEMS=$(find . -maxdepth 0 -type d | egrep -v "\.git")
+            #
+            #           ACTIONS="echo \"Showing list for {#}\"  ls -la {#} "
+            #
+            #                    Perform all actions in
+            #                           LIST1
+            #                             for each element in
+            #                                              LIST2
+            #           Call .each
+            #           .each  "${ACTIONS}"   "${ITEMS}"
 
-FILES_ENV_BASH=$(grep -l  \#\!\/bin\/env\ bash $(find  * -maxdepth 0 -type f ))          #!/bin/env bash
-LIST_OF_BASH_SCRIPTS="${LIST_OF_BASH_SCRIPTS}
-${FILES_ENV_BASH}"
-
-FILES_BIN_ENV_BASH=$(grep -l  \#\!\/usr\/bin\/env\ bash $(find  * -maxdepth 0 -type f ))  #!/usr/bin/env bash
-LIST_OF_BASH_SCRIPTS="${LIST_OF_BASH_SCRIPTS}
-${FILES_BIN_ENV_BASH}"
-
-FILES_BIN_ENV_BASH=$(grep -l  \#\!\/usr\/bin\/env\ ruby $(find  * -maxdepth 0 -type f ))  #!/usr/bin/env ruby
-LIST_OF_BASH_SCRIPTS="${LIST_OF_BASH_SCRIPTS}
-${FILES_BIN_ENV_BASH}"
-
-FILES_BIN_ENV_BASH=$(grep -l  \#\!\/usr\/bin\/env\ php $(find  * -maxdepth 0 -type f ))  #!/usr/bin/env php
-LIST_OF_BASH_SCRIPTS="${LIST_OF_BASH_SCRIPTS}
-${FILES_BIN_ENV_BASH}"
-
-FILES_BIN_ENV_BASH=$(grep -l  \#\!\/usr\/bin\/env\ python $(find  * -maxdepth 0 -type f ))  #!/usr/bin/env python
-LIST_OF_BASH_SCRIPTS="${LIST_OF_BASH_SCRIPTS}
-${FILES_BIN_ENV_BASH}"
-
-FILES_BIN_ENV_BASH=$(grep -l  \#\!\/bin\/zsh $(find  * -maxdepth 0 -type f ))             #!/bin/zsh zshrc
-LIST_OF_BASH_SCRIPTS="${LIST_OF_BASH_SCRIPTS}
-${FILES_BIN_ENV_BASH}"
-
-FILES_BIN_ENV_BASH=$(grep -l  \#\!\/bin\/sh $(find  * -maxdepth 0 -type f ))             #!/bin/sh sh
-LIST_OF_BASH_SCRIPTS="${LIST_OF_BASH_SCRIPTS}
-${FILES_BIN_ENV_BASH}"
-
-FILES_BIN_ENV_BASH=$(grep -l  \#\!\/bin\/dash $(find  * -maxdepth 0 -type f ))             #!/bin/dash dash
-LIST_OF_BASH_SCRIPTS="${LIST_OF_BASH_SCRIPTS}
-${FILES_BIN_ENV_BASH}"
-
-FILES_BIN_ENV_BASH=$(grep -l  \#\!\/bin\/rbash $(find  * -maxdepth 0 -type f ))             #!/bin/rbash rbash
-LIST_OF_BASH_SCRIPTS="${LIST_OF_BASH_SCRIPTS}
-${FILES_BIN_ENV_BASH}"
+LIST_OF_BASH_SCRIPTS=""
+ITEMS="
+\#\!/bin/bash
+\#\!/bin/zsh
+\#\!/bin/sh
+\#\!/bin/dash
+\#\!/bin/rbash
+\#\!/bin/env
+\#\!/usr/bin/env
+"
+# Original Idea for Grep
+# FILES_ENV_BASH=$(grep -l  \#\!\/bin\/bash  $(find  * -maxdepth 0 -type f ))   #\!/bin/env bash   #   get all files that have this string at the start of the contents
+# FILES_ENV_BASH=$(grep -l  \#\!/bin/zsh $(find  * -maxdepth 0 -type f ) )   #\!/bin/env bash   #   get all files that have this string at the start of the contents
+ACTIONS="
+FILES_ENV_BASH=\$(grep -l  {#} \$(find  * -maxdepth 0 -type f ))
+LIST_OF_BASH_SCRIPTS=\$(echo -e \"\${LIST_OF_BASH_SCRIPTS}\n\${FILES_ENV_BASH}\")
+"
+.each  "${ACTIONS}"   "${ITEMS}"
+# DEBUG POINT 1. Expect a list of files names in a row: debug "$LIST_OF_BASH_SCRIPTS"
+# DEBUG POINT 1. exit 0
+# DEBUG POINT 1. end
 
 
 if [[ "$(uname)" == "Darwin" ]] ; then
@@ -112,12 +109,15 @@ ${FILES_ALL_EXECUTABLE}"                                                        
   # nothing here
 fi
 
-
 FILES_ALL_L_TO_EXES=$(find * -maxdepth 0 -type l -exec test -x {} \; -print  | xargs -I {} ls "{}")  #Find All softlinks that point to an executable file
 LIST_OF_BASH_SCRIPTS="${LIST_OF_BASH_SCRIPTS}
 ${FILES_ALL_L_TO_EXES}"
 
 LIST_OF_BASH_SCRIPTS=$(echo "${LIST_OF_BASH_SCRIPTS}" | sort | uniq | remove_all_starting_with_journal_get | delete_empty_lines)
+
+# DEBUG POINT 2. Expect a list of files names in a row: debug "$LIST_OF_BASH_SCRIPTS"
+# DEBUG POINT 2. exit 0
+# DEBUG POINT 2. end
 
 get_current_folder_path_and_name
 
