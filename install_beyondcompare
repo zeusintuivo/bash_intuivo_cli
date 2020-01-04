@@ -10,7 +10,21 @@ THISSCRIPTNAME=`basename "$0"`
 
 execute_as_sudo(){
   if [ -z $SUDO_USER ] ; then
-    sudo $THISSCRIPTNAME
+    if [ -e "./$THISSCRIPTNAME" ] ; then
+    {       
+      sudo "./$THISSCRIPTNAME"
+    }
+    elif ( command -v type "$THISSCRIPTNAME" >/dev/null 2>&1 );  then
+    {
+      echo "sudo sudo sudo "
+      sudo "$THISSCRIPTNAME"
+    }
+    else
+    {
+      echo -e "\033[05;7m*** Failed to find script to recall it as sudo ...\033[0m"
+      exit 1
+    }
+    fi
     wait
     exit 0
   fi
@@ -104,7 +118,7 @@ function _function_body() {
   # ensure wc or Cancel. Missing declare command
   local functioncomplete=$(declare -f "${functionname}")
   # echo complete:"${functioncomplete}"
-  lcoal functionbody=$(echo "${functioncomplete}" | cuet "${functionname} ()")
+  local functionbody=$(echo "${functioncomplete}" | cuet "${functionname} ()")
   # echo body:"${functionbody}"
   local functionlength=$(echo "${functionbody}" | wc -l)
   # echo length:${functionlength}
@@ -120,12 +134,32 @@ function _function_body() {
   echo "${functionbody}"
 }
 
-function _try() {
-  local body=$(_function_body "#{1}")
+function _try_body() {
+  local body=$(_function_body "${1}")
   _trap_try_start
+  echo "${body}"
   "${body}"
   _trap_catch_check
 }
+
+function _try() {
+  local body="${@}"
+  _trap_try_start
+  echo -e "\033[01;7m***${body}\033[0m***"
+  local msg="${body}"
+  declare -i ret=_trap_catch_check
+  echo "${msg}"
+  unset body
+  unset msg
+  if [ $ret -gt 0 ] ; then
+    unset ret
+    return 1
+  else
+    unset ret
+    return 0
+  fi
+}
+
 
 
 # https://code.visualstudio.com/docs/?dv=linux64_rpm
@@ -134,18 +168,13 @@ get_lastest_studio_code_version() {
     echo "${CODEFILE}" | grep 'facebook'  | head -3
     local CODELASTESTBUILD=$(echo "${CODELASTESTBUILD}" | grep 'direct download link ....' )
     wait
-    [[ -z "${CODELASTESTBUILD}" ]] && failed "Visual Studio Code Version not found! :${CODELASTESTBUILD}:"
+    [[ -z "${CODELASTESTBUILD}" ]] && failed "Beyond Compare Version not found! :${CODELASTESTBUILD}:"
     echo "${CODELASTESTBUILD}"
-    if [ -z "${CODELASTESTBUILD}" ] ; then  # if empty
-    {
-      failed Could not find Code version
-    }
-    fi
 
 } # end get_lastest_studio_code_version
 
 _download() {
-  #  url  https://download.studio_codetext.com/studio_code-text_build-3133_amd64.deb
+  #  url  https://www.scootersoftware.com/master-pdf-editor-3133_amd64.deb
   _trap_try_start
   local target_url="${1}"
   if [ -z "${target_url}" ] ; then  # if empty
@@ -167,14 +196,15 @@ _download() {
     _trap_catch_check
     echo "dir_prefix=." >> wgetrc
     echo "dirstruct=off" >> wgetrc
-    echo "verbose=on" >> wgetrc
+    echo "verbose=off" >> wgetrc    # NOTE Can't be verbose and quiet at the same time.--quiet
     echo "progress=bar:default" >> wgetrc
     echo "tries=3" >> wgetrc
     # _trap_try_start # _trap_catch_check
-    WGETRC=wgetrc wget --directory-prefix="${USER_HOME}/Downloads/" --quiet --no-check-certificate "${target_url}" 2>/dev/null
-    # _trap_catch_check
+    # WGETRC=wgetrc wget --directory-prefix="${USER_HOME}/Downloads/" --quiet --no-check-certificate "${target_url}" 2>/dev/null
+    #  _trap_catch_check
     # WGETRC=wgetrc wget --quiet --no-check-certificate "${target_url}" 2>/dev/null   # suppress only wget download messages, but keep wget output for variable
-    # echo -e "\e[7m*** Download completed.\e[0m"
+    _try "WGETRC=wgetrc wget --directory-prefix=\"${USER_HOME}/Downloads/\" --quiet --no-check-certificate \"${target_url}\"" # 2>/dev/null"
+    echo -e "\033[7m*** Download Wget executed completed.\033[0m"
     rm -f wgetrc
     file_does_not_exist_with_spaces wgetrc
   elif ( command -v type curl >/dev/null 2>&1; ); then
@@ -185,110 +215,100 @@ _download() {
   fi
 }
 
-_darwin__64() {
-    local CODENAME="Visual Studio Code%20Text%20Build%20${CODELASTESTBUILD}.dmg"
+_darwin__64() { 
+    local CODENAME="BCompareOSX-4.3.3.24545.zip"
+    local URL="https://www.scootersoftware.com/${CODENAME}"
     cd $USER_HOME/Downloads/
-    download_studio_code "${CODENAME}"
+    _download "${URL}"
+    unzip ${CODENAME}
     sudo hdiutil attach ${CODENAME}
-    sudo cp -R /Volumes/Visual Studio Code\ Text/Visual Studio Code\ Text.app /Applications/
-    sudo hdiutil detach /Volumes/Visual Studio Code\ Text
+    sudo cp -R /Volumes/Beyond\ Compare/Beyond\ Compare.app /Applications/
+    sudo hdiutil detach /Volumes/Beyond \ Compare
 } # end _darwin__64
 
 _ubuntu__64() {
-    local CODENAME="studio_code-text_build-${CODELASTESTBUILD}_amd64.deb"
+    local CODENAME="bcompare-4.3.3.24545_amd64.deb"
+    local URL="https://www.scootersoftware.com/${CODENAME}"
     cd $USER_HOME/Downloads/
-    download_studio_code "${CODENAME}"
+    _download "${URL}"
     sudo dpkg -i ${CODENAME}
 } # end _ubuntu__64
 
 _ubuntu__32() {
-    local CODENAME="studio_code-text_build-${CODELASTESTBUILD}_i386.deb"
+    local CODENAME="bcompare-4.3.3.24545_i386.deb"
+    local URL="https://www.scootersoftware.com/"
     cd $USER_HOME/Downloads/
-    download_studio_code "${CODENAME}"
+    _download "${URL}"
     sudo dpkg -i ${CODENAME}
 } # end _ubuntu__32 
 
 _fedora__64() {
-sudo rpm --import https://packages.microsoft.com/keys/microsoft.asc
-sudo sh -c 'echo -e "[code]\nname=Visual Studio Code\nbaseurl=https://packages.microsoft.com/yumrepos/vscode\nenabled=1\ngpgcheck=1\ngpgkey=https://packages.microsoft.com/keys/microsoft.asc" > /etc/yum.repos.d/vscode.repo'
-sudo dnf -y check-update
-sudo dnf -y install code
-
-# rpm: https://download1.rpmfusion.org/free/fedora/rpmfusion-free-release-31.noarch.rpm
+   # fedora_32 https://www.scootersoftware.com/bcompare-4.3.3.24545.i386.rpm
+   # https://www.scootersoftware.com/bcompare-4.3.3.24545.x86_64.rpm
+   # zz=dl4&platform=mac, zz=dl4&platform=linux, zz=dl4&platform=win
   # get download link 
-  # https://code.visualstudio.com/docs/?dv=linux64_rpm
-    local CODEFILE=$(curl -sSLo -  https://code.visualstudio.com/docs/?dv=linux64_rpm  2>&1;) # suppress only wget download messages, but keep wget output for variable
-    local CODELASTESTBUILD=$(echo $CODEFILE | sed s/\</\\n\</g | grep softwareVersion | sed s/\>/\>\\n/g | tail -1)
-    local ARCHITECTURE=$(uname -m)
+    local CODEFILE=$(curl -d "zz=dl4&platform=linux" -H "Content-Type: application/x-www-form-urlencoded" -X POST  -sSLo -  https://www.scootersoftware.com/download.php  2>&1;) # suppress only wget download messages, but keep wget output for variable
+    local CODELASTESTBUILD=$(echo $CODEFILE | sed s/\</\\n\</g | grep "bcompare*.*.*.*.x86_64.rpm" | sed s/\"/\\n/g | grep "/" | cuet "/")
+    # fedora 32 local CODELASTESTBUILD=$(echo $CODEFILE | sed s/\</\\n\</g | grep "bcompare*.*.*.*.i386.rpm" | sed s/\"/\\n/g | grep "/" | cuet "/")
     wait
-    [[ -z "${CODELASTESTBUILD}" ]] && failed "Visual Studio Code Version not found! :${CODELASTESTBUILD}:"
+    [[ -z "${CODELASTESTBUILD}" ]] && failed "Beyond Compare Version not found! :${CODELASTESTBUILD}:"
     echo "${CODELASTESTBUILD}"
-    if [ -z "${CODELASTESTBUILD}" ] ; then  # if empty
-    {
-      failed Could not find Code version
-    }
-    fi
-
-
-  # get download link 
-  local ID
-  local VERSION
-  local VERSION_ID
-  file_exists_with_spaces "/etc/os-release"
-  _assure_success
-  
-  source /etc/os-release
-  # $ echo $ID
-  # fedora
-  # $ echo $VERSION_ID
-  # 17
-  # $ echo $VERSION
-  # 17 (Beefy Miracle)
-  assert not empty "${ID}"
-  assert not empty "${VERSION_ID}"
+   
+  # get download link ..NEEDS TO BE REDONE FORM THIS CODE
+ 
   assert not empty "${USER_HOME}"
   assert not empty "${CODELASTESTBUILD}"
-  assert not empty "${ARCHITECTURE}"
-  local CODENAME="code-${CODELASTESTBUILD}.1-1576681965.el7.${ARCHITECTURE}.rpm"
-  # local CODENAME="code-1.41.1-1576681965.el7.x86_64.rpm"
-  #  local CODENAME="rpmfusion-free-release-${VERSION_ID}.noarch.rpm"
-  #  local TARGET_URL="https://download1.rpmfusion.org/free/${ID}/${CODENAME}"
-  local TARGET_URL="https://az764295.vo.msecnd.net/stable/26076a4de974ead31f97692a0d32f90d735645c0/${CODENAME}"
+
+  local CODENAME="${CODELASTESTBUILD}"
+  local TARGET_URL="https://www.scootersoftware.com/${CODENAME}"
   file_exists_with_spaces $USER_HOME/Downloads
   cd $USER_HOME/Downloads
-  # https://download1.rpmfusion.org/free/fedora/rpmfusion-free-release-31.noarch.rpm
-  # https://az764295.vo.msecnd.net/stable/26076a4de974ead31f97692a0d32f90d735645c0/code-1.41.1-1576681965.el7.x86_64.rpm
   _download "${TARGET_URL}"
   file_exists_with_spaces "$USER_HOME/Downloads/${CODENAME}"
   ensure rpm or "Canceling Install. Could not find rpm command to execute install"
-  _trap_try_start # _trap_catch_check
-  local msg=$(rpm -ivh "$USER_HOME/Downloads/${CODENAME}")
-  _trap_catch_check
-  echo "${msg}"
+  
+  # provide error handling , once learned goes here. LEarn under if, once learned here.
+  # Start loop while ERROR flag in case needs to try again, based on error 
+  _try "rpm --import https://www.scootersoftware.com/RPM-GPG-KEY-scootersoftware"
+  local msg=$(_try "rpm -ivh \"$USER_HOME/Downloads/${CODENAME}\"" )
+  local ret=$?
+  if [ $ret -gt 0 ] ; then 
+  {
+    failed "${ret}:${msg}"
+    # add error handling knowledge while learning.
+  } 
+  else
+  {
+    passed Install with RPM success!
+  }
+  fi
+  ensure bcompare or "Failed to install Beyond Compare"
+  rm -f "$USER_HOME/Downloads/${CODENAME}"
+  file_does_not_exist_with_spaces "$USER_HOME/Downloads/${CODENAME}"
 }
 
 _mingw__64() {
-    local CODENAME="Visual Studio Code%20Text%20Build%20${CODELASTESTBUILD}%20x64%20Setup.exe"
+    local CODENAME="BCompare-4.3.3.24545.exe"
     cd $HOMEDIR
-    cd Downloads
-    curl -O https://download.studio_codetext.com/${CODENAME}
+	    cd Downloads
+    curl -O https://www.scootersoftware.com/${CODENAME}
     ${CODENAME}
 } # end _mingw__64
 
 _mingw__32() {
-    local CODENAME="Visual Studio Code%20Text%20Build%20${CODELASTESTBUILD}%20Setup.exe"
+    local CODENAME="BCompare-4.3.3.24545.exe"
     cd $HOMEDIR
     cd Downloads
-    curl -O https://download.studio_codetext.com/${CODENAME}
-    ${CODENAME}
+	    curl -O https://www.scootersoftware.com/${CODENAME}
+	    ${CODENAME}
 } # end 
 
 function function_is_defined_with_spaces() {
-            # Sample usage
-            #
-            #          if  ! function_is_defined_with_spaces "/home/vagrant/.zshrc" ; then    is like is NOT installed
-            #          if  function_is_defined_with_spaces "/root/.zshrc ; then      it makes more sense to make it this way
-            #
+		    # Sample usage
+		    #
+		    #          if  ! function_is_defined_with_spaces "/home/vagrant/.zshrc" ; then    is like is NOT installed
+		    #          if  function_is_defined_with_spaces "/root/.zshrc ; then      it makes more sense to make it this way
+		    #
             local ONE_FUNCTION FUNCTIONS="${@}"
             if [ ! -z "${FILES-x}" ] ; then # if its set and not empty
             {
@@ -374,19 +394,10 @@ function function_exists() {
 
 } # end function_exists
 
-# function_exists _fedora__64
-
-# ensure ls or "Cancel Export" ensure tests for command line executables, not "functions" in especific, but true if the funtion is available in command line
-
-            if ! command -v type _fedora__64 >/dev/null 2>&1;  then # Command Does not-exist
-                echo "Command Does not-exist "
-            else
-                echo "Command exists"
-            fi
 # function_exists ls
-
 # build_table_from_installed_components $USER
 # build_table_from_installed_components $SUDO_USER
+
 function function_exists_with_spaces() {
             # Sample usage
             #

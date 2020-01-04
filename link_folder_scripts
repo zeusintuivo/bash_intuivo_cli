@@ -66,15 +66,19 @@ announce Varianten of bash hashbans
             #           Call .each
             #           .each  "${ACTIONS}"   "${ITEMS}"
 
+	# OLD search Scripts
+	#	    \#\!/bin/bash
+	# \#\!/bin/zsh
+	# \#\!/bin/sh
+	# \#\!/bin/dash
+	# \#\!/bin/rbash
+	# \#\!/bin/env
+	# \#\!/usr/bin/env
+
 LIST_OF_BASH_SCRIPTS=""
 ITEMS="
-\#\!/bin/bash
-\#\!/bin/zsh
-\#\!/bin/sh
-\#\!/bin/dash
-\#\!/bin/rbash
-\#\!/bin/env
-\#\!/usr/bin/env
+\#\!/bin/
+\#\!/usr/bin/
 "
 # Original Idea for Grep
 # FILES_ENV_BASH=$(grep -l  \#\!\/bin\/bash  $(find  * -maxdepth 0 -type f ))   #\!/bin/env bash   #   get all files that have this string at the start of the contents
