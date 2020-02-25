@@ -605,7 +605,10 @@ function escape_quotes {
     sed 's/\"/\\\"/g'
 }
 
-function change_line {
+function change_line
+    # So the sample usage to fix the problem posed:
+    # change_line "TEXT_TO_BE_REPLACED" "This line is removed by the admin." yourFile
+
     local OLD_LINE_PATTERN=$1; shift
     local NEW_LINE=$1; shift
     local FILE=$1
@@ -614,8 +617,6 @@ function change_line {
     sed -i .bak '/'"${OLD_LINE_PATTERN}"'/s/.*/'"${NEW}"'/' "${FILE}"
     mv "${FILE}.bak" /tmp/
 }
-# So the sample usage to fix the problem posed:
-# change_line "TEXT_TO_BE_REPLACED" "This line is removed by the admin." yourFile
 
 #OLD_LINE_PATTERN=$SEEKING;
 #NEW_LINE=$2;
