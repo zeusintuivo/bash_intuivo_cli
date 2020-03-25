@@ -95,5 +95,5 @@ if [[ ! -z "${findings}" ]] ; then
 }
 fi
 
-
+echo -e "\033[0m"
 # echo -e " "
