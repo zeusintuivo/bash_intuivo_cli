@@ -443,6 +443,10 @@ MOREIGNORE_DIRS=""
 [ -f .ersetzeignore_dirs ] && MOREIGNORE_DIRS=$(<.ersetzeignore_dirs)
 
 FILESTOEXCLUDE=".dir_bash_history
+.ersetzeignore_dirs
+.ersetzeignore_files
+.nurignore_dirs
+.nurignore_files
 .tutorial
 ack
 bootstrap.php.cache

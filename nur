@@ -970,7 +970,10 @@ DIRSTOEXCLUDE=".cargo
 .gvfs
 .git
 .vagrant
-
+.ersetzeignore_dirs
+.ersetzeignore_files
+.nurignore_dirs
+.nurignore_files
 .servo
 coverage
 AbsoluteUrlBundle

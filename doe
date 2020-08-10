@@ -87,7 +87,7 @@ john_doe_it(){
 
     echo "--------------------start äö "${fromsource}" "${totarget}""
 	echo äö "${fromsource}" "${totarget}" >> ${Rerunchangelogfile}
-	# äö "${fromsource}" "${totarget}"
+	äö "${fromsource}" "${totarget}"
 	[ $? != 0 ] && (echo "ERROR Something went wrong.") && (echo "Failed." >> ${Rerunchangelogfile}) && exit 1
 
 	wait
