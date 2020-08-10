@@ -9,7 +9,7 @@
 # to_this Fromsource To
 # to_this FROMSOURCE TO
 # to_this fromsource to
-
+Rerunchangelogfile=""
 
 extract_version(){
     # Bash extract version fromsource a string REF:  https://superuser.com/questions/363865/how-to-extract-a-version-number-using-sed
@@ -24,7 +24,10 @@ upcase_downcase_capitalize(){
 
     local fromsource="""${1}"""
     local totarget="""${2}"""
-
+	local changelogfile="$(echo "$(date +%Y%m%d%H%M)_${fromsource}_${totarget}.log")"
+	Rerunchangelogfile="$(echo "$(date +%Y%m%d%H%M)_${fromsource}_${totarget}.sh")"
+    echo  "" > ${Rerunchangelogfile}
+    echo  "" > ${changelogfile}
 
     if [[ -z "${fromsource}" ]]  ||  [[ -z "${totarget}" ]] ; then
     {
@@ -58,15 +61,22 @@ upcase_downcase_capitalize(){
     }
     fi
 
-	local changelogfile="$(echo "$(date +%Y%m%d%H%M)_${fromsource}_${totarget}.log")"
+	[ ! -e .ersetzeignore_dirs ] && echo .git > .ersetzeignore_dirs
+    echo ${changelogfile} >> .ersetzeignore_files
+    echo ${Rerunchangelogfile} >> .ersetzeignore_files
+
+    [ ! -e .nurignore_dirs ] && echo .git > .nurignore_dirs
+	echo ${changelogfile} >> .nurignore_files
+    echo ${Rerunchangelogfile} >> .nurignore_files
 
 	exec 3>&1 1>>${changelogfile} 2>&1  # How to write output to both console and file REF: https://stackoverflow.com/questions/18460186/writing-outputs-to-log-file-and-console
 
-    john_doe_it "${fromsource}" "${totarget}"  | tee /dev/fd/3  # How to write output to both console and file REF: https://stackoverflow.com/questions/18460186/writing-outputs-to-log-file-and-console
+    # john_doe_it "${fromsource}" "${totarget}"  | tee /dev/fd/3  # How to write output to both console and file REF: https://stackoverflow.com/questions/18460186/writing-outputs-to-log-file-and-console
     john_doe_it "${lower_case_fromsource}" "${lower_case_totarget}"  | tee /dev/fd/3  # How to write output to both console and file REF: https://stackoverflow.com/questions/18460186/writing-outputs-to-log-file-and-console
+# echo "
     john_doe_it "${upper_case_fromsource}" "${upper_case_totarget}"  | tee /dev/fd/3  # How to write output to both console and file REF: https://stackoverflow.com/questions/18460186/writing-outputs-to-log-file-and-console
     john_doe_it "${capitalized_fromsource}" "${capitalized_totarget}"  | tee /dev/fd/3  # How to write output to both console and file REF: https://stackoverflow.com/questions/18460186/writing-outputs-to-log-file-and-console
-
+# "
 
 } # end upcase_downcase_capitalize
 
@@ -76,14 +86,35 @@ john_doe_it(){
     local totarget="""${2}"""
 
     echo "--------------------start äö "${fromsource}" "${totarget}""
-	äö "${fromsource}" "${totarget}" >> "${fromsource}"
+	echo äö "${fromsource}" "${totarget}" >> ${Rerunchangelogfile}
+	# äö "${fromsource}" "${totarget}"
+	[ $? != 0 ] && (echo "ERROR Something went wrong.") && (echo "Failed." >> ${Rerunchangelogfile}) && exit 1
+
 	wait
     echo "------------------------------end   äö "${fromsource}" "${totarget}""
 	echo "----------------------------------------------------------start to_this "${fromsource}" "${totarget}""
-	to_this "${fromsource}" "${totarget}" >> "${fromsource}"
+	to_this "${fromsource}" "${totarget}"
+	echo to_this "${fromsource}" "${totarget}" >> ${Rerunchangelogfile}
+	[ $? != 0 ] && (echo "ERROR Something went wrong.") && (echo "Failed." >> ${Rerunchangelogfile}) && exit 1
+# echo "
+
+	to_this "${fromsource}" "${totarget}"
+	echo to_this "${fromsource}" "${totarget}" >> ${Rerunchangelogfile}
+	[ $? != 0 ] && (echo "ERROR Something went wrong.") && (echo "Failed." >> ${Rerunchangelogfile}) && exit 1
+
+	to_this "${fromsource}" "${totarget}"
+	echo to_this "${fromsource}" "${totarget}" >> ${Rerunchangelogfile}
+	[ $? != 0 ] && (echo "ERROR Something went wrong.") && (echo "Failed." >> ${Rerunchangelogfile}) && exit 1
+
+	to_this "${fromsource}" "${totarget}"
+	echo to_this "${fromsource}" "${totarget}" >> ${Rerunchangelogfile}
+	[ $? != 0 ] && (echo "ERROR Something went wrong.") && (echo "Failed." >> ${Rerunchangelogfile}) && exit 1
+
 	wait
 	echo "----------------------------------------------------------------------------end to_this "${fromsource}" "${totarget}""
-
+	git add .
+	git commit -m "john doe it dö did "${fromsource}" "${totarget}""
+# "
 } # end upcase_downcase_capitalize
 
 
