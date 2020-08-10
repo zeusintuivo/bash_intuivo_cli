@@ -28,6 +28,9 @@ upcase_downcase_capitalize(){
 	Rerunchangelogfile="$(echo "$(date +%Y%m%d%H%M)_${fromsource}_${totarget}.sh")"
     echo  "" > ${Rerunchangelogfile}
     echo  "" > ${changelogfile}
+	[ ! -e .gitignore ] && echo .git > .gitignore
+	echo ${changelogfile} >> .gitignore
+	echo ${Rerunchangelogfile} >> .gitignore
 
     if [[ -z "${fromsource}" ]]  ||  [[ -z "${totarget}" ]] ; then
     {
@@ -88,27 +91,27 @@ john_doe_it(){
     echo "--------------------start äö "${fromsource}" "${totarget}""
 	echo äö "${fromsource}" "${totarget}" >> ${Rerunchangelogfile}
 	äö "${fromsource}" "${totarget}"
-	[ $? != 0 ] && (echo "ERROR Something went wrong.") && (echo "# Failed." >> ${Rerunchangelogfile}) && exit 1
+	[ $? != 0 ] && (echo "ERROR Something went wrong.") && (echo "# Failed." >> ${Rerunchangelogfile})
 
 	wait
     echo "------------------------------end   äö "${fromsource}" "${totarget}""
 	echo "----------------------------------------------------------start to_this "${fromsource}" "${totarget}""
 	to_this "${fromsource}" "${totarget}"
 	echo to_this "${fromsource}" "${totarget}" >> ${Rerunchangelogfile}
-	[ $? != 0 ] && (echo "ERROR Something went wrong.") && (echo "# Failed." >> ${Rerunchangelogfile}) && exit 1
+	[ $? != 0 ] && (echo "ERROR Something went wrong.") && (echo "# Failed." >> ${Rerunchangelogfile})
 # echo "
 
 	to_this "${fromsource}" "${totarget}"
 	echo to_this "${fromsource}" "${totarget}" >> ${Rerunchangelogfile}
-	[ $? != 0 ] && (echo "ERROR Something went wrong.") && (echo "# Failed." >> ${Rerunchangelogfile}) && exit 1
+	[ $? != 0 ] && (echo "ERROR Something went wrong.") && (echo "# Failed." >> ${Rerunchangelogfile})
 
 	to_this "${fromsource}" "${totarget}"
 	echo to_this "${fromsource}" "${totarget}" >> ${Rerunchangelogfile}
-	[ $? != 0 ] && (echo "ERROR Something went wrong.") && (echo "# Failed." >> ${Rerunchangelogfile}) && exit 1
+	[ $? != 0 ] && (echo "ERROR Something went wrong.") && (echo "# Failed." >> ${Rerunchangelogfile})
 
 	to_this "${fromsource}" "${totarget}"
 	echo to_this "${fromsource}" "${totarget}" >> ${Rerunchangelogfile}
-	[ $? != 0 ] && (echo "ERROR Something went wrong.") && (echo "# Failed." >> ${Rerunchangelogfile}) && exit 1
+	[ $? != 0 ] && (echo "ERROR Something went wrong.") && (echo "# Failed." >> ${Rerunchangelogfile})
 
 	wait
 	echo "----------------------------------------------------------------------------end to_this "${fromsource}" "${totarget}""
