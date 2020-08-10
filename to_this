@@ -8,7 +8,7 @@ MOREIGNORE_DIRS=""
 [ -f .ersetzeignore_dirs ] && MOREIGNORE_DIRS=$(<.ersetzeignore_dirs)
 IGNORELIST=""
 FILESTOEXCLUDE=".dir_bash_history
-.gitìgnore
+.gitignore
 .ersetzeignore_dirs
 .ersetzeignore_files
 .nurignore_dirs
