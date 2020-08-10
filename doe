@@ -74,7 +74,7 @@ upcase_downcase_capitalize(){
 
 	exec 3>&1 1>>${changelogfile} 2>&1  # How to write output to both console and file REF: https://stackoverflow.com/questions/18460186/writing-outputs-to-log-file-and-console
 
-    # john_doe_it "${fromsource}" "${totarget}"  | tee /dev/fd/3  # How to write output to both console and file REF: https://stackoverflow.com/questions/18460186/writing-outputs-to-log-file-and-console
+    john_doe_it "${fromsource}" "${totarget}"  | tee /dev/fd/3  # How to write output to both console and file REF: https://stackoverflow.com/questions/18460186/writing-outputs-to-log-file-and-console
     john_doe_it "${lower_case_fromsource}" "${lower_case_totarget}"  | tee /dev/fd/3  # How to write output to both console and file REF: https://stackoverflow.com/questions/18460186/writing-outputs-to-log-file-and-console
 # echo "
     john_doe_it "${upper_case_fromsource}" "${upper_case_totarget}"  | tee /dev/fd/3  # How to write output to both console and file REF: https://stackoverflow.com/questions/18460186/writing-outputs-to-log-file-and-console
