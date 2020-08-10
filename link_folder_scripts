@@ -181,6 +181,7 @@ patch_utf_names(){
   anounce_command sudo ln -sf  "${TARGET_DIRECTORY}/middleminidot" /usr/local/bin/•
   anounce_command sudo ln -sf  "${TARGET_DIRECTORY}/ue" /usr/local/bin/ü
   anounce_command sudo ln -sf  "${TARGET_DIRECTORY}/dimscreen" /usr/local/bin/€
+  anounce_command sudo ln -sf  "${TARGET_DIRECTORY}/doe" /usr/local/bin/dö
 
   anounce_command sudo unlink  /usr/local/bin/cuet
   anounce_command sudo unlink  /usr/local/bin/loeschen_seo_nur_datei
@@ -191,6 +192,7 @@ patch_utf_names(){
   anounce_command sudo unlink  /usr/local/bin/crossequal
   anounce_command sudo unlink  /usr/local/bin/middleminidot
   anounce_command sudo unlink  /usr/local/bin/ue
+
 
 } # end patch_utf_names
 [[ "${PWD}" == *"bash_intuivo_cli"* ]] && [ -d "${PWD}/"  ] && patch_utf_names "${USER}" "/_/clis/bash_intuivo_cli"
