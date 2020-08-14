@@ -949,6 +949,11 @@ MOREIGNORE_DIRS=""
 
 FILESTOEXCLUDE=".dir_bash_history
 .tutorial
+.gitignore
+.ersetzeignore_dirs
+.ersetzeignore_files
+.nurignore_dirs
+.nurignore_files
 ack
 bootstrap.php.cache
 conflicts
@@ -970,7 +975,6 @@ DIRSTOEXCLUDE=".cargo
 .gvfs
 .git
 .vagrant
-
 .servo
 coverage
 AbsoluteUrlBundle

@@ -2,20 +2,128 @@
 #!/bin/bash
 #
 
+MOREIGNORE_FILES=""
+[ -f .ersetzeignore_files ] && MOREIGNORE_FILES=$(<.ersetzeignore_files)
+MOREIGNORE_DIRS=""
+[ -f .ersetzeignore_dirs ] && MOREIGNORE_DIRS=$(<.ersetzeignore_dirs)
+IGNORELIST=""
+FILESTOEXCLUDE=".dir_bash_history
+.gitignore
+.ersetzeignore_dirs
+.ersetzeignore_files
+.nurignore_dirs
+.nurignore_files
+.tutorial
+ack
+bootstrap.php.cache
+conflicts
+composer.phar
+countalltables
+dBug.php
+generateinserts
+generatelocations
+generateparams
+load_insert
+phpunit
+${MOREIGNORE_FILES}"
 
+DIRSTOEXCLUDE=".cargo
+.nyc_output
+.serverless
+.tmp
+.ecryptfs
+.gvfs
+.git
+.vagrant
+.servo
+coverage
+AbsoluteUrlBundle
+app/Stubs
+bower_components
+cache
+dist
+python
+storage/debugbar
+storage/logs
+target
 
-function main(){
+log
+ports
+var/cache
+var/logs
+var/session
+app/cache
+app/logs
+app/session
+${MOREIGNORE_DIRS}"
+
+    while read -r ONE_FILENAME; do
+      # if not empty
+      if [ ! -z "${ONE_FILENAME}" ] ; then
+        IGNORELIST="${IGNORELIST}
+${ONE_FILENAME}"
+      fi
+    done <<< "${FILESTOEXCLUDE}"
+    while read -r ONE_DIRNAME; do
+      # if not empty
+      if [ ! -z "${ONE_DIRNAME}" ] ; then
+        IGNORELIST="${IGNORELIST}
+${ONE_DIRNAME}"
+      fi
+    done <<< "${DIRSTOEXCLUDE}"
+
+#  DEBUG one ignore file
+# FILESTOEXCLUDE="202008101207_caffeine_guakeupdicator.sh"
+# echo "FILESTOEXCLUDE:${FILESTOEXCLUDE}"
+# echo "${DIRSTOEXCLUDE}"
+function rename_to_this(){
 	local from="${1}"
 	local to="${2}"
 	local ONE_FILE
 	local FILES=""
 	local ONE_ENTRY
 	local NEW_FILENAME
-	local ENTRIES=$(find . | ag -s --nocolor "/.*""${from}""[^/]*$" | sed 's/../  /')
+	local ENTRIES=""
+	local ALLENTRIES=$(find . | ag -s --nocolor "/.*""${from}""[^/]*$" | sed 's/../  /')
+	local one two not_found_in_ignorelist
 
+	while read -r two; do
+		if [ -n "${two}" ]  ; then # if not empty
+			ENTRIES="${ENTRIES}
+${two}"
+		fi
+	done <<< "${ALLENTRIES}"
+	local NEWENTRIES=""
+	# echo "ENTRIES: ${ENTRIES}"
+
+
+    while read -r one; do
+      if [ -n "${one}" ] && [ -n "${IGNORELIST}" ] ; then # if not empty
+	    not_found_in_ignorelist=""
+		while read -r two; do
+			# echo  "${two}" != "${one}"
+			if [ -n "${two}" ] && [ "${two}" == "${one}" ] ; then # if not empty
+				not_found_in_ignorelist="1"
+				# echo found!
+				# else
+				# echo should add
+			fi
+		done <<< "${IGNORELIST}"
+		if [ -z "${not_found_in_ignorelist}" ] ; then # is empty
+			NEWENTRIES="${NEWENTRIES}
+${one}"
+		fi
+      fi
+    done <<< "${ENTRIES}"
+
+
+	if [ -z "${NEWENTRIES}" ] ; then # if is empty
+		echo "Nothing to rename"
+		exit 0
+	fi
 	while read -r ONE_ENTRY; do
 	{
-		if [ ! -z "${ONE_ENTRY}" ] ; then # if not empty
+		if [ -n "${ONE_ENTRY}" ] ; then # if not empty
 	    {
 	    	ONE_FILE=$(echo "${ONE_ENTRY}" | cut -d':' -f1)
 	    	FILES="${FILES}
@@ -28,11 +136,11 @@ ${ONE_FILE}"
 	    fi
 
 	}
-	done <<< "${ENTRIES}"
+	done <<< "${NEWENTRIES}"
 
 }
 
-echo main $*
-main $*
+echo rename_to_this $*
+rename_to_this $*
 
 

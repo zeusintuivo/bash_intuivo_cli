@@ -1,0 +1,127 @@
+#!/usr/bin/env bash
+#!/bin/bash
+#
+# @author Zeus Intuivo <zeus@intuivo.com>
+#
+# äö Fromsource To
+# äö FROMSOURCE TO
+# äö fromsource to
+# to_this Fromsource To
+# to_this FROMSOURCE TO
+# to_this fromsource to
+Rerunchangelogfile=""
+
+extract_version(){
+    # Bash extract version fromsource a string REF:  https://superuser.com/questions/363865/how-to-extract-a-version-number-using-sed
+    sed -nre 's/^[^0-9]*(([0-9]+\.)*[0-9]+).*/\1/p'
+} # end extract_version
+
+remove_letters() {
+    sed 's/[a-z-]\|[A-Z-]\|[ -]\|[(-)-]\|[, -]\|86_64//g'
+} # end remove_letters
+
+upcase_downcase_capitalize(){
+
+    local fromsource="""${1}"""
+    local totarget="""${2}"""
+	local changelogfile="$(echo "$(date +%Y%m%d%H%M)_${fromsource}_${totarget}.log")"
+	Rerunchangelogfile="$(echo "$(date +%Y%m%d%H%M)_${fromsource}_${totarget}.sh")"
+    echo  "" > ${Rerunchangelogfile}
+    echo  "" > ${changelogfile}
+	[ ! -e .gitignore ] && echo .git > .gitignore
+	echo ${changelogfile} >> .gitignore
+	echo ${Rerunchangelogfile} >> .gitignore
+
+    if [[ -z "${fromsource}" ]]  ||  [[ -z "${totarget}" ]] ; then
+    {
+        return 1 # No, it does not look like a totarget, not enough data to compute
+    }
+    fi
+
+    if [ ! -z ${BASH_VERSION+x} ] ; then {      # check if a variable is set and not empty
+        local VERSION=$BASH_VERSION
+    } else {
+        export BASH_VERSION=$(bash --version | extract_version  |  remove_letters | head -1)
+    }
+    fi
+    if [[ "$(cut -d. -f1 <<< ${BASH_VERSION})" > "3" ]] ; then
+    {
+        local lower_case_totarget="${totarget,,}"   # bash Convert string to lowercase Bash 4 REF: https://stackoverflow.com/questions/2264428/converting-string-to-lower-case-in-bash-shell-scripting
+        local lower_case_fromsource="${fromsource,,}"         # bash Convert string to lowercase Bash 4 REF: https://stackoverflow.com/questions/2264428/converting-string-to-lower-case-in-bash-shell-scripting
+        local upper_case_totarget="${totarget^^}"   # bash Convert string to uppercase Bash 4 REF: https://stackoverflow.com/questions/2264428/converting-string-to-lower-case-in-bash-shell-scripting
+        local upper_case_fromsource="${fromsource^^}"   # bash Convert string to uppercase Bash 4 REF: https://stackoverflow.com/questions/2264428/converting-string-to-lower-case-in-bash-shell-scripting
+        local capitalized_totarget="${totarget~}"   # bash Convert string to Toggled Bash 4 REF: https://stackoverflow.com/questions/2264428/converting-string-to-lower-case-in-bash-shell-scripting
+        local capitalized_fromsource="${fromsource~}"   # bash Convert string to Toggled Bash 4 REF: https://stackoverflow.com/questions/2264428/converting-string-to-lower-case-in-bash-shell-scripting
+    }
+    else
+    {
+        local lower_case_totarget=$(echo "${totarget}" | sed 'y/ABCDEFGHIJKLMNOPQRSTUVWXYZ/abcdefghijklmnopqrstuvwxyz/')    # bash Convert string to lowercase Bash 4 REF: https://stackoverflow.com/questions/2264428/converting-string-to-lower-case-in-bash-shell-scripting
+        local lower_case_fromsource=$(echo "${fromsource}" | sed 'y/ABCDEFGHIJKLMNOPQRSTUVWXYZ/abcdefghijklmnopqrstuvwxyz/')          # bash Convert string to lowercase Bash 4 REF: https://stackoverflow.com/questions/2264428/converting-string-to-lower-case-in-bash-shell-scripting
+        local upper_case_totarget=$(echo "${totarget}" | sed 'y/abcdefghijklmnopqrstuvwxyz/ABCDEFGHIJKLMNOPQRSTUVWXYZ/')    # bash Convert string to uppercase Bash 4 REF: https://stackoverflow.com/questions/2264428/converting-string-to-lower-case-in-bash-shell-scripting
+        local upper_case_fromsource=$(echo "${fromsource}" | sed 'y/abcdefghijklmnopqrstuvwxyz/ABCDEFGHIJKLMNOPQRSTUVWXYZ/')    # bash Convert string to uppercase Bash 4 REF: https://stackoverflow.com/questions/2264428/converting-string-to-lower-case-in-bash-shell-scripting
+        local capitalized_totarget=$(echo "${totarget}" | sed -e "s/\b\(.\)/\u\1/g")  # Uppercasing First Letter of Words Using SED REF: https://stackoverflow.com/questions/1538676/uppercasing-first-letter-of-words-using-sed
+        local capitalized_fromsource=$(echo "${fromsource}" | sed -e "s/\b\(.\)/\u\1/g")  # Uppercasing First Letter of Words Using SED REF: https://stackoverflow.com/questions/1538676/uppercasing-first-letter-of-words-using-sed
+    }
+    fi
+
+	[ ! -e .ersetzeignore_dirs ] && echo .git > .ersetzeignore_dirs
+    echo ${changelogfile} >> .ersetzeignore_files
+    echo ${Rerunchangelogfile} >> .ersetzeignore_files
+
+    [ ! -e .nurignore_dirs ] && echo .git > .nurignore_dirs
+	echo ${changelogfile} >> .nurignore_files
+    echo ${Rerunchangelogfile} >> .nurignore_files
+
+	exec 3>&1 1>>${changelogfile} 2>&1  # How to write output to both console and file REF: https://stackoverflow.com/questions/18460186/writing-outputs-to-log-file-and-console
+
+    john_doe_it "${fromsource}" "${totarget}"  | tee /dev/fd/3  # How to write output to both console and file REF: https://stackoverflow.com/questions/18460186/writing-outputs-to-log-file-and-console
+    john_doe_it "${lower_case_fromsource}" "${lower_case_totarget}"  | tee /dev/fd/3  # How to write output to both console and file REF: https://stackoverflow.com/questions/18460186/writing-outputs-to-log-file-and-console
+# echo "
+    john_doe_it "${upper_case_fromsource}" "${upper_case_totarget}"  | tee /dev/fd/3  # How to write output to both console and file REF: https://stackoverflow.com/questions/18460186/writing-outputs-to-log-file-and-console
+    john_doe_it "${capitalized_fromsource}" "${capitalized_totarget}"  | tee /dev/fd/3  # How to write output to both console and file REF: https://stackoverflow.com/questions/18460186/writing-outputs-to-log-file-and-console
+# "
+
+} # end upcase_downcase_capitalize
+
+john_doe_it(){
+
+    local fromsource="""${1}"""
+    local totarget="""${2}"""
+
+    echo "--------------------start äö "${fromsource}" "${totarget}""
+	echo äö "${fromsource}" "${totarget}" >> ${Rerunchangelogfile}
+	äö "${fromsource}" "${totarget}"
+	[ $? != 0 ] && (echo "ERROR Something went wrong.") && (echo "# Failed." >> ${Rerunchangelogfile})
+
+	wait
+    echo "------------------------------end   äö "${fromsource}" "${totarget}""
+	echo "----------------------------------------------------------start to_this "${fromsource}" "${totarget}""
+	to_this "${fromsource}" "${totarget}"
+	echo to_this "${fromsource}" "${totarget}" >> ${Rerunchangelogfile}
+	[ $? != 0 ] && (echo "ERROR Something went wrong.") && (echo "# Failed." >> ${Rerunchangelogfile})
+# echo "
+
+	to_this "${fromsource}" "${totarget}"
+	echo to_this "${fromsource}" "${totarget}" >> ${Rerunchangelogfile}
+	[ $? != 0 ] && (echo "ERROR Something went wrong.") && (echo "# Failed." >> ${Rerunchangelogfile})
+
+	to_this "${fromsource}" "${totarget}"
+	echo to_this "${fromsource}" "${totarget}" >> ${Rerunchangelogfile}
+	[ $? != 0 ] && (echo "ERROR Something went wrong.") && (echo "# Failed." >> ${Rerunchangelogfile})
+
+	to_this "${fromsource}" "${totarget}"
+	echo to_this "${fromsource}" "${totarget}" >> ${Rerunchangelogfile}
+	[ $? != 0 ] && (echo "ERROR Something went wrong.") && (echo "# Failed." >> ${Rerunchangelogfile})
+
+	wait
+	echo "----------------------------------------------------------------------------end to_this "${fromsource}" "${totarget}""
+	git add .
+	git commit -m "john doe it dö did "${fromsource}" "${totarget}""
+# "
+} # end upcase_downcase_capitalize
+
+
+echo john doe it dö $*
+upcase_downcase_capitalize $*
+
+
