@@ -70,20 +70,20 @@ ${two}"
 
     while read -r one; do
       if [ -n "${one}" ] && [ -n "${IGNORELIST}" ] ; then # if not empty
-	    not_found_in_ignorelist=""
-		while read -r two; do
-			# echo  "${two}" != "${one}"
-			if [ -n "${two}" ] && [ "${two}" == "${one}" ] ; then # if not empty
-				not_found_in_ignorelist="1"
-				# echo found!
-				# else
-				# echo should add
-			fi
-		done <<< "${IGNORELIST}"
-		if [ -z "${not_found_in_ignorelist}" ] ; then # is empty
-			NEWENTRIES="${NEWENTRIES}
+				not_found_in_ignorelist=""
+				while read -r two; do
+					# echo  "${two}" != "${one}"
+					if [ -n "${two}" ] && [ "${two}" == "${one}" ] ; then # if not empty
+						not_found_in_ignorelist="1"
+						# echo found!
+						# else
+						# echo should add
+					fi
+				done <<< "${IGNORELIST}"
+				if [ -z "${not_found_in_ignorelist}" ] ; then # is empty
+				NEWENTRIES="${NEWENTRIES}
 ${one}"
-		fi
+				fi
       fi
     done <<< "${ENTRIES}"
 

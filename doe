@@ -90,9 +90,24 @@ john_doe_it(){
 
     echo "--------------------start äö "${fromsource}" "${totarget}""
 	echo äö "${fromsource}" "${totarget}" >> ${Rerunchangelogfile}
-	äö "${fromsource}" "${totarget}"
-	[ $? != 0 ] && (echo "ERROR Something went wrong.") && (echo "# Failed." >> ${Rerunchangelogfile})
-
+	local two aoet=$(äö "${fromsource}" "${totarget}"  2>&1; ) #capture stdout and stderr
+	if [ $? != 0 ] ; then
+    {
+        if [ "${aoet}" ==  *"SORRY NO FOUND OCCURENCES"* ] ; then
+        {
+            (echo "# Not Found." >> ${Rerunchangelogfile})
+        } else {
+            (echo "# ERROR Something went wrong.")
+            while read -r two; do
+		    if [ -n "${two}" ]  ; then # if not empty
+			     (echo "${two}" >> ${Rerunchangelogfile})
+		    fi
+	        done <<< "${aoet}"
+            (echo "# Failed." >> ${Rerunchangelogfile})
+        }
+        fi
+    }
+    fi
 	wait
     echo "------------------------------end   äö "${fromsource}" "${totarget}""
 	echo "----------------------------------------------------------start to_this "${fromsource}" "${totarget}""
