@@ -1,29 +1,24 @@
+#!/usr/bin/env bash
 #!/bin/bash
 #
 # @author Zeus Intuivo <zeus@intuivo.com>
 #
 #
+load_struct_testing_wget(){
+    local provider="$HOME/_/clis/execute_command_intuivo_cli/struct_testing"
+    [   -e "${provider}"  ] && source "${provider}"
+    [ ! -e "${provider}"  ] && eval """$(wget --quiet --no-check-certificate  https://raw.githubusercontent.com/zeusintuivo/execute_command_intuivo_cli/master/struct_testing -O -  2>/dev/null )"""   # suppress only wget download messages, but keep wget output for variable
+    ( ( ! command -v type passed >/dev/null 2>&1; ) && echo -e "\n \n  ERROR! Loading struct_testing \n \n " && exit 69; )
+} # end load_struct_testing_wget
+load_struct_testing_wget
 
-# check operation systems
-if [[ "$(uname)" == "Darwin" ]] ; then
-  # Do something under Mac OS X platform
-      if [[ "$(uname -m)" == "x86_64" ]] ; then  
-        # echo "err_buff1=$?"
-        ag_mac_64 "$@"
-        # echo "err_buff2=$?"
-      elif  [[ "$(uname -m)" == "i686"   ]] ; then
-        ag_mac_32 "$@"
-      fi  
-elif [[ "$(expr substr $(uname -s) 1 5)" == "Linux" ]] ; then
-  # Do something under GNU/Linux platform
-  # ubuntu lsb_release -i | sed 's/Distributor\ ID://g' = \tUbuntu\n
-      if [[ "$(uname -i)" == "x86_64" ]] ; then 
-        ag_linux_64 "$@"
-      elif [[ "$(uname -i)" == "i686"   ]] ; then 
-        ag_linux_32 "$@"
-      fi  
-elif [[ "$(expr substr $(uname -s) 1 10)" == "MINGW32_NT" ]] ; then
-  # Do something under Windows NT platform
-  ag_win_64 "$*"
-  # nothing here
-fi
+               _fedora__64(){ ag_fedora_64 "$@"}
+  #              _fedora__32(){ }
+               _ubuntu__64(){ ag_ubuntu_64 "$@"}
+               _ubuntu__32(){ ag_ubuntu_32 "$@"}
+               _mingw__64(){ ag_win_64 "$*" }
+  #              _mingw__32(){ }
+               _darwin__64(){ ag_mac_64 "$@"}
+               _darwin__32(){ ag_mac_32 "$@" }
+
+determine_os_and_fire_action
