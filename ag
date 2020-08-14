@@ -12,13 +12,25 @@ load_struct_testing_wget(){
 } # end load_struct_testing_wget
 load_struct_testing_wget
 
-               _fedora__64(){ ag_fedora_64 "$@"}
-  #              _fedora__32(){ }
-               _ubuntu__64(){ ag_ubuntu_64 "$@"}
-               _ubuntu__32(){ ag_ubuntu_32 "$@"}
-               _mingw__64(){ ag_win_64 "$*" }
-  #              _mingw__32(){ }
-               _darwin__64(){ ag_mac_64 "$@"}
-               _darwin__32(){ ag_mac_32 "$@" }
+_fedora__64(){
+   ag_fedora_64 """${*}"""
+}
+#              _fedora__32(){ }
+_ubuntu__64(){
+  ag_ubuntu_64 "$@"
+}
+_ubuntu__32(){
+  ag_ubuntu_32 "$@"
+}
+_mingw__64(){
+  ag_win_64 "$*"
+}
+#              _mingw__32(){ }
+_darwin__64(){
+  ag_mac_64 "$@"
+}
+_darwin__32(){
+  ag_mac_32 "$@"
+}
 
-determine_os_and_fire_action
+determine_os_and_fire_action """${*}"""

@@ -1,61 +1,22 @@
 #!/usr/bin/env bash
 #!/bin/bash
 #
+LIGHTPINK="\033[1;204m"
+YELLOW_OVER_DARKBLUE="\033[38;5;220m\033[48;5;20m"
+RESET="\033[0m"
+        function kill() {
+            echo -e " ☠ ${LIGHTPINK} KILL EXECUTION SIGNAL SEND ${RESET}"
+            echo -e " ☠ ${YELLOW_OVER_DARKBLUE}  ${*} ${RESET}"
+            exit 69;
+        }
 
 MOREIGNORE_FILES=""
 [ -f .ersetzeignore_files ] && MOREIGNORE_FILES=$(<.ersetzeignore_files)
 MOREIGNORE_DIRS=""
 [ -f .ersetzeignore_dirs ] && MOREIGNORE_DIRS=$(<.ersetzeignore_dirs)
 IGNORELIST=""
-FILESTOEXCLUDE=".dir_bash_history
-.gitignore
-.ersetzeignore_dirs
-.ersetzeignore_files
-.nurignore_dirs
-.nurignore_files
-.tutorial
-ack
-bootstrap.php.cache
-conflicts
-composer.phar
-countalltables
-dBug.php
-generateinserts
-generatelocations
-generateparams
-load_insert
-phpunit
-${MOREIGNORE_FILES}"
-
-DIRSTOEXCLUDE=".cargo
-.nyc_output
-.serverless
-.tmp
-.ecryptfs
-.gvfs
-.git
-.vagrant
-.servo
-coverage
-AbsoluteUrlBundle
-app/Stubs
-bower_components
-cache
-dist
-python
-storage/debugbar
-storage/logs
-target
-
-log
-ports
-var/cache
-var/logs
-var/session
-app/cache
-app/logs
-app/session
-${MOREIGNORE_DIRS}"
+FILESTOEXCLUDE=".dir_bash_history\n.gitignore\n.ersetzeignore_dirs\n.ersetzeignore_files\n.nurignore_dirs\n.nurignore_files\n.tutorial\nack\nbootstrap.php.cache\nconflicts\ncomposer.phar\ncountalltables\ndBug.php\ngenerateinserts\ngeneratelocations\ngenerateparams\nload_insert\nphpunit\n${MOREIGNORE_FILES}"
+DIRSTOEXCLUDE=".cargo\n.nyc_output\n.serverless\n.tmp\n.ecryptfs\n.gvfs\n.git\n.vagrant\n.servo\ncoverage\nAbsoluteUrlBundle\napp/Stubs\nbower_components\ncache\ndist\npython\nstorage/debugbar\nstorage/logs\ntarget\n\nlog\nports\nvar/cache\nvar/logs\nvar/session\napp/cache\napp/logs\napp/session\n${MOREIGNORE_DIRS}"
 
     while read -r ONE_FILENAME; do
       # if not empty
@@ -84,9 +45,20 @@ function rename_to_this(){
 	local ONE_ENTRY
 	local NEW_FILENAME
 	local ENTRIES=""
-	local ALLENTRIES=$(find . | ag -s --nocolor "/.*""${from}""[^/]*$" | sed 's/../  /')
-	local one two not_found_in_ignorelist
+	local _error="0"
+	local ALLFILES
+		(_error="0" && ALLFILES=$(find .)) || (_error="$?" && [ "$_error" = 69 ] && kill To find)
+	local ALLFILTERED
+		(_error="0" && ALLFILTERED=$(ag -s --nocolor "/.*""${from}""[^/]*$"<<< "${ALLFILES}")) || _error="$?"
+		[ "$_error" = 69 ] && kill To filter using ag ${ALLFILTERED}
+	local ALLENTRIES
+		(_error="0" && ALLENTRIES=$(sed 's/../  /'<<<"${ALLFILTERED}")) || _error="$?"
+		[ "$_error" = 69 ] && kill To sed cut chars ${ALLENTRIES}
 
+	# local ALLENTRIES=$(find . | ag -s --nocolor "/.*""${from}""[^/]*$" | sed 's/../  /')
+	local one two not_found_in_ignorelist
+  # echo "ALLENTRIES: ${ALLENTRIES}"
+	[ -z "$ALLENTRIES" ] && echo Nothing found && exit 1
 	while read -r two; do
 		if [ -n "${two}" ]  ; then # if not empty
 			ENTRIES="${ENTRIES}
@@ -94,8 +66,7 @@ ${two}"
 		fi
 	done <<< "${ALLENTRIES}"
 	local NEWENTRIES=""
-	# echo "ENTRIES: ${ENTRIES}"
-
+  # echo "ENTRIES: ${ENTRIES}"
 
     while read -r one; do
       if [ -n "${one}" ] && [ -n "${IGNORELIST}" ] ; then # if not empty
