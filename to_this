@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 #!/bin/bash
 #
+DEBUG_VERB_READING_LOGIC=$DEBUG || 0
 LIGHTPINK="\033[1;204m"
 YELLOW_OVER_DARKBLUE="\033[38;5;220m\033[48;5;20m"
 RESET="\033[0m"
@@ -17,7 +18,7 @@ MOREIGNORE_DIRS=""
 IGNORELIST=""
 FILESTOEXCLUDE=".dir_bash_history\n.gitignore\n.ersetzeignore_dirs\n.ersetzeignore_files\n.nurignore_dirs\n.nurignore_files\n.tutorial\nack\nbootstrap.php.cache\nconflicts\ncomposer.phar\ncountalltables\ndBug.php\ngenerateinserts\ngeneratelocations\ngenerateparams\nload_insert\nphpunit\n${MOREIGNORE_FILES}"
 DIRSTOEXCLUDE=".cargo\n.nyc_output\n.serverless\n.tmp\n.ecryptfs\n.gvfs\n.git\n.vagrant\n.servo\ncoverage\nAbsoluteUrlBundle\napp/Stubs\nbower_components\ncache\ndist\npython\nstorage/debugbar\nstorage/logs\ntarget\n\nlog\nports\nvar/cache\nvar/logs\nvar/session\napp/cache\napp/logs\napp/session\n${MOREIGNORE_DIRS}"
-
+(( DEBUG_VERB_READING_LOGIC )) &&  echo DEBUG IS ON
     while read -r ONE_FILENAME; do
       # if not empty
       if [ ! -z "${ONE_FILENAME}" ] ; then
@@ -35,7 +36,7 @@ ${ONE_DIRNAME}"
 
 #  DEBUG one ignore file
 # FILESTOEXCLUDE="202008101207_caffeine_guakeupdicator.sh"
-# echo "FILESTOEXCLUDE:${FILESTOEXCLUDE}"
+(( DEBUG_VERB_READING_LOGIC )) && echo -e "FILESTOEXCLUDE:${FILESTOEXCLUDE}"
 # echo "${DIRSTOEXCLUDE}"
 function rename_to_this(){
 	local from="${1}"
@@ -47,13 +48,19 @@ function rename_to_this(){
 	local ENTRIES=""
 	local _error="0"
 	local ALLFILES
-		(_error="0" && ALLFILES=$(find .)) || (_error="$?" && [ "$_error" = 69 ] && kill To find)
+		_error=0
+		ALLFILES=$(find .) || (_error="$?" && [ "$_error" = 69 ] && kill To find)
+		(( DEBUG_VERB_READING_LOGIC )) && echo "ALLFILES 1: ${ALLFILES}"
 	local ALLFILTERED
-		(_error="0" && ALLFILTERED=$(ag -s --nocolor "/.*""${from}""[^/]*$"<<< "${ALLFILES}")) || _error="$?"
+		_error=0
+		ALLFILTERED=$(ag -s --nocolor "/.*""${from}""[^/]*$"<<< "${ALLFILES}") || _error="$?"
 		[ "$_error" = 69 ] && kill To filter using ag ${ALLFILTERED}
+		(( DEBUG_VERB_READING_LOGIC )) && echo "ALLFILTERED 2: ${ALLFILTERED}"
 	local ALLENTRIES
-		(_error="0" && ALLENTRIES=$(sed 's/../  /'<<<"${ALLFILTERED}")) || _error="$?"
+		_error=0
+		ALLENTRIES=$(sed 's/../  /'<<<"${ALLFILTERED}") || _error="$?"
 		[ "$_error" = 69 ] && kill To sed cut chars ${ALLENTRIES}
+		(( DEBUG_VERB_READING_LOGIC )) && echo "ALLENTRIES 3: ${ALLENTRIES}"
 
 	# local ALLENTRIES=$(find . | ag -s --nocolor "/.*""${from}""[^/]*$" | sed 's/../  /')
 	local one two not_found_in_ignorelist
@@ -66,8 +73,7 @@ ${two}"
 		fi
 	done <<< "${ALLENTRIES}"
 	local NEWENTRIES=""
-  # echo "ENTRIES: ${ENTRIES}"
-
+  (( DEBUG_VERB_READING_LOGIC )) && echo "ENTRIES: ${ENTRIES}"
     while read -r one; do
       if [ -n "${one}" ] && [ -n "${IGNORELIST}" ] ; then # if not empty
 				not_found_in_ignorelist=""
@@ -92,6 +98,7 @@ ${one}"
 		echo "Nothing to rename"
 		exit 0
 	fi
+	(( DEBUG_VERB_READING_LOGIC )) && echo "RESULT WORKING WITH: ${NEWENTRIES}"
 	while read -r ONE_ENTRY; do
 	{
 		if [ -n "${ONE_ENTRY}" ] ; then # if not empty
