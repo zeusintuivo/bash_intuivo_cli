@@ -598,14 +598,14 @@ function enter_escape_for_sed {
 function enter_decode() {
   sed 's/\\n/\n/g'
 }
-function escape_slashes {
+function escape_slashes() {
     sed 's/\//\\\//g'
 }
-function escape_quotes {
+function escape_quotes() {
     sed 's/\"/\\\"/g'
 }
 
-function change_line
+function change_line(){
     # So the sample usage to fix the problem posed:
     # change_line "TEXT_TO_BE_REPLACED" "This line is removed by the admin." yourFile
 
