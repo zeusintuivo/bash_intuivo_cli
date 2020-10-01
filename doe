@@ -80,7 +80,7 @@ upcase_downcase_capitalize(){
     john_doe_it "${upper_case_fromsource}" "${upper_case_totarget}"  | tee /dev/fd/3  # How to write output to both console and file REF: https://stackoverflow.com/questions/18460186/writing-outputs-to-log-file-and-console
     john_doe_it "${capitalized_fromsource}" "${capitalized_totarget}"  | tee /dev/fd/3  # How to write output to both console and file REF: https://stackoverflow.com/questions/18460186/writing-outputs-to-log-file-and-console
 # "
-
+    return 0
 } # end upcase_downcase_capitalize
 
 john_doe_it(){
@@ -115,7 +115,7 @@ john_doe_it(){
 	echo to_this "${fromsource}" "${totarget}" >> ${Rerunchangelogfile}
 	[ $? != 0 ] && (echo "ERROR Something went wrong.") && (echo "# Failed." >> ${Rerunchangelogfile})
 # echo "
-
+``
 	to_this "${fromsource}" "${totarget}"
 	echo to_this "${fromsource}" "${totarget}" >> ${Rerunchangelogfile}
 	[ $? != 0 ] && (echo "ERROR Something went wrong.") && (echo "# Failed." >> ${Rerunchangelogfile})
@@ -136,7 +136,7 @@ john_doe_it(){
 } # end upcase_downcase_capitalize
 
 
-echo john doe it dö $*
-upcase_downcase_capitalize $*
+echo john doe it dö ${@}
+upcase_downcase_capitalize ${@}
 
 
