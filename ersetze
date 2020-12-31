@@ -100,12 +100,20 @@ trap '{ msg_red " KEYBOARD INTERRUPT."; exit 130; }' INT
 #
 test_positives(){
   KIND=""
-  ls werwerwerwerwerwerwerwerwerwerwerr >/dev/null 2>&1;
-  if (( $? == 0 )) ;  then  # Intel processor
-    KIND="INTEL"
-  fi
-  if [ $? == 0 ]; then   # Mac Intel processor
-    KIND="${KIND}MAC"
+  if ls werwerwerwerwerwerwerwerwerwerwerr >/dev/null 2>&1; then 
+    if (( $? == 0 )) ;  then  # Intel processor
+      KIND="INTEL"
+    fi
+    if [ $? == 0 ]; then   # Mac Intel processor
+      KIND="${KIND}MAC"
+    fi
+  else
+    if (( $? == 0 )) ;  then  # Intel processor
+      KIND="INTEL"
+    fi
+    if [ $? == 0 ]; then   # Mac Intel processor
+      KIND="${KIND}MAC"
+    fi
   fi
   echo "${KIND}"
 }
