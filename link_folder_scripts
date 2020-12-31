@@ -37,6 +37,7 @@ struct_testing
     unset ONE_SCRIPT
     unset BASH_SCRIPTS
     unset provider
+    return 0
 } # end function load_execute_command
 load_execute_command
 
