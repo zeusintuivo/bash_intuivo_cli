@@ -12,6 +12,10 @@ load_struct_testing_wget(){
 } # end load_struct_testing_wget
 load_struct_testing_wget
 
+_centos__64(){
+   ag_fedora_64 """${*}"""
+}
+
 _fedora__64(){
    ag_fedora_64 """${*}"""
 }
