@@ -139,7 +139,7 @@ check_replacer () {
     local PROPERLYWORKING=$(cat /tmp/ersetze_test_${REPLACER}.txt)
 
     if [[ "$PROPERLYWORKING" == *"dyld:"* ]]; then { echo "error"; return;} fi
-    if [[ $PROPERLYWORKING == *"GNU"* ]]; then { echo "GNU"; return;} else { echo "MAC";return;} fi
+    if [[ "$PROPERLYWORKING" == *"GNU"* ]]; then { echo "GNU"; return;} else { echo "MAC";return;} fi
     echo "checked";
     return;
   else
@@ -154,8 +154,8 @@ msg_install () {
   msg_red " NEED TO INSTALL ${1}.       Linux:    sudo apt-get install ${1}         Mac:     brew install ${1}   "
 }
 # REPLACER="sed";
-# Try vim's ex
-REPLACER="sed";
+# Try vim's ex ..broke here grrr TODO research how to implement doing erestese_indatei /images/projects/ images/projects index.html did not work at all
+REPLACER="sed"; # changed to sed
 VALIDREPLACER=$(check_replacer "${REPLACER}")
 
 
@@ -483,7 +483,9 @@ coverage
 AbsoluteUrlBundle
 app/Stubs
 bower_components
+node_modules
 cache
+.cache
 dist
 python
 storage/debugbar
@@ -492,6 +494,7 @@ target
 
 log
 ports
+app/Stubs
 var/cache
 var/logs
 var/session
@@ -874,7 +877,7 @@ else
     {
     msg_red "${red} REPLACEMENT FAILED !"
     echo "    ";
-    exit 0;
+    exit 1;
     }
 fi
 
