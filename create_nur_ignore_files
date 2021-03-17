@@ -1,0 +1,32 @@
+#!/usr/bin/env bash
+#!/bin/bash
+#
+# @author Zeus Intuivo <zeus@intuivo.com>
+#
+#
+
+#!/usr/bin/env bash
+#!/bin/bash
+#
+# @author Zeus Intuivo <zeus@intuivo.com>
+#
+#
+load_struct_testing_wget(){
+    local provider="$HOME/_/clis/execute_command_intuivo_cli/struct_testing"
+    [   -e "${provider}"  ] && source "${provider}"
+    [ ! -e "${provider}"  ] && eval """$(wget --quiet --no-check-certificate  https://raw.githubusercontent.com/zeusintuivo/execute_command_intuivo_cli/master/struct_testing -O -  2>/dev/null )"""   # suppress only wget download messages, but keep wget output for variable
+    ( ( ! command -v passed >/dev/null 2>&1; ) && echo -e "\n \n  ERROR! Loading struct_testing \n \n " && exit 69; )
+} # end load_struct_testing_wget
+load_struct_testing_wget
+
+
+touch .nurignore_files
+touch .nurignore_dirs
+touch .ersetzeignore_files
+touch .ersetzeignore_dirs
+
+_if_not_contains .gitignore ".nurignore_files" || echo -e "\n.nurignore_files" >> .gitignore
+_if_not_contains .gitignore ".nurignore_dirs" || echo -e "\n.nurignore_dirs" >> .gitignore
+_if_not_contains .gitignore ".ersetzeignore_files" || echo -e "\n.ersetzeignore_files" >> .gitignore
+_if_not_contains .gitignore ".ersetzeignore_dirs" || echo -e "\n..ersetzeignore_dirs" >> .gitignore
+
