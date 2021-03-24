@@ -29,7 +29,7 @@ if [ $FAIL -eq 1 ]
   echo " "
   echo "Sample Usage:    - expects three arguments "
   echo " "
-  echo "    ./${THISSCRIPTNAME}   seek_this      replaced_it_with    TARGETFILE    "
+  echo "    ./${THISSCRIPTNAME}  TARGETFILE  seek_this      replaced_it_with        "
   echo "    ";
   exit 1;
 fi
@@ -41,7 +41,7 @@ if [ -z "$4" ]
       echo " "
     echo "Can be used:    - with three arguments "
     echo " "
-    echo "    ${THISSCRIPTNAME} seek_this       replaced_it_with     TARGETFILE     [ack, sift, grep, ag]"
+    echo "    ${THISSCRIPTNAME} TARGETFILE      seek_this       replaced_it_with          [ack, sift, grep, ag]"
     echo "    ";
     echo "    assuming order or use ag -> ack -> grep -> local ./ack"
     echo "    ";
@@ -77,7 +77,7 @@ BLINK=$(tput blink)
 REVERSE=$(tput smso)
 UNDERLINE=$(tput smul)
 
-FILE="$3";
+FILE="$1";
 SEEKER="./ack";
 IGNORE_DIR="ignore";
 FILESCOMMAND="";
@@ -102,6 +102,26 @@ msg_green () {
 }
 
 trap '{ msg_red " KEYBOARD INTERRUPT."; exit 130; }' INT
+#
+# C H E C K   H O W   C O M P U T E R   H A N D L E S   E R R O R S   --Start
+#
+test_positives(){
+  KIND=""
+  ls werwerwerwerwerwerwerwerwerwerwerr >/dev/null 2>&1;
+  if (( $? == 0 )) ;  then  # Intel processor
+    KIND="INTEL"
+  fi
+  if [ $? == 0 ]; then   # Mac Intel processor
+    KIND="${KIND}MAC"
+  fi
+  echo "${KIND}"
+}
+PROCESSOR_ERROR=$(test_positives)
+# DEBUG MACPOSITIVE MACPOSITIVE echo "${PROCESSOR_ERROR}"
+# DEBUG MACPOSITIVE exit 1
+#
+# C H E C K   H O W   C O M P U T E R   H A N D L E S   E R R O R S   --End
+#
 
 #
 # C H E C K   R E P L A C E   F U N C T I O N S   I N S T A L L E D  --Start
@@ -417,7 +437,7 @@ IGNORELIST=""
 #             $IGNORELIST  construct of ignored files
 #             halts execution if not found
 #
-SEEKING="$1";
+SEEKING="$2";
 echo "${reset} ${green} Finding ${reset} $SEEKING ${green}                 with  ${SEEKER} ."
 echo "   ";
 
@@ -456,21 +476,58 @@ echo "${cyan}   ${SEEKER} \"${SEEKING}\" ${FILESCOMMAND} ${IGNORELIST}   ${FILE}
                 ${SEEKER} "$SEEKING" ${FILESCOMMAND}     ${IGNORELIST}   ${FILE} | ${SEEKER} "$SEEKING" ${FILESCOMMAND}  &>/dev/null
 }
 fi
+################       ##############         ####          ####    ####        ####    ################
+################       ##############         ####          ####    ####        ####    ################
+####                 ####          ####       ####          ####    ######      ####    ####          ####
+####                 ####          ####       ####          ####    ######      ####    ####          ####
+####                 ####          ####       ####          ####    ##########  ####    ####          ####
+####                 ####          ####       ####          ####    ##########  ####    ####          ####
+############         ####          ####       ####          ####    ####  ####  ####    ####          ####
+############         ####          ####       ####          ####    ####  ####  ####    ####          ####
+####                 ####          ####       ####          ####    ####    ########    ####          ####
+####                 ####          ####       ####          ####    ####    ########    ####          ####
+####                 ####          ####       ####          ####    ####      ######    ####          ####
+####                 ####          ####       ####          ####    ####      ######    ####          ####
+####                   ##############           ##############      ####        ####    ################
+####                   ##############           ##############      ####        ####    ################
 
-# If  | egrep "$SEEKING" &>/dev/null | returned an error....so it was... it was found/not found say it and stop execution for not found
-if [ $? -eq 0 ]
-then
-	{
-	msg_green "${green} FOUND !"
-	echo "    ";
-	}
+err_buff=$?
+# echo "err_buff=$err_buff"
+# echo "PROCESSOR_ERROR=$PROCESSOR_ERROR"
+if [[ "${PROCESSOR_ERROR}" == "INTEL" ]] && (( $err_buff == 0 )); then
+{
+    msg_green "${green} FOUND !"
+    echo "    ";
+    FOUND=1
+}
+elif [[ "${PROCESSOR_ERROR}" == "MAC" ]] && [ $err_buff == 0 ]; then
+{
+    msg_green "${green} FOUND !"
+    echo "    ";
+    FOUND=1
+}
 else
-	{
-	msg_red "${red} SORRY NO OCCURENCES FOUND !"
-	echo "    ";
-	exit 0;
-	}
+{
+    msg_red "${red} SORRY NO FOUND OCCURENCES !"
+    echo "    ";
+    FOUND=0
+    exit 1;
+}
 fi
+# If  | egrep "$SEEKING" &>/dev/null | returned an error....so it was... it was found/not found say it and stop execution for not found
+# if [ $? -eq 0 ]
+# then
+# 	{
+# 	msg_green "${green} FOUND !"
+# 	echo "    ";
+# 	}
+# else
+# 	{
+# 	msg_red "${red} SORRY NO OCCURENCES FOUND !"
+# 	echo "    ";
+# 	exit 0;
+# 	}
+# fi
 
 
 
@@ -484,8 +541,8 @@ echo "${yellow} ...";
 
 
 # echo $0=./replace
-IMPLACING="$2";
-NEW="$2";
+IMPLACING="$3";
+NEW="$3";
 
 # Keep this commands for reference DON'T DELETE  KEEP KEEP
 # echo "${cyan}  ack -l --ignore-dir=vendor --ignore-dir=bower_components  --ignore-dir=node_modules --ignore-dir=storage/debugbar  --ignore-dir=storage/logs  --ignore-dir=app/Stubs \"${SEEKING}\" --print0 | xargs -0 sed  -i  -e s/\"${SEEKING}\"/\"${IMPLACING}\"/g"
@@ -532,6 +589,15 @@ echo "${yellow} REPLACING NOW !        . . . using ${REPLACER} command ";
 #
 # So here is the solution I came up with which I think should work for most cases:
 #
+APPLIED_ENTER=0
+function enter_escape_for_sed {
+  #sed ':a;N;$!ba;s/\n/0N33NT3R/g'  # GNU sed
+  sed -e ':a' -e 'N' -e '$!ba' -e 's/\n/\\n/g'  #  cross-platform compatible syntax which works with BSD sed
+  APPLIED_ENTER=$?
+}
+function enter_decode() {
+  sed 's/\\n/\n/g'
+}
 function escape_slashes {
     sed 's/\//\\\//g'
 }
@@ -555,7 +621,20 @@ function change_line {
 #NEW_LINE=$2;
 #FILE=$3
 IMPLACING=$(echo "${NEW}"  | escape_slashes | escape_quotes)
+TESTENTERIMPLACING=$(echo "${IMPLACING}" | enter_escape_for_sed)
 
+if [[ "${IMPLACING}" == "${TESTENTERIMPLACING}" ]] ; then
+{
+  APPLIED_ENTER=0
+}
+else
+{
+  APPLIED_ENTER=1
+  IMPLACING=$TESTENTERIMPLACING
+}
+fi
+
+err_buff=0
 
 #
 # REPLACE - start
@@ -572,6 +651,7 @@ if [[ $SEEKING == *"/"* ]]; then
           {
          echo "${cyan}   sed  -i  -e s\"${SEEKING}\"\"${IMPLACING}\"g ${FILE}"
                          sed  -i  -e s"$SEEKING""$IMPLACING"g ${FILE} | ${SEEKER} "$SEEKING" ${FILESCOMMAND} &>/dev/null
+                         err_buff=$?
           }
         else
           # sed mac
@@ -580,6 +660,7 @@ if [[ $SEEKING == *"/"* ]]; then
           # Sample use: ${THISSCRIPTNAME} /usr/bin/env\ bash  /bin/bash
           echo "${cyan}  sed  -i'.sedbak'  -e s\"${SEEKING}\"\"${IMPLACING}\"g ${FILE}"
                          sed  -i'.sedbak'  -e s"$SEEKING""$IMPLACING"g ${FILE} | ${SEEKER} "$SEEKING" ${FILESCOMMAND}  &>/dev/null
+                         err_buff=$?
           }
         fi
       }
@@ -589,6 +670,7 @@ if [[ $SEEKING == *"/"* ]]; then
       {
         echo "${cyan}   ex -sc '%s$SEEKING$IMPLACINGg|x' ${FILE} "
                         ex -sc '%s$SEEKING$IMPLACINGg|x' ${FILE}
+                        err_buff=$?
       }
     fi
   }
@@ -603,6 +685,7 @@ if [[ $SEEKING == *"/"* ]]; then
           {
             echo "${cyan}   sed -i -e s/\"${SEEKING}\"/\"${IMPLACING}\"/g ${FILE}"
                             sed -i -e s/"$SEEKING"/"$IMPLACING"/g ${FILE} | ${SEEKER} "$SEEKING" ${FILESCOMMAND} &>/dev/null
+                            err_buff=$?
           }
         else
           # sed mac
@@ -610,6 +693,7 @@ if [[ $SEEKING == *"/"* ]]; then
           {
             echo "${cyan}   sed  -i'.sedbak'  -e s/\"${SEEKING}\"/\"${IMPLACING}\"/g" ${FILE}
                             sed  -i'.sedbak'  -e s/"$SEEKING"/"$IMPLACING"/g ${FILE} | ${SEEKER} "$SEEKING" ${FILESCOMMAND}  &>/dev/null
+                            err_buff=$?
           }
         fi
       }
@@ -619,6 +703,7 @@ if [[ $SEEKING == *"/"* ]]; then
         # VIM ex To find and replace all occurrences of case insensitive 'eth1' with 'br1', enter:
         echo "${cyan}   ex -sc '+%s/$SEEKING/$IMPLACING/g|x' ${FILE} "
                         ex -sc '+%s/$SEEKING/$IMPLACING/g|x' ${FILE}
+                        err_buff=$?
       }
     fi
   }
@@ -627,26 +712,65 @@ echo "    ";
 #
 # REPLACE - end
 #
-
+##########     ##########  ##########    ##              ####        ########    ##########  ##########
+##########     ##########  ##########    ##              ####        ########    ##########  ##########
+##        ##   ##          ##        ##  ##            ##    ##    ##        ##  ##          ##        ##
+##        ##   ##          ##        ##  ##            ##    ##    ##        ##  ##          ##        ##
+##        ##   ########    ##        ##  ##          ##        ##  ##            ########    ##        ##
+##        ##   ########    ##        ##  ##          ##        ##  ##            ########    ##        ##
+##########     ##          ##########    ##          ############  ##            ##          ##        ##
+##########     ##          ##########    ##          ############  ##            ##          ##        ##
+##      ##     ##          ##            ##          ##        ##  ##        ##  ##          ##        ##
+##      ##     ##          ##            ##          ##        ##  ##        ##  ##          ##        ##
+##        ##   ##########  ##            ##########  ##        ##    ########    ##########  ##########
+##        ##   ##########  ##            ##########  ##        ##    ########    ##########  ##########
 #
 # If  | egrep "$SEEKING" &>/dev/null | returned an error....so it was... it was found/not found say it and stop execution for not found
-if [ $? == 0 ]; then
-	{
-	msg_green "${green} REPLACED !"
-	echo "    ";
-	}
+#err_buff=$?
+if [[ "${PROCESSOR_ERROR}" == "INTEL" ]] && (( $err_buff != 0 )); then
+    {
+    msg_green "${green} REPLACED !"
+    echo "    ";
+    FOUND=1
+    }
+elif [[ "${PROCESSOR_ERROR}" == "MAC" ]] && [ $err_buff != 0 ]; then
+    {
+    msg_green "${green} REPLACED !"
+    echo "    ";
+    FOUND=1
+    }
 else
-	{
-	msg_red "${red} SORRY NO REPLACEMENTS MADE !"
-	echo "    ";
-	exit 0;
-	}
+    {
+    msg_red "${red} SORRY NO REPLACEMENTS MADE !"
+    echo "    ";
+    exit 0;
+    FOUND=0
+    }
 fi
+# if [ $? == 0 ]; then
+# 	{
+# 	msg_green "${green} REPLACED !"
+# 	echo "    ";
+# 	}
+# else
+# 	{
+# 	msg_red "${red} SORRY NO REPLACEMENTS MADE !"
+# 	echo "    ";
+# 	exit 0;
+# 	}
+# fi
 
 
 echo "${green}  SEEKING ${yellow}  CONFIRM ${green} NEW VALUES NOW :   ";
 echo "    ";
+err_buff=0
 SEEKING=$IMPLACING;
+# echo "applied enter: ${APPLIED_ENTER}"
+if [[ "${APPLIED_ENTER}" != 0 ]]; then
+{
+  SEEKING=$(echo $IMPLACING | enter_decode);
+}
+fi
 
 if [[ $SEEKING == *"/"* ]]
 then
@@ -655,6 +779,7 @@ then
 
 echo "${cyan}   ${SEEKER} \"${SEEKING}\" ${FILESCOMMAND} ${IGNORELIST}  ${FILE} "
                 ${SEEKER} "$SEEKING" ${FILESCOMMAND}     ${IGNORELIST}  ${FILE}
+                err_buff=$?
                 ${SEEKER} "$SEEKING" ${FILESCOMMAND}     ${IGNORELIST}  ${FILE}  | ${SEEKER} "$SEEKING" ${FILESCOMMAND}  &>/dev/null
 }
 else
@@ -662,26 +787,64 @@ else
 
 echo "${cyan}   ${SEEKER} \"${SEEKING}\" ${FILESCOMMAND} ${IGNORELIST}  ${FILE} "
                 ${SEEKER} "$SEEKING" ${FILESCOMMAND}     ${IGNORELIST}  ${FILE}
+                err_buff=$?
                 ${SEEKER} "$SEEKING" ${FILESCOMMAND}     ${IGNORELIST}  ${FILE}  | ${SEEKER} "$SEEKING" ${FILESCOMMAND}  &>/dev/null
 }
 fi
-
+########       #####     ###        ###   ##########  ###   ########       ###        ###   #########  ########
+#########      #####     ###        ###   ##########  ###   ########       ###        ###   #########  ########
+##      ##   ##     ##   #####      ###   ###         ###   ###     ##     #####    #####   ##         ###     ##
+##      ##   ##     ##   #####      ###   ###         ###   ###     ###    #####    #####   ##         ###     ##
+##           ##     ##   ###  ##    ###   ########    ###   ###     ###    ###  ####  ###   #######    ###     ##
+##           ##     ##   ###  ##    ###   ########    ###   ###     ##     ###  ####  ###   #######    ###     ##
+##           ##     ##   ###    ##  ###   ###         ###   ########       ###        ###   ##         ###     ##
+##           ##     ##   ###    ##  ###   ###         ###   ########       ###        ###   ##         ###     ##
+##      ##   ##     ##   ###      #####   ###         ###   ###   ##       ###        ###   ##         ###     ##
+##      ##   ##     ##   ###      #####   ###         ###   ###   ###      ###        ###   ##         ###     ##
+#########     #######    ###        ###   ###         ###   ###     ###    ###        ###   #########  ########
+########       #####     ###        ###   ###         ###   ###     ###    ###        ###   #########  ########
 # INVERSE SWITCH If  | egrep "$SEEKING" &>/dev/null | returned an error....so it was... it was found/not found say it and stop execution for not found
-if [ $? == 0 ]; then
-  {
-  echo "    ";
-  echo "${cyan} REPLACE CONFIRMED ${green} FOUND !"
-  if [[ "${REPLACER}" == "sed" &&  "${REPLACERGNU}" == "NO" ]] ; then
-    remove .sedbak
-  fi
-  echo "    ";
-  }
+# if [ $? == 0 ]; then
+#   {
+#   echo "    ";
+#   echo "${cyan} REPLACE CONFIRMED ${green} FOUND !"
+#   if [[ "${REPLACER}" == "sed" &&  "${REPLACERGNU}" == "NO" ]] ; then
+#     remove .sedbak
+#   fi
+#   echo "    ";
+#   }
+# else
+#   {
+#   msg_red "${red} REPLACEMENT FAILED !"
+#   echo "    ";
+#   exit 0;
+#   }
+# fi
+# echo "err_buff=$err_buff"
+if [[ "${PROCESSOR_ERROR}" == "INTEL" ]] && (( $err_buff == 0 )); then
+    {
+    echo "    ";
+    echo "${cyan} REPLACE CONFIRMED ${green} FOUND !"
+    if [[ "${REPLACER}" == "sed" &&  "${REPLACERGNU}" == "NO" ]] ; then
+        remove .sedbak
+    fi
+    echo "    ";
+    }
+elif [[ "${PROCESSOR_ERROR}" == "MAC" ]] && [ $err_buff == 0 ]; then
+    {
+    echo "    ";
+    echo "${cyan} REPLACE CONFIRMED ${green} FOUND !"
+    if [[ "${REPLACER}" == "sed" &&  "${REPLACERGNU}" == "NO" ]] ; then
+        remove .sedbak
+    fi
+    echo "    ";
+    }
 else
-  {
-  msg_red "${red} REPLACEMENT FAILED !"
-  echo "    ";
-  exit 0;
-  }
+    {
+    msg_red "${red} REPLACEMENT FAILED !"
+    echo "    ";
+    exit 0;
+    }
 fi
 
 
