@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 #
 # @author Zeus Intuivo <zeus@intuivo.com>
 #
@@ -37,6 +37,7 @@ struct_testing
     unset ONE_SCRIPT
     unset BASH_SCRIPTS
     unset provider
+    return 0
 } # end function load_execute_command
 load_execute_command
 
@@ -66,15 +67,19 @@ announce Varianten of bash hashbans
             #           Call .each
             #           .each  "${ACTIONS}"   "${ITEMS}"
 
+	# OLD search Scripts
+	#	    \#\!/bin/bash
+	# \#\!/bin/zsh
+	# \#\!/bin/sh
+	# \#\!/bin/dash
+	# \#\!/bin/rbash
+	# \#\!/bin/env
+	# \#\!/usr/bin/env
+
 LIST_OF_BASH_SCRIPTS=""
 ITEMS="
-\#\!/bin/bash
-\#\!/bin/zsh
-\#\!/bin/sh
-\#\!/bin/dash
-\#\!/bin/rbash
-\#\!/bin/env
-\#\!/usr/bin/env
+\#\!/bin/
+\#\!/usr/bin/
 "
 # Original Idea for Grep
 # FILES_ENV_BASH=$(grep -l  \#\!\/bin\/bash  $(find  * -maxdepth 0 -type f ))   #\!/bin/env bash   #   get all files that have this string at the start of the contents
@@ -177,6 +182,7 @@ patch_utf_names(){
   anounce_command sudo ln -sf  "${TARGET_DIRECTORY}/middleminidot" /usr/local/bin/•
   anounce_command sudo ln -sf  "${TARGET_DIRECTORY}/ue" /usr/local/bin/ü
   anounce_command sudo ln -sf  "${TARGET_DIRECTORY}/dimscreen" /usr/local/bin/€
+  anounce_command sudo ln -sf  "${TARGET_DIRECTORY}/doe" /usr/local/bin/dö
 
   anounce_command sudo unlink  /usr/local/bin/cuet
   anounce_command sudo unlink  /usr/local/bin/loeschen_seo_nur_datei
@@ -187,6 +193,7 @@ patch_utf_names(){
   anounce_command sudo unlink  /usr/local/bin/crossequal
   anounce_command sudo unlink  /usr/local/bin/middleminidot
   anounce_command sudo unlink  /usr/local/bin/ue
+
 
 } # end patch_utf_names
 [[ "${PWD}" == *"bash_intuivo_cli"* ]] && [ -d "${PWD}/"  ] && patch_utf_names "${USER}" "/_/clis/bash_intuivo_cli"

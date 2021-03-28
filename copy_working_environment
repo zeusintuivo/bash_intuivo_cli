@@ -16,7 +16,7 @@ fi
 load_execute_command(){
     EXECOMCLI=$(wget --quiet --no-check-certificate https://raw.githubusercontent.com/zeusintuivo/execute_command_intuivo_cli/master/execute_command -O -  2>/dev/null )   # suppress only wget download messages, but keep wget output for variable
     eval """${EXECOMCLI}"""
-    ( ( ! command -v type passed >/dev/null 2>&1; ) && echo -e "\n \n  ERROR! Loading execute_command \n \n " && exit 130; )
+    ( ( ! command -v passed >/dev/null 2>&1; ) && echo -e "\n \n  ERROR! Loading execute_command \n \n " && exit 130; )
 } # end function load_execute_command
 load_execute_command
 

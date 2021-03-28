@@ -87,13 +87,12 @@ if [[ ! -z "${findings}" ]] ; then
   ACTIONS="echo \"{#}\""
   # echo "err_buff6=$?"
   if [ -d .idea/ ] && [ -f Gemfile ] && [ -d app/ ] && [ -d db/ ] && [ -d config/ ] && [ -d "test/" ] ; then
-    ACTIONS="echo -e \"\\033[38;5;202m{#}\\033[38;5;232m:1\""
+    ACTIONS="echo -e \"\\033[38;5;202m{#}\\033[38;5;232m:1\\033[0\""
   fi
   # echo "err_buff7=$?"
   .each  "${ACTIONS}"  "${findings}"
   # echo "err_buff8=$?"
 }
 fi
-
 
 # echo -e " "
