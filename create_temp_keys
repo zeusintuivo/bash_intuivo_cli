@@ -4,6 +4,15 @@
 # @author Zeus Intuivo <zeus@intuivo.com>
 #
 #
+
+load_execute_command_wget(){
+    local provider="$HOME/_/clis/execute_command_intuivo_cli/execute_command"
+    [   -e "${provider}"  ] && source "${provider}"
+    [ ! -e "${provider}"  ] && eval """$(wget --quiet --no-check-certificate  https://raw.githubusercontent.com/zeusintuivo/execute_command_intuivo_cli/master/execute_command -O -  2>/dev/null )"""   # suppress only wget download messages, but keep wget output for variable
+    ( ( ! command -v comment >/dev/null 2>&1; ) && echo -e "\\n \\n  ERROR! Loading execute_command \\n \\n " && exit 69; )
+} # end load_execute_command_wget
+load_execute_command_wget
+
 load_struct_testing_wget(){
     local provider="$HOME/_/clis/execute_command_intuivo_cli/struct_testing"
     [   -e "${provider}"  ] && source "${provider}"
@@ -28,16 +37,56 @@ else
 fi
   cat << EOF > .temp_keys
 # git pull push section
-export SSH_KEY="${SSH_KEY}"          #     "local name from file 'zeus' or 'mark'"
+export SSH_KEY="${SSH_KEY}"          # "local name from file 'zeus' or 'mark'"
 export GITUSER="${GITUSER}"          # "user name only 'usename' from the github or gitlab account or bitbucket login"
+EOF
+if [[ -z "${GITPROVIDER}" ]] ; then
+{
+  cat << EOF >> .temp_keys
+# export GITPROVIDER=""      # default is "git@github.com" but private can be "git@git.company.net"
+EOF
+}
+else
+{
+  cat << EOF >> .temp_keys
 export GITPROVIDER="${GITPROVIDER}"      # default is "git@github.com" but private can be "git@git.company.net"
+EOF
+}
+fi
+
+if [[ -z "${VPNREQUIRED}" ]] ; then
+{
+  cat << EOF >> .temp_keys
+# export VPNREQUIRED=""      # empty default will check is the named here vpn name is listed and on
+EOF
+}
+else
+{
+  cat << EOF >> .temp_keys
 export VPNREQUIRED="${VPNREQUIRED}"      # empty default will check is the named here vpn name is listed and on
+EOF
+}
+fi
+
+if [[ -z "${EDITOR}" ]] ; then
+{
+  cat << EOF >> .temp_keys
+# export EDITOR=""           # empty default guake_quick_file_opener will try to guess which editor to use, or use this instead if not found
+EOF
+}
+else
+{
+  cat << EOF >> .temp_keys
 export EDITOR="${EDITOR}"           # empty default guake_quick_file_opener will try to guess which editor to use, or use this instead if not found
 EOF
+}
+fi
+
 
 if [[ -n "${USERNAMEGIT}" ]] ; then
 {
   cat << EOF >> .temp_keys
+
 # Manually force to change name before commit
 ( command -v git >/dev/null 2>&1; ) && [ -e .git ] && git config --local user.name "${USERNAMEGIT}"
 EOF
@@ -45,6 +94,7 @@ EOF
 else
 {
   cat << EOF >> .temp_keys
+
 # Manually force to change name before commit
 # ( command -v git >/dev/null 2>&1; ) && [ -e .git ] && git config --local user.name "First.Last"
 EOF
@@ -84,7 +134,7 @@ fi
 if [[ -z "${GITHUB_TOKEN}" ]] ; then
 {
   cat << EOF >> .temp_keys
-export GITHUB_TOKEN=qweqwerqwerqwerqwerqwerqwerqwerqwerqwerq
+# export GITHUB_TOKEN=qweqwerqwerqwerqwerqwerqwerqwerqwerqwerq
 EOF
 }
 else
@@ -99,13 +149,15 @@ fi
 if [[ -z "${CMS_WAGON_NAME}" ]] ; then
 {
   cat << EOF >> .temp_keys
+
 # Sample Wagon Shopify values
-export CMS_WAGON_NAME=wagon_name_en_de_or_nl
+# export CMS_WAGON_NAME=wagon_name_en_de_or_nl
 EOF
 }
 else
 {
   cat << EOF >> .temp_keys
+
 # Sample Wagon Shopify values
 export CMS_WAGON_NAME="${CMS_WAGON_NAME}"
 EOF
@@ -117,7 +169,7 @@ fi
 if [[ -z "${CMS_HOST}" ]] ; then
 {
   cat << EOF >> .temp_keys
-export CMS_HOST=http://0.0.0.0:3001
+# export CMS_HOST=http://0.0.0.0:3001
 EOF
 }
 else
@@ -131,7 +183,7 @@ fi
 if [[ -z "${CMS_HANDLE}" ]] ; then
 {
   cat << EOF >> .temp_keys
-export CMS_HANDLE=wagon_name_en_de_or_nl
+# export CMS_HANDLE=wagon_name_en_de_or_nl
 EOF
 }
 else
@@ -145,7 +197,7 @@ fi
 if [[ -z "${CMS_USER_EMAIL}" ]] ; then
 {
   cat << EOF >> .temp_keys
-export CMS_USER_EMAIL=root@none.com
+# export CMS_USER_EMAIL=root@none.com
 EOF
 }
 else
@@ -160,7 +212,7 @@ fi
 if [[ -z "${CMS_USER_API_KEY}" ]] ; then
 {
   cat << EOF >> .temp_keys
-export CMS_USER_API_KEY=qwerqwerqwerqwerqwerqwerqwerqwerqwerqwer
+# export CMS_USER_API_KEY=qwerqwerqwerqwerqwerqwerqwerqwerqwerqwer
 EOF
 }
 else
@@ -198,14 +250,14 @@ if [[ -z "${JOURNAL_JOURNALDIR_STYLE_4_FEATURE}" ]] ; then
 fi
 if [[ -z "${JOURNAL_NEWBRANCH_STYLE_4_FEATURE}" ]] ; then
 {
-  JOURNAL_NEWBRANCH_STYLE_4_FEATURE="\$(echo "\${TICKETID}_\${DESCRIPTION}" |  only_2_dashed_words )"
+  JOURNAL_NEWBRANCH_STYLE_4_FEATURE="\$(echo \"\${TICKETID}_\${DESCRIPTION}\" |  only_2_dashed_words )"
 }
 fi
 
 
 if [[ -z "${JOURNAL_NEWBRANCH_STYLE_4_ISSUE}" ]] ; then
 {
-  JOURNAL_NEWBRANCH_STYLE_4_ISSUE="\$(echo "\${TICKETID}_\${DESCRIPTION}" |  only_2_dashed_words )"
+  JOURNAL_NEWBRANCH_STYLE_4_ISSUE="\$(echo \"\${TICKETID}_\${DESCRIPTION}\" |  only_2_dashed_words )"
 }
 fi
 if [[ -z "${JOURNAL_JOURNALDIR_STYLE_4_ISSUE}" ]] ; then
@@ -217,9 +269,11 @@ fi
 
 
   cat << EOF >> .temp_keys
+
 # journal section
 export JOURNAL_PUT_COMMIT_METHOD="${JOURNAL_PUT_COMMIT_METHOD}"    #   "can only be 'put' or 'commit'. PUT makes a direct add and push and COMMIT just commits without pushing "
 # export JOURNAL_HOME="\$HOME/_" #  /journal folder  will be added
+# export JOURNAL_HOME="\$(realpath \$(pwd)/../)" #  /journal folder  will be added
 export JOURNAL_HOME="${JOURNAL_HOME}"   #   /journal folder will be added
 
 # journal section - Custom ISSUETRACKERLOCATION - journal_get_description_work_link_url script worker dependency
@@ -228,23 +282,23 @@ export JOURNAL_HOME="${JOURNAL_HOME}"   #   /journal folder will be added
 
 # journal section- newfeature command script
 # Linux
-# [[ type -t only_7_dashed_words == *"function"* ]] && export JOURNAL_NEWBRANCH_STYLE_4_FEATURE=$(echo "\${TICKETID}_\${DESCRIPTION}" |  only_7_dashed_words ) # methods from sed_function inside journal
-# [[ type -t only_5_dashed_words == *"function"* ]] && export JOURNAL_NEWBRANCH_STYLE_4_FEATURE=$(echo "\${TICKETID}_\${DESCRIPTION}" |  only_5_dashed_words ) # methods from sed_function inside journal
-# [[ type -t only_4_dashed_words == *"function"* ]] && export JOURNAL_NEWBRANCH_STYLE_4_FEATURE=$(echo "\${TICKETID}_\${DESCRIPTION}" |  only_4_dashed_words ) # methods from sed_function inside journal
+# [[ type -t only_7_dashed_words == *"function"* ]] && export JOURNAL_NEWBRANCH_STYLE_4_FEATURE=\$(echo "\${TICKETID}_\${DESCRIPTION}\" |  only_7_dashed_words ) # methods from sed_function inside journal
+# [[ type -t only_5_dashed_words == *"function"* ]] && export JOURNAL_NEWBRANCH_STYLE_4_FEATURE=\$(echo "\${TICKETID}_\${DESCRIPTION}\" |  only_5_dashed_words ) # methods from sed_function inside journal
+# [[ type -t only_4_dashed_words == *"function"* ]] && export JOURNAL_NEWBRANCH_STYLE_4_FEATURE=\$(echo "\${TICKETID}_\${DESCRIPTION}\" |  only_4_dashed_words ) # methods from sed_function inside journal
 # Mac
-type only_2_dashed_words &>/dev/null && export JOURNAL_NEWBRANCH_STYLE_4_FEATURE="" # methods from sed_function inside journal
+type only_2_dashed_words &>/dev/null && export JOURNAL_NEWBRANCH_STYLE_4_FEATURE="${JOURNAL_NEWBRANCH_STYLE_4_FEATURE}" # methods from sed_function inside journal
 export JOURNAL_NEWBRANCH_STYLE_4_FEATURE
 export JOURNAL_JOURNALDIR_STYLE_4_FEATURE="${JOURNAL_JOURNALDIR_STYLE_4_FEATURE}"  # empty will behave as empty directory when creating it.
 
 # newissue script
 # Linux
-# [[ type -t only_7_dashed_words == *"function"* ]] && export JOURNAL_NEWBRANCH_STYLE_4_ISSUE=$(echo "\${TICKETID}_\${DESCRIPTION}" |  only_7_dashed_words )  # methods from sed_function inside journal
-# [[ type -t only_5_dashed_words == *"function"* ]] && export JOURNAL_NEWBRANCH_STYLE_4_ISSUE=$(echo "\${TICKETID}_\${DESCRIPTION}" |  only_5_dashed_words )  # methods from sed_function inside journal
-# [[ type -t only_4_dashed_words == *"function"* ]] && export JOURNAL_NEWBRANCH_STYLE_4_ISSUE=$(echo "\${TICKETID}_\${DESCRIPTION}" |  only_4_dashed_words )  # methods from sed_function inside journal
+# [[ type -t only_7_dashed_words == *"function"* ]] && export JOURNAL_NEWBRANCH_STYLE_4_ISSUE=\$(echo "\${TICKETID}_\${DESCRIPTION}\" |  only_7_dashed_words )  # methods from sed_function inside journal
+# [[ type -t only_5_dashed_words == *"function"* ]] && export JOURNAL_NEWBRANCH_STYLE_4_ISSUE=\$(echo "\${TICKETID}_\${DESCRIPTION}\" |  only_5_dashed_words )  # methods from sed_function inside journal
+# [[ type -t only_4_dashed_words == *"function"* ]] && export JOURNAL_NEWBRANCH_STYLE_4_ISSUE=\$(echo "\${TICKETID}_\${DESCRIPTION}\" |  only_4_dashed_words )  # methods from sed_function inside journal
 # Mac
 type only_2_dashed_words &>/dev/null && export JOURNAL_NEWBRANCH_STYLE_4_ISSUE="${JOURNAL_NEWBRANCH_STYLE_4_ISSUE}"  # methods from sed_function inside journal
 export JOURNAL_NEWBRANCH_STYLE_4_ISSUE
-export JOURNAL_JOURNALDIR_STYLE_4_ISSUE="${JOURNAL_JOURNALDIR_STYLE_4_ISSUE}"
+export JOURNAL_JOURNALDIR_STYLE_4_ISSUE="${JOURNAL_JOURNALDIR_STYLE_4_ISSUE}"   # empty will behave as empty directory when creating it.
 
 EOF
 
