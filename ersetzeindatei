@@ -103,6 +103,26 @@ msg_green () {
 }
 
 trap '{ msg_red " KEYBOARD INTERRUPT."; exit 130; }' INT
+#
+# C H E C K   H O W   C O M P U T E R   H A N D L E S   E R R O R S   --Start
+#
+test_positives(){
+  KIND=""
+  ls werwerwerwerwerwerwerwerwerwerwerr >/dev/null 2>&1;
+  if (( $? == 0 )) ;  then  # Intel processor
+    KIND="INTEL"
+  fi
+  if [ $? == 0 ]; then   # Mac Intel processor
+    KIND="${KIND}MAC"
+  fi
+  echo "${KIND}"
+}
+PROCESSOR_ERROR=$(test_positives)
+# DEBUG MACPOSITIVE MACPOSITIVE echo "${PROCESSOR_ERROR}"
+# DEBUG MACPOSITIVE exit 1
+#
+# C H E C K   H O W   C O M P U T E R   H A N D L E S   E R R O R S   --End
+#
 
 #
 # C H E C K   H O W   C O M P U T E R   H A N D L E S   E R R O R S   --Start
@@ -584,6 +604,7 @@ fi
 # If  | egrep "$SEEKING" &>/dev/null | returned an error....so it was... it was found/not found say it and stop execution for not found
 #if [ ! $? -eq 0 ] ; then #mac
 #if (( $? == 0 )) ;  then #work
+
 ################       ##############         ####          ####    ####        ####    ################
 ################       ##############         ####          ####    ####        ####    ################
 ####                 ####          ####       ####          ####    ######      ####    ####          ####
@@ -622,6 +643,20 @@ else
     exit 1;
 }
 fi
+# If  | egrep "$SEEKING" &>/dev/null | returned an error....so it was... it was found/not found say it and stop execution for not found
+# if [ $? -eq 0 ]
+# then
+# 	{
+# 	msg_green "${green} FOUND !"
+# 	echo "    ";
+# 	}
+# else
+# 	{
+# 	msg_red "${red} SORRY NO OCCURENCES FOUND !"
+# 	echo "    ";
+# 	exit 0;
+# 	}
+# fi
 
 
 
@@ -684,22 +719,21 @@ echo "${yellow} REPLACING NOW !        . . . using ${REPLACER} command ";
 # So here is the solution I came up with which I think should work for most cases:
 #
 APPLIED_ENTER=0
-function enter_escape_for_sed {
+function enter_escape_for_sed() {
   #sed ':a;N;$!ba;s/\n/0N33NT3R/g'  # GNU sed
   sed -e ':a' -e 'N' -e '$!ba' -e 's/\n/\\n/g'  #  cross-platform compatible syntax which works with BSD sed
   APPLIED_ENTER=$?
-}
+} # end enter_escape_for_sed
 function enter_decode() {
   sed 's/\\n/\n/g'
-}
+} # end enter_decode
 function escape_slashes() {
     sed 's/\//\\\//g'
-}
+} # end escape_slashes
 function escape_quotes() {
     sed 's/\"/\\\"/g'
-}
-
-function change_line(){
+} # end escape_quotes
+function change_line() {
     # So the sample usage to fix the problem posed:
     # change_line "TEXT_TO_BE_REPLACED" "This line is removed by the admin." yourFile
 
@@ -710,7 +744,7 @@ function change_line(){
     local NEW=$(echo "${NEW_LINE}" | escape_slashes)
     sed -i .bak '/'"${OLD_LINE_PATTERN}"'/s/.*/'"${NEW}"'/' "${FILE}"
     mv "${FILE}.bak" /tmp/
-}
+} # end change_line
 
 #OLD_LINE_PATTERN=$SEEKING;
 #NEW_LINE=$2;
@@ -860,6 +894,7 @@ fi
 
 echo "${green}  SEEKING ${yellow}  CONFIRM ${green} NEW VALUES NOW :   ";
 echo "    ";
+err_buff=0
 SEEKING=$IMPLACING;
 # echo "applied enter: ${APPLIED_ENTER}"
 if [[ "${APPLIED_ENTER}" != 0 ]]; then
@@ -875,6 +910,7 @@ then
 
 echo "${cyan}   ${SEEKER} \"${SEEKING}\" ${FILESCOMMAND} ${IGNORELIST}  ${FILE} "
                 ${SEEKER} "$SEEKING" ${FILESCOMMAND}     ${IGNORELIST}  ${FILE}
+                err_buff=$?
                 #err_buff=$?
 #                ${SEEKER} "$SEEKING" ${FILESCOMMAND}     ${IGNORELIST}  ${FILE}  | ${SEEKER} "$SEEKING" ${FILESCOMMAND}  &>/dev/null
 }
@@ -883,6 +919,7 @@ else
 
 echo "${cyan}   ${SEEKER} \"${SEEKING}\" ${FILESCOMMAND} ${IGNORELIST}  ${FILE} "
                 ${SEEKER} "$SEEKING" ${FILESCOMMAND}     ${IGNORELIST}  ${FILE}
+                err_buff=$?
                 #$err_buff=$?
 #                ${SEEKER} "$SEEKING" ${FILESCOMMAND}     ${IGNORELIST}  ${FILE}  | ${SEEKER} "$SEEKING" ${FILESCOMMAND}  &>/dev/null
 }
