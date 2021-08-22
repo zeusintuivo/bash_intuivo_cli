@@ -19,11 +19,11 @@
 
   while read -r one_item; do                                                  # Get longest file name
   {
-    if [ ! -z "${one_item}" ] ; then  # if not empty
+    if [ -n "${one_item}" ] ; then  # if not empty
     {
       while read -r one_action; do                                                  # Get longest file name
       {
-        if [ ! -z "${one_action}" ] ; then  # if not empty
+        if [ -n "${one_action}" ] ; then  # if not empty
         {
           action="${one_action/\{\#\}/$one_item}"  # replace value inside string substitution expresion bash
           eval ${action}
@@ -80,14 +80,16 @@ fi
 # echo "err_buff3=$?"
 findings=$(find . | ag --nocolor "/.*${SEEKING}[^/]*$" | trim_start_space | sed 's/^\../  /g')
 # echo "err_buff4=$?"
-if [[ ! -z "${findings}" ]] ; then
+if [[ -n "${findings}" ]] ; then
 {
   # echo "err_buff5=$?"
   #ACTIONS="echo -e \"{#}\\033[38;5;232m:1\\033[0m\""
   ACTIONS="echo \"{#}\""
   # echo "err_buff6=$?"
   if [ -d .idea/ ] && [ -f Gemfile ] && [ -d app/ ] && [ -d db/ ] && [ -d config/ ] && [ -d "test/" ] ; then
-    ACTIONS="echo -e \"\\033[38;5;202m{#}\\033[38;5;232m:1\\033[0\""
+    ACTIONS="$(echo -n "echo -e \"\033[38;5;202m{#}\033[38;5;232m:1\033[0\"")"
+    ACTIONS="$(echo -n "echo -e \"{#}:0 \"")"
+    ACTIONS="echo -en \"\\\033[38;5;202m{#}\033[38;5;232m:1\" \\\\n"
   fi
   # echo "err_buff7=$?"
   .each  "${ACTIONS}"  "${findings}"
@@ -95,4 +97,4 @@ if [[ ! -z "${findings}" ]] ; then
 }
 fi
 
-# echo -e " "
+echo -en "\033[0 "
