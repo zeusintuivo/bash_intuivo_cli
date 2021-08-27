@@ -97,4 +97,4 @@ if [[ -n "${findings}" ]] ; then
 }
 fi
 
-echo -en "\033[0 "
+# echo -en "\\033[0 "
