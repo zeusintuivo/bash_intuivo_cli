@@ -4,6 +4,24 @@
 # @author Zeus Intuivo <zeus@intuivo.com>
 #
 #
+if ! ( command -v realpath >/dev/null 2>&1; ) ; then # MAC  # updated realpath macos 20210902
+{
+  # updated realpath macos 20210902
+  export realpath    # updated realpath macos 20210902
+  function realpath() ( # Macos after BigSur is missing realpath  # updated realpath macos 20210902
+    local OURPWD=$PWD
+    cd "$(dirname "$1")"
+    local LINK=$(readlink "$(basename "$1")")
+    while [ "$LINK" ]; do
+      cd "$(dirname "$LINK")"
+      LINK=$(readlink "$(basename "$1")")
+    done
+    local REALPATH="$PWD/$(basename "$1")"
+    cd "$OURPWD"
+    echo "$REALPATH"
+  )
+}
+fi
 
 load_execute_command_wget(){
     local provider="$HOME/_/clis/execute_command_intuivo_cli/execute_command"
@@ -21,12 +39,15 @@ load_struct_testing_wget(){
 } # end load_struct_testing_wget
 load_struct_testing_wget
 
-
+SAVEDTEMPKEYS=""
+SAVEDLINEONE=""
+$(<.temp_keys)
 if it_exists_with_spaces .temp_keys ; then
 {
   passed .temp_keys exists already
   comment updating .temp_keys
   source .temp_keys
+  SAVEDTEMPKEYS="$(<.temp_keys)"
   USERNAMEGIT=$(git config --local --get user.name)
   # _if_not_contains .temp_keys "SSH_KEY" || echo -e "\nexport SSH_KEY=\"\"          #     \"local name from file 'zeus' or 'mark'\"" >> .temp_keys
 }
@@ -233,7 +254,7 @@ fi
 
 if [[ -z "${JOURNAL_HOME}" ]] ; then
 {
-  JOURNAL_HOME="\$(realpath \$(pwd)/../)"
+  JOURNAL_HOME="\$(realpath \$(pwd)/../)"      # updated realpath macos 20210902
 }
 fi
 
@@ -269,11 +290,29 @@ fi
 
 
   cat << EOF >> .temp_keys
+if ! ( command -v realpath >/dev/null 2>&1; ) ; then # MAC  # updated realpath macos 20210902
+{
+  # updated realpath macos 20210902
+  export realpath    # updated realpath macos 20210902
+  function realpath() ( # Macos after BigSur is missing realpath  # updated realpath macos 20210902
+    local OURPWD=\$PWD
+    cd "\$(dirname "\$1")"
+    local LINK=\$(readlink "\$(basename "\$1")")
+    while [ "\$LINK" ]; do
+      cd "\$(dirname "\$LINK")"
+      LINK=\$(readlink "\$(basename "\$1")")
+    done
+    local REALPATH="\$PWD/\$(basename "\$1")"
+    cd "\$OURPWD"
+    echo "\$REALPATH"
+  )
+}
+fi
 
 # journal section
 export JOURNAL_PUT_COMMIT_METHOD="${JOURNAL_PUT_COMMIT_METHOD}"    #   "can only be 'put' or 'commit'. PUT makes a direct add and push and COMMIT just commits without pushing "
 # export JOURNAL_HOME="\$HOME/_" #  /journal folder  will be added
-# export JOURNAL_HOME="\$(realpath \$(pwd)/../)" #  /journal folder  will be added
+# export JOURNAL_HOME="\$(realpath \$(pwd)/../)" # updated realpath macos 20210902 #  /journal folder  will be added   # updated realpath macos 20210902
 export JOURNAL_HOME="${JOURNAL_HOME}"   #   /journal folder will be added
 
 # journal section - Custom ISSUETRACKERLOCATION - journal_get_description_work_link_url script worker dependency
@@ -302,4 +341,15 @@ export JOURNAL_JOURNALDIR_STYLE_4_ISSUE="${JOURNAL_JOURNALDIR_STYLE_4_ISSUE}"   
 
 EOF
 
-
+if [[ -n "${SAVEDTEMPKEYS}" ]] ; then
+{
+  while read -r SAVEDLINEONE ; do
+  {
+    [[ -z "${SAVEDLINEONE}" ]] && continue
+    cat << EOF >> .temp_keys
+# ${SAVEDLINEONE}
+EOF
+  }
+  done <<< "${SAVEDTEMPKEYS}"
+}
+fi
