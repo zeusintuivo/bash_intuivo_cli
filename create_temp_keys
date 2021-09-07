@@ -41,7 +41,7 @@ load_struct_testing_wget
 
 SAVEDTEMPKEYS=""
 SAVEDLINEONE=""
-$(<.temp_keys)
+
 if it_exists_with_spaces .temp_keys ; then
 {
   passed .temp_keys exists already
