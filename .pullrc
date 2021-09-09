@@ -3,25 +3,31 @@
 # @author Zeus Intuivo <zeus@intuivo.com>
 #
 
-DOCKER_RUNNING=$(docker inspect -f '{{.State.Running}}' postgres)
-if [[ "${DOCKER_RUNNING}" !=  "true" ]] ; then
-{
-    docker-compose up &
-    wait
-}
-fi
+# DOCKER_RUNNING=$(docker inspect -f '{{.State.Running}}' postgres)
+# if [[ "${DOCKER_RUNNING}" !=  "true" ]] ; then
+# {
+#     docker-compose up &
+#     wait
+# }
+# fi
 
-docker-compose ps
+# docker-compose ps
 
-# Check again
-DOCKER_RUNNING=$(docker inspect -f '{{.State.Running}}' postgres)
-if [[ "${DOCKER_RUNNING}" !=  "true" ]] ; then
-{
-    echo "ERROR - NO DOCKER RUNNING Failed!!! "
-    exit 69;
-}
-fi
+# # Check again
+# DOCKER_RUNNING=$(docker inspect -f '{{.State.Running}}' postgres)
+# if [[ "${DOCKER_RUNNING}" !=  "true" ]] ; then
+# {
+#     echo "ERROR - NO DOCKER RUNNING Failed!!! "
+#     exit 69;
+# }
+# fi
 
+# user = User.where(global_role: "owner").last
+# user.email = "owner@sensorberg.com"
+# user.password = user.password_confirmation = "password"
+# user.full_name = "Jesus Alcaraz"
+# user.locale = "en"
+# user.save
 
 msg_red() {
     printf "\n${bdr}%s ${off}%s\n" "$@"
@@ -35,10 +41,10 @@ wait
 kill_node_and_ruby(){
     trap '{ msg_red " KEYBOARD INTERRUPT 1."; }' INT
     local NODETOKILL NODES=$(pgrep node)
-    if [ ! -z "${NODES}" ]; then {
+    if [[ -n "${NODES}" ]]; then {
         echo Killing nodes:"${NODES}":
         while read -r NODETOKILL; do
-            if [ ! -z "${NODETOKILL}" ] ; then
+            if [[ -n "${NODETOKILL}" ]] ; then
                 echo Killing node process:"${NODETOKILL}":
                 ps "${NODETOKILL}"
                 kill "${NODETOKILL}"
@@ -54,63 +60,333 @@ kill_node_and_ruby(){
     local RUBYMINE=$(pgrep rubymine)
     local VIRTUALS=$(pgrep Virtual)
     local VAGRANT=$(pgrep vagrant)
+    local PUMAS=$(pgrep puma)
+    local SIDEKIQS=$(pgrep sidekiq)
     local CHECKAGAIN EXCLUDE EXCLUSIONS=$(echo -e "${RUBYMINE}\n${VIRTUALS}\n${VAGRANT}")
     local RUBYS=$(pgrep ruby)
-    if [ ! -z "${RUBYS}" ]; then {
-        if [ ! -z "${EXCLUSIONS}" ] ; then
+    local _kill_alls=$(echo -e "${RUBYS}\n${RUBYSERVER}\n${PUMAS}\n${SIDEKIQS}\n")
+    if [[  -n "${_kill_alls}" ]]; then {
+        if [[ -n "${EXCLUSIONS}" ]] ; then
         {
                 while read -r EXCLUDE; do
-                    if [ ! -z "${EXCLUDE}" ] ; then
-                            echo Excluding process:"${EXCLUDE}":
-                            ps ${EXCLUDE}
-                            if [ ! -z "${RUBYS}" ] ; then
-                                RUBYS=$(sed s/${EXCLUDE}//g <<< "${RUBYS}")
-                            fi
+                    [[ -z "${EXCLUDE}" ]] && continue
+                    echo Excluding process:"${EXCLUDE}":
+                    ps ${EXCLUDE}
+                    if [[ -n "${_kill_alls}" ]] ; then
+                        _kill_alls=$(sed s/${EXCLUDE}//g <<< "${_kill_alls}")
                     fi
                 done <<< ${EXCLUSIONS}
         }
         fi
-        if [ ! -z "${RUBYS}" ]; then {
-            local ALLRUBYS=$(echo -e "${RUBYS}\n${RUBYSERVER}\n")
+        if [[ -n "${_kill_alls}" ]]; then {
+             # _kill_alls=$(echo -e "${RUBYS}\n${RUBYSERVER}\n${PUMAS}\n${SIDEKIQS}\n")
 
             while read -r RUBYTOKILL; do
                 CHECKAGAIN=$(ps ${RUBYTOKILL} | tail -1 | grep vagrant)
-                if [ ! -z "${CHECKAGAIN}" ] ; then
+                if [[ -n "${CHECKAGAIN}" ]] ; then
                     echo Excluding process:"${RUBYTOKILL}":
                     ps ${RUBYTOKILL}
                     VAGRANT=$(echo -e "${VAGRANT}\n${RUBYTOKILL}")
-                    ALLRUBYS=$(sed s/${RUBYTOKILL}//g <<< "${ALLRUBYS}")
+                    _kill_alls=$(sed s/${RUBYTOKILL}//g <<< "${_kill_alls}")
                     RUBYTOKILL=""
                 fi
                 CHECKAGAIN=$(ps ${RUBYTOKILL} | tail -1 | grep Virtual)
-                if [ ! -z "${CHECKAGAIN}" ] ; then
+                if [[ -n "${CHECKAGAIN}" ]] ; then
                     echo Excluding process:"${RUBYTOKILL}":
                     ps ${RUBYTOKILL}
                     VIRTUALS=$(echo -e "${VIRTUALS}\n${RUBYTOKILL}")
-                    RUBYS=$(sed s/${RUBYTOKILL}//g <<< "${RUBYS}")
+                    _kill_alls=$(sed s/${RUBYTOKILL}//g <<< "${_kill_alls}")
                     RUBYTOKILL=""
                 fi
 
-                  if [ ! -z "${RUBYTOKILL}" ] ; then
-                    echo Killing rubys processes:"${ALLRUBYS}":
-                    echo Killing ruby 1 process:"${RUBYTOKILL}":
+                  if [[ -n "${RUBYTOKILL}" ]] ; then
+                    echo Killing processes:"${_kill_alls}":
+                    echo Killing 1 process:"${RUBYTOKILL}":
                     ps ${RUBYTOKILL}
-                    kill "${RUBYTOKILL}"
+                    sudo kill -9 ${RUBYTOKILL}
+                    wait
                   fi
-            done <<< ${ALLRUBYS}
+            done <<< "${_kill_alls}"
 
             echo "Left alive RubyMine: ${RUBYMINE}==$(pgrep rubymine)"
             echo "Left alive Vagrants: ${VAGRANT}==$(pgrep vagrant)"
             echo "Left alive Virtuals: ${VIRTUALS}==$(pgrep Virtual)"
-        } else {
-                echo "No ruby processes found to kill"
+        }
+        else
+        {
+                echo "No processes found to kill"
         }
         fi
     } else {
-                echo "No ruby processes found to kill"
+                echo "No processes found to kill"
     }
     fi
-}
+} # end kill_node_and_ruby
+
+
+function rbenv_select_from_mycd(){
+  # local DEBUG=1
+  (( DEBUG )) && echo "debug rbenv_select_from_mycd"
+  if [ -f ".ruby-version" ] ; then  # file exists
+  {
+    BASHSELECTINGRBENVRUBY=$(<.ruby-version)
+    (( DEBUG )) && echo "# Current ruby responding is same as ode-version then do nothing"
+    if [[ "$(ruby --version)" == *"${BASHSELECTINGRBENVRUBY}"* ]] ; then
+    {
+      (( DEBUG )) && echo "mycd rbenv found ruby"
+      (( DEBUG )) && ruby --version
+      set -e
+      set +e
+    }
+    else
+    {
+      (( DEBUG )) && echo "mycd rbenv ruby not found"
+      (( DEBUG )) && echo "# Is ruby installed in rbenv ?"
+      if [[ "$(rbenv versions | grep ${BASHSELECTINGRBENVRUBY} | head -1)" == *"${BASHSELECTINGRBENVRUBY}"* ]] ; then
+      {
+        (( DEBUG )) && echo "rbenv version found"
+        (( DEBUG )) && echo "rbenv select it"
+        rbenv local ${BASHSELECTINGRBENVRUBY}
+        (( DEBUG )) && echo "# Confirm selection"
+        local confirming="$(~/.rbenv/shims/ruby --version)"
+        (( DEBUG )) && echo "${confirming}"
+        (( DEBUG )) && echo "${BASHSELECTINGRBENVRUBY}"
+        if [[ "${confirming}" == *"${BASHSELECTINGRBENVRUBY}"* ]] ; then
+        {
+            set -e
+            set +e
+        }
+        else
+        {
+            echo "ERROR Mycd 1 - Failed to select ruby ${confirming} != -  rbenv local  ${BASHSELECTINGRBENVRUBY}"
+        }
+        fi
+      }
+      else
+      {
+        (( DEBUG )) && echo "mycd rbenv ruby version # Not installed"
+        (( DEBUG )) && echo "mycd rbenv ruby version not found"
+        rbenv install ${BASHSELECTINGRBENVRUBY}
+        wait
+        (( DEBUG )) && echo "mycd rbenv  # Do switch case again"
+        if [[ "$(ruby versions | grep ${BASHSELECTINGRBENVRUBY} | head -1)" == *"${BASHSELECTINGRBENVRUBY}"* ]] ; then
+        {
+          (( DEBUG )) && echo "mycd rbenv found again"
+          (( DEBUG )) && echo "mycd rbenv select it again"
+          rbenv local ${BASHSELECTINGRBENVRUBY}
+          (( DEBUG )) && echo "# Confirm selection again"
+          local confirming="$(~/.rbenv/shims/ruby --version)"
+          (( DEBUG )) && echo "${confirming}"
+          (( DEBUG )) && echo "${BASHSELECTINGRBENVRUBY}"
+          if [[ "${confirming}" == *"${BASHSELECTINGRBENVRUBY}"* ]] ; then
+          {
+            set -e
+            set +e
+          }
+          else
+          {
+            echo "ERROR Mycd 2 - Failed to select again ruby ${confirming} -  rbenv local ${BASHSELECTINGRBENVRUBY}"
+          }
+          fi
+        }
+        else
+        {
+          (( DEBUG )) && echo "Not installed"
+          (( DEBUG )) && echo "not found"
+          echo "ERROR Mycd - Failed to install ruby ${BASHSELECTINGRBENVRUBY} -  rbenv install ${BASHSELECTINGRBENVRUBY}"
+        }
+        fi
+      }
+      fi
+    }
+    fi
+  }
+  fi
+  return 0
+} # end rbenv_select_from_mycd
+
+function type_function_exists() {
+  type "$1" > /dev/null 2>&1
+} # type_function_exists
+function nvm_select_from_mycd(){
+  # local DEBUG=1
+  (( DEBUG )) && echo "debug nvm_select_from_mycd"
+  if [ -f ".nvmrc" ] ; then  # file exists
+  {
+    BASHSELECTINGNVMNODE=$(<.nvmrc)
+    (( DEBUG )) && echo "# Current node responding is same as nvmrc then do nothing "
+    if [[ "$(node --version)" == *"${BASHSELECTINGNVMNODE}"* ]] ; then
+    {
+      (( DEBUG )) && echo ".nvmrc found and ..node version is"
+      (( DEBUG )) && node --version
+      set -e
+      set +e
+    }
+    else
+    {
+      (( DEBUG )) && echo ".nvmrc not found"
+      (( DEBUG )) && echo "# Is node installed in nvm ?"
+      if [[ "$(nvm ls | grep ${BASHSELECTINGNVMNODE} | head -1)" == *"${BASHSELECTINGNVMNODE}"* ]] ; then
+      {
+        (( DEBUG )) && echo "nvm ls shows has node verison installed found"
+        (( DEBUG )) && echo "tell to select it node version"
+        nvm use ${BASHSELECTINGNVMNODE}
+        # Confirm
+        if [[ "$(node --version)" == *"${BASHSELECTINGNVMNODE}"* ]] ; then
+        {
+            set -e
+            set +e
+        }
+        else
+        {
+            echo "ERROR Mycd - Failed to select node -  nvm use ${BASHSELECTINGNVMNODE}"
+        }
+        fi
+      }
+      else
+      {
+        # Not installed
+        (( DEBUG )) && echo "not found"
+        nvm install ${BASHSELECTINGNVMNODE}
+        wait
+        # Do switch case again
+        if [[ "$(nvm ls | grep ${BASHSELECTINGNVMNODE} | head -1)" == *"${BASHSELECTINGNVMNODE}"* ]] ; then
+        {
+          (( DEBUG )) && echo "found"
+          (( DEBUG )) && echo "select it"
+          nvm use ${BASHSELECTINGNVMNODE}
+          # Confirm
+          if [[ "$(node --version)" == *"${BASHSELECTINGNVMNODE}"* ]] ; then
+          {
+            set -e
+            set +e
+          }
+          else
+          {
+            echo "ERROR Mycd - Failed to select node -  nvm use ${BASHSELECTINGNVMNODE}"
+          }
+          fi
+        }
+        else
+        {
+          (( DEBUG )) && echo "Not installed"
+          (( DEBUG )) && echo "not found"
+          echo "ERROR Mycd - Failed to install node ${BASHSELECTINGNVMNODE} -  nvm install ${BASHSELECTINGNVMNODE}"
+        }
+        fi
+      }
+      fi
+    }
+    fi
+  }
+  fi
+  return 0
+} # end nvm_select_from_mycd
+
+function nodenv_select_from_mycd(){
+  # local DEBUG=1
+  (( DEBUG )) && echo "debug nodenv_select_from_mycd"
+  if [ -f ".node-version" ] ; then  # file exists
+  {
+    BASHSELECTINGNODENVNODE=$(<.node-version)
+    (( DEBUG )) && echo "# Current node responding is same as ode-version then do nothing"
+    if [[ "$(node --version)" == *"${BASHSELECTINGNODENVNODE}"* ]] ; then
+    {
+      (( DEBUG )) && echo "mycd nodenv found node"
+      (( DEBUG )) && node --version
+      set -e
+      set +e
+    }
+    else
+    {
+      (( DEBUG )) && echo "mycd nodenv node not found"
+      (( DEBUG )) && echo "# Is node installed in nodenv ?"
+      if [[ "$(nodenv versions | grep ${BASHSELECTINGNODENVNODE} | head -1)" == *"${BASHSELECTINGNODENVNODE}"* ]] ; then
+      {
+        (( DEBUG )) && echo "nodenv version found"
+        (( DEBUG )) && echo "nodenv select it"
+        nodenv local ${BASHSELECTINGNODENVNODE}
+        (( DEBUG )) && echo "# Confirm selection"
+        local confirming="$(~/.nodenv/shims/node --version)"
+        (( DEBUG )) && echo "${confirming}"
+        (( DEBUG )) && echo "${BASHSELECTINGNODENVNODE}"
+        if [[ "${confirming}" == *"${BASHSELECTINGNODENVNODE}"* ]] ; then
+        {
+            set -e
+            set +e
+        }
+        else
+        {
+            echo "ERROR Mycd 1 - Failed to select node ${confirming} != -  nodenv local  ${BASHSELECTINGNODENVNODE}"
+        }
+        fi
+      }
+      else
+      {
+        (( DEBUG )) && echo "mycd nodenv node version # Not installed"
+        (( DEBUG )) && echo "mycd nodenv node version not found"
+        nodenv install ${BASHSELECTINGNODENVNODE}
+        wait
+        (( DEBUG )) && echo "mycd nodenv  # Do switch case again"
+        if [[ "$(node versions | grep ${BASHSELECTINGNODENVNODE} | head -1)" == *"${BASHSELECTINGNODENVNODE}"* ]] ; then
+        {
+          (( DEBUG )) && echo "mycd nodenv found again"
+          (( DEBUG )) && echo "mycd nodenv select it again"
+          nodenv local ${BASHSELECTINGNODENVNODE}
+          (( DEBUG )) && echo "# Confirm selection again"
+          local confirming="$(~/.nodenv/shims/node --version)"
+          (( DEBUG )) && echo "${confirming}"
+          (( DEBUG )) && echo "${BASHSELECTINGNODENVNODE}"
+          if [[ "${confirming}" == *"${BASHSELECTINGNODENVNODE}"* ]] ; then
+          {
+            set -e
+            set +e
+          }
+          else
+          {
+            echo "ERROR Mycd 2 - Failed to select again node ${confirming} -  nodenv local ${BASHSELECTINGNODENVNODE}"
+          }
+          fi
+        }
+        else
+        {
+          (( DEBUG )) && echo "Not installed"
+          (( DEBUG )) && echo "not found"
+          echo "ERROR Mycd - Failed to install node ${BASHSELECTINGNODENVNODE} -  nodenv install ${BASHSELECTINGNODENVNODE}"
+        }
+        fi
+      }
+      fi
+    }
+    fi
+  }
+  fi
+  return 0
+} # end nodenv_select_from_mycd
+
+function mycd_decide_nvm_or_nodenv(){
+  local flag=0
+  ( type_function_exists nvm ) && flag=$(( flag + 1 ))
+  ( type_function_exists nodenv ) && flag=$(( flag + 3 ))
+  if (( flag == 4 )) ; then
+  {
+    echo "ERROR Two Node version managers found active nvm and nodenv. Consider removing one. Using nodenv now.  "
+    nodenv_select_from_mycd
+  }
+  elif (( flag == 1 )) ; then
+  {
+    nvm_select_from_mycd
+  }
+  elif (( flag == 3 )) ; then
+  {
+    nodenv_select_from_mycd
+  }
+  else
+  {
+    return 0
+  }
+  fi
+} # end mycd_decide_nvm_or_nodenv
 
 kill_node_and_ruby
 
@@ -127,20 +403,39 @@ task(){
     # big_letters $1
     case $1 in
     rubyversion)
-        local CURRENT_RUBY_VERSION=$(ruby --version | cut -d' ' -f2)
-        if [[ "${CURRENT_RUBY_VERSION}" != "2.5.3p105" ]] ; then
-            # Add RVM to PATH for scripting. Make sure this is the last PATH variable change.
-            export PATH="$PATH:$HOME/.rvm/bin"
-            rvm use $(<.ruby-version)
+        if command -v rvm >/dev/null 2>&1; then
+        {
+            local _pull_rc_rvm_or_ruby_version="$(tail -1<<<"$(<.rvmrc)")"
+            [ $? -gt 0 ] && echo "error could not find .rvmrc " &&  _pull_rc_rvm_or_ruby_version="$(tail -1<<<"$(<.ruby-version)")"
+            [ $? -gt 0 ] && echo "error could not find .ruby-version "
+            [[ -z "${_pull_rc_rvm_or_ruby_version}" ]] && echo "error _pull_rc_rvm_or_ruby_version empty "  && exit 1
+            local CURRENT_RUBY_VERSION=$(ruby --version | cut -d' ' -f2)
+            if [[ "${CURRENT_RUBY_VERSION}" != "${_pull_rc_rvm_or_ruby_version}" ]] ; then
+                # Add RVM to PATH for scripting. Make sure this is the last PATH variable change.
+                export PATH="$PATH:$HOME/.rvm/bin"
+                rvm use "${_pull_rc_rvm_or_ruby_version}"
+            fi
+        }
         fi
+        if command -v rbenv >/dev/null 2>&1; then
+        {
+           rbenv_select_from_mycd
+        }
+        fi
+
       ;;
     nodeversion)
+       # mycd_decide_nvm_or_nodenv
+       local _pull_rc_nvm_or_node_version="$(tail -1<<<"$(<.nvmrc)")"
+       [ $? -gt 0 ] && echo "error could not find .nvmrc " &&  _pull_rc_nvm_or_node_version="$(tail -1<<<"$(<.node-version)")"
+       [ $? -gt 0 ] && echo "error could not find .node-version "
+       [[ -z "${_pull_rc_nvm_or_node_version}" ]] && echo "error _pull_rc_nvm_or_node_version empty "  && exit 1
        local CURRENT_NODE_VERSION=$(node --version)
-       if [[ "${CURRENT_NODE_VERSION}" != "v10.15.1" ]] ; then
+       if [[ "${CURRENT_NODE_VERSION}" != "${_pull_rc_nvm_or_node_version}" ]] ; then
           export NVM_DIR="$HOME/.nvm"
           [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
           [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
-          nvm use $(<.nvmrc)
+          nvm use "${_pull_rc_nvm_or_node_version}"
        fi
       ;;
     pull)
@@ -154,16 +449,35 @@ task(){
       bin/rails db:migrate RAILS_ENV=development
       wait
       ;;
+    assets)
+      RAILS_ENV=development NODE_ENV=development bundle exec rake assets:precompile
+      ;;
     yarn)
       yarn
       ;;
     dev)
-      Message="yarn dev"
-      yarn dev&
+      Message="./bin/webpack-dev-server"
+      ./bin/webpack-dev-server&
+      ;;
+    compile)
+      Message="RAILS_ENV=development NODE_ENV=development bundle exec rails webpacker:compile"
+      RAILS_ENV=development NODE_ENV=development bundle exec rails webpacker:compile&
       ;;
     thin)
       Message="rails s thin -b 127.0.0.1"
       rails s thin -b 127.0.0.1
+      ;;
+    puma)
+      Message="make puma = RAILS_ENV=development NODE_ENV=development bundle exec rails s puma -p 3001"
+      RAILS_ENV=development NODE_ENV=development bundle exec rails s puma -p 3001
+      ;;
+    webrick)
+      Message="make webrick = RAILS_ENV=development NODE_ENV=development bundle exec rails s webrick -p 3001"
+      RAILS_ENV=development NODE_ENV=development bundle exec rails s webrick -p 3001
+      ;;
+    sidekiq)
+      Message="make webrick = RAILS_ENV=development NODE_ENV=development bundle exec sidekiq -C config/sidekiq.yml"
+      RAILS_ENV=development NODE_ENV=development bundle exec sidekiq -C config/sidekiq.yml
       ;;
     sequential_migrate_up)
       sequential_migrate_up
@@ -219,7 +533,7 @@ parallel_kill
 
 bundle
 wait
-bin/rails db:migrate RAILS_ENV=development
+RAILS_ENV=development NODE_ENV=development bundle exec bin/rails db:migrate
 wait
 
 
@@ -239,14 +553,14 @@ do_bundle_and_yarn() {
 }
 
 sequential_migrate_up(){
-    for thing in migrate thin; do
+    for thing in migrate puma sidekiq; do
        task "$thing"
     done
 }
 # sequential_migrate_up
 
 sequential_yarn_dev(){
-    for thing in yarn dev; do
+    for thing in yarn assets dev; do
        task "$thing"
     done
 }
