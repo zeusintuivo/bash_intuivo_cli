@@ -44,7 +44,7 @@ upcase_downcase_capitalize(){
         export BASH_VERSION=$(bash --version | extract_version  |  remove_letters | head -1)
     }
     fi
-    if [[ "$(cut -d. -f1 <<< ${BASH_VERSION})" > "3" ]] ; then
+    if [[ "$(cut -d. -f1 <<< ${BASH_VERSION})" > "4" ]] ; then
     {
         local lower_case_totarget="${totarget,,}"   # bash Convert string to lowercase Bash 4 REF: https://stackoverflow.com/questions/2264428/converting-string-to-lower-case-in-bash-shell-scripting
         local lower_case_fromsource="${fromsource,,}"         # bash Convert string to lowercase Bash 4 REF: https://stackoverflow.com/questions/2264428/converting-string-to-lower-case-in-bash-shell-scripting
