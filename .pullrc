@@ -106,7 +106,7 @@ kill_node_and_ruby(){
                     sudo kill -9 ${RUBYTOKILL}
                     wait
                   fi
-            done <<< "${_kill_alls}"
+            done <<< ${_kill_alls}
 
             echo "Left alive RubyMine: ${RUBYMINE}==$(pgrep rubymine)"
             echo "Left alive Vagrants: ${VAGRANT}==$(pgrep vagrant)"
@@ -390,7 +390,7 @@ function mycd_decide_nvm_or_nodenv(){
 
 kill_node_and_ruby
 
-trap '{ msg_red " KEYBOARD INTERRUPT 2."; kill_node_and_ruby; }' INT
+trap '{ msg_red " KEYBOARD INTERRUPT 2."; kill_node_and_ruby; }' INT ERR ERROR EXIT
 
 
 
@@ -560,7 +560,8 @@ sequential_migrate_up(){
 # sequential_migrate_up
 
 sequential_yarn_dev(){
-    for thing in yarn assets dev; do
+    npx browserslist@latest --update-db
+    for thing in yarn assets compile dev; do
        task "$thing"
     done
 }

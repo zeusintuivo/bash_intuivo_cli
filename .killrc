@@ -1,0 +1,110 @@
+#!/usr/bin/env bash
+#
+# @author Zeus Intuivo <zeus@intuivo.com>
+#
+
+
+msg_red() {
+    printf "\n${bdr}%s ${off}%s\n" "$@"
+}
+
+
+wait
+
+
+kill_node_and_ruby(){
+    trap '{ msg_red " KEYBOARD INTERRUPT 1."; }' INT
+    local NODETOKILL NODES=$(pgrep node)
+    if [[ -n "${NODES}" ]]; then {
+        echo Killing nodes:"${NODES}":
+        while read -r NODETOKILL; do
+            if [[ -n "${NODETOKILL}" ]] ; then
+                echo Killing node process:"${NODETOKILL}":
+                ps "${NODETOKILL}"
+                kill "${NODETOKILL}"
+            fi
+        done <<< "$NODES"
+    } else {
+                     echo "No node processes found to kill"
+    }
+    fi
+    local RUBYTOKILL
+    local RUBYSERVER=""
+    [ -e ./tmp/pids/server.pid ] && RUBYSERVER=$(< ./tmp/pids/server.pid)
+    local RUBYMINE=$(pgrep rubymine)
+    local VIRTUALS=$(pgrep Virtual)
+    local VAGRANT=$(pgrep vagrant)
+    local PUMAS=$(pgrep puma)
+    local SIDEKIQS=$(pgrep sidekiq)
+    local CHECKAGAIN EXCLUDE EXCLUSIONS=$(echo -e "${RUBYMINE}\n${VIRTUALS}\n${VAGRANT}")
+    local RUBYS=$(pgrep ruby)
+    local _kill_alls=$(echo -e "${RUBYS}\n${RUBYSERVER}\n${PUMAS}\n${SIDEKIQS}\n")
+    if [[  -n "${_kill_alls}" ]]; then {
+        if [[ -n "${EXCLUSIONS}" ]] ; then
+        {
+                while read -r EXCLUDE; do
+                    [[ -z "${EXCLUDE}" ]] && continue
+                    echo Excluding process:"${EXCLUDE}":
+                    ps ${EXCLUDE}
+                    if [[ -n "${_kill_alls}" ]] ; then
+                        _kill_alls=$(sed s/${EXCLUDE}//g <<< "${_kill_alls}")
+                    fi
+                done <<< ${EXCLUSIONS}
+        }
+        fi
+        if [[ -n "${_kill_alls}" ]]; then {
+             # _kill_alls=$(echo -e "${RUBYS}\n${RUBYSERVER}\n${PUMAS}\n${SIDEKIQS}\n")
+
+            while read -r RUBYTOKILL; do
+                CHECKAGAIN=$(ps ${RUBYTOKILL} | tail -1 | grep vagrant)
+                if [[ -n "${CHECKAGAIN}" ]] ; then
+                    echo Excluding process:"${RUBYTOKILL}":
+                    ps ${RUBYTOKILL}
+                    VAGRANT=$(echo -e "${VAGRANT}\n${RUBYTOKILL}")
+                    _kill_alls=$(sed s/${RUBYTOKILL}//g <<< "${_kill_alls}")
+                    RUBYTOKILL=""
+                fi
+                CHECKAGAIN=$(ps ${RUBYTOKILL} | tail -1 | grep Virtual)
+                if [[ -n "${CHECKAGAIN}" ]] ; then
+                    echo Excluding process:"${RUBYTOKILL}":
+                    ps ${RUBYTOKILL}
+                    VIRTUALS=$(echo -e "${VIRTUALS}\n${RUBYTOKILL}")
+                    _kill_alls=$(sed s/${RUBYTOKILL}//g <<< "${_kill_alls}")
+                    RUBYTOKILL=""
+                fi
+
+                  if [[ -n "${RUBYTOKILL}" ]] ; then
+                    echo Killing processes:"${_kill_alls}":
+                    echo Killing 1 process:"${RUBYTOKILL}":
+                    ps ${RUBYTOKILL}
+                    sudo kill -9 ${RUBYTOKILL}
+                    wait
+                  fi
+            done <<< ${_kill_alls}
+
+            echo "Left alive RubyMine: ${RUBYMINE}==$(pgrep rubymine)"
+            echo "Left alive Vagrants: ${VAGRANT}==$(pgrep vagrant)"
+            echo "Left alive Virtuals: ${VIRTUALS}==$(pgrep Virtual)"
+        }
+        else
+        {
+                echo "No processes found to kill"
+        }
+        fi
+    } else {
+                echo "No processes found to kill"
+    }
+    fi
+} # end kill_node_and_ruby
+
+
+kill_node_and_ruby
+
+trap '{ msg_red " KEYBOARD INTERRUPT 2."; kill_node_and_ruby; }' INT
+
+
+
+
+exit 0
+
+
