@@ -468,7 +468,7 @@ task(){
       rails s thin -b 127.0.0.1
       ;;
     puma)
-      Message="make puma = RAILS_ENV=development NODE_ENV=development bundle exec rails s puma -p 3001"
+      Message="make puma = RAILS_ENV=development RACK_ENV=development NODE_ENV=development bundle exec rails s puma -p 3001"
       RAILS_ENV=development NODE_ENV=development bundle exec rails s puma -p 3001
       ;;
     webrick)
