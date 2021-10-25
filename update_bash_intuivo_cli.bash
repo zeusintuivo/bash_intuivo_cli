@@ -279,8 +279,10 @@ fi
     (log INFO __remote "${_git_commit_hash_remote}" 2>&1) | tee -a "${_log_path}"
     if [[ "${_git_commit_hash_local}" != "${_git_commit_hash_remote}" ]]; then
     {
+      (log DEBUG _commits "differ" 2>&1) | tee -a "${_log_path}"
       if [[ "${_current_branch}" != "${_target_branch}" ]]; then
       {
+        (log DEBUG branches "differ" 2>&1) | tee -a "${_log_path}"
         # PULL TO ANOTHER ORIGIN TO ANOTHER BRANCH WHILE STAYING THIS BRANCH
         # _update_message=$(/usr/bin/git fetch -f origin master:master 2>&1) # master to master sample
         # _update_message=$(/usr/bin/git fetch -f origin main:main 2>&1) # master to master sample
@@ -318,6 +320,7 @@ fi
       }
       else
       {
+        (log DEBUG branches "same" 2>&1) | tee -a "${_log_path}"
         if is_dirty ; then
         {
           ( log ERROR "You have unstaged files for ${_target_branch} " 2>&1 ) | tee -a "${_log_path}"
@@ -355,8 +358,9 @@ fi
       fi
 
     }
-    else
+    else # commit hashes the same
     {
+      (log DEBUG _commits "same" 2>&1) | tee -a "${_log_path}"
       _output_message="${_status_message}, ${_target_branch} already up to date (nothing to do)"
      ( log INFO "${_output_message}" 2>&1 ) | tee -a "${_log_path}"
     }
