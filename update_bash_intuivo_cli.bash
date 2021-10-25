@@ -329,7 +329,7 @@ fi
         }
         fi
         _update_message=$(/usr/bin/git pull -f 2>&1)
-        echo "[$_err] ${_update_message}"
+        # echo "[$_err] ${_update_message}"
         _err=$?
         # (echo remote "${_update_message}" 2>&1) | tee -a "${_log_path}"
         if [ ${_err} -ne 0 ] || [[ "${_update_message}" == *"You have unstaged"* ]]  ; then
@@ -337,6 +337,7 @@ fi
           ( log ERROR "You have unstaged files for ${_target_branch} " 2>&1 ) | tee -a "${_log_path}"
           # _output_message="${_status_message}, ${_git_user} Error occurred: [$_err] ${_update_message}"
           _update_error=1
+          return $_update_error
         }
         else
         {
@@ -414,15 +415,22 @@ fi
     fi
 
     touch "${_lock_updated}"
-    if [ ${_no_wall_broadcast_no_banner} -ne 0 ] ; then
+
+
+    if [[ "${_output_message}" != *"nothing to do"* ]] ; then
     {
-       wall <<<"${_output_message}"
-    }
-    else
-    {
-       wall <<< "${_output_message}" # wall: --nobanner is available only for root
+      if [ ${_no_wall_broadcast_no_banner} -ne 0 ] ; then
+      {
+         wall <<<"${_output_message}"
+      }
+      else
+      {
+         wall <<< "${_output_message}" # wall: --nobanner is available only for root
+      }
+      fi
     }
     fi
+
   }
   fi
 
