@@ -318,6 +318,13 @@ fi
       }
       else
       {
+        if is_dirty ; then
+        {
+          ( log ERROR "You have unstaged files for ${_target_branch} " 2>&1 ) | tee -a "${_log_path}"
+          _update_error=1
+          return $_update_error
+        }
+        fi
         _update_message=$(/usr/bin/git pull -f 2>&1)
         echo "[$_err] ${_update_message}"
         _err=$?
@@ -356,17 +363,6 @@ fi
     fi # end if git_commit_hash_
     # ( log INFO "${_output_message}" 2>&1 ) | tee -a "${_log_path}"
 
-    # Run external cron file
-    if [[ -e "${_target_folder}/update_cron_bash_intuivo_cli.bash" ]] ; then
-    {
-      (log INFO filecron "found ${_target_folder}/update_cron_bash_intuivo_cli.bash" 2>&1) | tee -a "${_log_path}"
-      ( "${_target_folder}/update_cron_bash_intuivo_cli.bash" 2>&1 ) | tee -a "${_log_path}"
-    }
-    else
-    {
-      (log INFO filecron "not found ${_target_folder}/update_cron_bash_intuivo_cli.bash" 2>&1) | tee -a "${_log_path}"
-    }
-    fi
 
     if [ ${_update_error} -ne 0 ] ; then
     {
@@ -395,22 +391,36 @@ fi
   fi
 
 
+
+
   [ -e "${_lock_file}" ] && rm "${_lock_file}"
 
-    if [ ${_updated} -ne 0 ] ; then
+  if [ ${_updated} -ne 0 ] ; then   # true if it updated
+  {
+    # Run external cron file
+    if [[ -e "${_target_folder}/update_cron_bash_intuivo_cli.bash" ]] ; then
     {
-      touch "${_lock_updated}"
-      if [ ${_no_wall_broadcast_no_banner} -ne 0 ] ; then
-      {
-         wall <<<"${_output_message}"
-      }
-      else
-      {
-         wall <<< "${_output_message}" # wall: --nobanner is available only for root
-      }
-      fi
+      (log INFO filecron "found ${_target_folder}/update_cron_bash_intuivo_cli.bash" 2>&1) | tee -a "${_log_path}"
+      ( "${_target_folder}/update_cron_bash_intuivo_cli.bash" 2>&1 ) | tee -a "${_log_path}"
+    }
+    else
+    {
+      (log INFO filecron "not found ${_target_folder}/update_cron_bash_intuivo_cli.bash" 2>&1) | tee -a "${_log_path}"
     }
     fi
+
+    touch "${_lock_updated}"
+    if [ ${_no_wall_broadcast_no_banner} -ne 0 ] ; then
+    {
+       wall <<<"${_output_message}"
+    }
+    else
+    {
+       wall <<< "${_output_message}" # wall: --nobanner is available only for root
+    }
+    fi
+  }
+  fi
 
 
   # restore stdout and stderr
@@ -434,6 +444,39 @@ fi
 
 } # end update_bash_intuivo_cli
 
+function is_dirty() {
+    # REF: https://stackoverflow.com/questions/3878624/how-do-i-programmatically-determine-if-there-are-uncommitted-changes
+    # Update the index
+    # if is_dirty ; then
+    # {
+    #   exit 1
+    # }
+    # fi
+    local res=$(git update-index -q --ignore-submodules --refresh  2>&1)
+    local -i err=0
+
+    # Disallow unstaged changes in the working tree
+    if  ! git diff-files --quiet --ignore-submodules --  2>&1  ; then
+        # echo >&2 "cannot $1: you have unstaged changes."
+        res=$(git diff-files --name-status -r --ignore-submodules --  2>&1)
+        err=1
+    fi
+
+    # Disallow uncommitted changes in the index
+    if ! git diff-index --cached --quiet HEAD --ignore-submodules --  2>&1
+    then
+        # echo >&2 "cannot $1: your index contains uncommitted changes."
+        res=$(git diff-index --cached --name-status -r --ignore-submodules HEAD --  2>&1)
+        err=1
+    fi
+
+    if [ $err -eq 1 ]
+    then
+        # echo >&2 "Please commit or stash them."
+        return 0
+    fi
+    return 1
+} # end is_dirty
 
 function is_in_local() {
   # Local:
