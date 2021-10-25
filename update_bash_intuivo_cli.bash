@@ -379,11 +379,13 @@ fi
   if is_in_local "master" ; then
   {
     private_do_pull "master"
+    _update_error=$?
   }
   fi
   if is_in_local "main" ; then
   {
     private_do_pull "main"
+    _update_error=$?
   }
   fi
   # shellcheck disable=SC2155
@@ -392,6 +394,7 @@ fi
   if [[ "${_current_branch}" != "master" ]] && [[ "${_current_branch}" != "main" ]] ; then
   {
     private_do_pull "${_current_branch}"
+    _update_error=$?
   }
   fi
 
@@ -400,12 +403,12 @@ fi
 
   [ -e "${_lock_file}" ] && rm "${_lock_file}"
 
-  if [ ${_updated} -ne 0 ] ; then   # true if it updated
+  if [ ${_update_error} -eq 0 ] ; then   # true if it updated
   {
     # Run external cron file
     if [[ -e "${_target_folder}/update_cron_bash_intuivo_cli.bash" ]] ; then
     {
-      (log INFO filecron "found ${_target_folder}/update_cron_bash_intuivo_cli.bash" 2>&1) | tee -a "${_log_path}"
+      (log INFO filecron "running ${_target_folder}/update_cron_bash_intuivo_cli.bash" 2>&1) | tee -a "${_log_path}"
       ( "${_target_folder}/update_cron_bash_intuivo_cli.bash" 2>&1 ) | tee -a "${_log_path}"
     }
     else
