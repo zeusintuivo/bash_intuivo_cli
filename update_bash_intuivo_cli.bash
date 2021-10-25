@@ -1,0 +1,386 @@
+#!/usr/bin/env bash
+
+#. ./update_boot.bash
+# verify_is_installed awk
+# Add this to the cron tab
+# crontab -e   # for current user
+# everyday every minute
+# * * * * * "$HOME/_/clis/bash_intuivo_cli/update_bash_intuivo_cli.bash"
+# * * * * * ( sleep 30 ; "$HOME/_/clis/bash_intuivo_cli/update_bash_intuivo_cli.bash" )
+# at 10h:10m:30s on Mon to Fri  https://corntab.com/?c=10,30_10_*_*_1-5
+# 10,30 10 * * 1-5 "$HOME/_/clis/bash_intuivo_cli/update_bash_intuivo_cli.bash"
+# 10 10 * * 1-5 ( sleep 30 ; "$HOME/_/clis/bash_intuivo_cli/update_bash_intuivo_cli.bash" )
+# 10,30 * * * 1-5  $($HOME/_/clis/bash_intuivo_cli/update_bash_intuivo_cli.bash) > /dev/null 2>&1 || true
+# 10,30 * * * 1-5  $(sleep 30 ; $HOME/_/clis/bash_intuivo_cli/update_bash_intuivo_cli.bash) > /dev/null 2>&1 || true
+
+# remember to restart the crontab everytime  this script chances to see changes take change in the crontab
+
+
+function updateSelf() {
+  local -i _err=0
+  local -i _cron_running=1
+  local _msg
+  local _log_file="${HOME}/update_bash_intuivo_cli.log"
+  local _lock_file="${HOME}/update_bash_intuivo_cli.lock"
+  local _lock_updated="${HOME}/updated_bash_intuivo_cli.lock"
+  echo "" > "${_log_file}"
+  if [ -e "${_lock_file}" ] ; then
+  {
+    echo "${_lock_file} exists. I exit. I assume cron update_bash_intuivo_cli.bash is running."
+    exit 0
+  }
+  fi
+  touch "${_lock_file}"
+  local _log_path="/dev/fd/3"
+  local -i _no_wall_broadcast_no_banner=1
+  function interrupt_updateSelf() {
+      echo "${0} ${FUNCNAME[0]} INTERRUPT"
+      [ -e "${_lock_file}" ] && rm "${_lock_file}"
+  }
+  function error_updateSelf() {
+      echo "${0} ${FUNCNAME[0]} ERROR"
+      [ -e "${_lock_file}" ] && rm "${_lock_file}"
+  }
+    function exit_updateSelf() {
+      echo "${0} ${FUNCNAME[0]} EXIT"
+      [ -e "${_lock_file}" ] && rm "${_lock_file}"
+      if [ ${_cron_running} -ne 0 ] ; then
+      {
+        exec 1>&3 2>&4 # How to redirect output  REF: https://stackoverflow.com/questions/314675/how-to-redirect-output-of-an-entire-shell-script-within-the-script-itself
+      }
+      else
+      {
+        exec 1>&3  # How to redirect output  REF: https://stackoverflow.com/questions/314675/how-to-redirect-output-of-an-entire-shell-script-within-the-script-itself
+      }
+      fi
+  }
+  trap interrupt_updateSelf INT
+  trap error_updateSelf ERR
+  trap exit_updateSelf EXIT
+# Ok using technique that env un crontab and env with user
+# different I observed different env
+# also calling the script from command line causes type -f to respond
+# different
+# USER type -f ./update_bash_intuivo_cli.bash is
+# CRON type -f  $HOME/_/clis/bash_intuivo_cli/update_bash_intuivo_cli.bash
+# USER env LS_COLORS
+# CRON env LS_COLORS
+# type -f "${0}"
+#echo "${LS_COLORS}"
+#[[ -n "${LS_COLORS}" ]] && echo "true 1"
+#[[ "$(type -f "${0}")" == "./update_bash_intuivo_cli.bash " ]] && echo "true 2"
+#if [[ -n "${LS_COLORS}" ]] && [[ "$(type -f "${0}")" == "./update_bash_intuivo_cli.bash " ]]  ; then  # set not empty       -IF DEFINED AND HAS SOMETHING GO IN(or TRUE)
+
+if [[ -n "${LS_COLORS}" ]] ; then  # set not empty       -IF DEFINED AND HAS SOMETHING GO IN(or TRUE)
+{
+#  echo hola
+  exec 3>&1 4>&2 >>"${_log_file}" 2>&1 # How to redirect output  REF: https://stackoverflow.com/questions/314675/how-to-redirect-output-of-an-entire-shell-script-within-the-script-itself
+  _no_wall_broadcast_no_banner=1
+  _cron_running=1
+}
+else
+{
+#  echo doble hola
+  _no_wall_broadcast_no_banner=1
+  _cron_running=0
+  exec 3>&1 1>>"${_log_file}" 2>&1 # How to write output to both console and file REF: https://stackoverflow.com/questions/18460186/writing-outputs-to-log-file-and-console
+  exec 3>&1 4>&2 >>"${_log_file}" 2>&1 # How to redirect output  REF: https://stackoverflow.com/questions/314675/how-to-redirect-output-of-an-entire-shell-script-within-the-script-itself
+}
+fi
+# This script redirects both console and file to log
+# but it produces TEE error when run from crontab
+#exec 3>&1 1>>"${_log_file}" 2>&1 # How to write output to both console and file REF: https://stackoverflow.com/questions/18460186/writing-outputs-to-log-file-and-console
+# I discovered that it needs to change
+# here we need to release the the trap of exec and release it
+# before reassigning it, otherwise it will duplicate the
+# the output
+#exec 1>&3
+# this other script redirect both console and file output to log
+# and it does not produce error messages with TEE
+#exec 3>&1 4>&2 >>"${_log_file}" 2>&1 # How to redirect output  REF: https://stackoverflow.com/questions/314675/how-to-redirect-output-of-an-entire-shell-script-within-the-script-itself
+# notice that exec can have two >> or one > after the redirections 3>&1
+# these > >> are the same for appending to log or starting the log
+# so xec 3>&1 4>&2 > will erase the log file just like echo "hola" > log
+# and exec 3>&1 4>&2 >> will append to the log just like echo "hi" >> log
+
+
+# before the exec wall works with crontab
+# after the exec command then comes the errors
+# wall: --nobanner is available only for root
+# wall: cannot get tty name: Inappropriate ioctl for device
+#  _msg=$(wall -n "test" 2>&1)
+#  _err=$?
+#  _err=0
+#  if [ ${_err} -ne 0 ] ||
+#      [[ "${_msg}" != *"nobanner"* ]] ||
+#      [[ "${_msg}" != *"only"* ]]  ; then
+#  {
+#    echo _no_wall_broadcast_no_banner=1
+    # This is behavior works ok with log and console but
+    # it hides this annoying message from the logs
+    # tee: /dev/fd/3: Permission denied
+    #
+#   # exec 3>&1 4>&2 >"${_log_file}" 2>&1 # How to redirect output  REF: https://stackoverflow.com/questions/314675/how-to-redirect-output-of-an-entire-shell-script-within-the-script-itself
+#     exec 3>&1 4>&2 >>"${_log_file}" 2>&1 # How to redirect output  REF: https://stackoverflow.com/questions/314675/how-to-redirect-output-of-an-entire-shell-script-within-the-script-itself
+#    _no_wall_broadcast_no_banner=1
+#  } else {
+#    echo _no_wall_broadcast_no_banner=0
+    #  echo "" > "${_log_file}"
+    # This is behavior works ok with console but
+    # produces these annoying message from the logs
+    # tee: /dev/fd/3: Permission denied
+    #
+    #  exec 3>&1 1>"${_log_file}" 2>&1 # How to write output to both console and file REF: https://stackoverflow.com/questions/18460186/writing-outputs-to-log-file-and-console
+#       exec 3>&1 1>>"${_log_file}" 2>&1 # How to write output to both console and file REF: https://stackoverflow.com/questions/18460186/writing-outputs-to-log-file-and-console
+#  }
+#  fi
+# (log "INFO 1 ${BASH_SOURCE}:${BASH_LINENO[-0]} ${FUNCNAME[0]}" 2>&1) | tee -a "${_log_path}"
+# (log "INFO 2  ${0}:${BASH_LINENO[-0]} ${FUNCNAME[-0]}" 2>&1) | tee -a "${_log_path}"
+# (log "INFO 3  :${BASH_LINENO[-1]} ${FUNCNAME[-1]}" 2>&1) | tee -a "${_log_path}"
+# (log "INFO 4  :${BASH_LINENO[-2]} ${FUNCNAME[-2]}" 2>&1) | tee -a "${_log_path}"
+# (log "INFO 5  :${BASH_LINENO[-3]} ${FUNCNAME[-3]}" 2>&1) | tee -a "${_log_path}"
+# (log "INFO 6  :${BASH_LINENO[-4]} ${FUNCNAME[-4]}" 2>&1) | tee -a "${_log_path}"
+# (log "INFO 7  :${BASH_LINENO[-5]} ${FUNCNAME[-5]}" 2>&1) | tee -a "${_log_path}"
+# (log "INFO 8  :${BASH_LINENO[-6]} ${FUNCNAME[-6]}" 2>&1) | tee -a "${_log_path}"
+# (log "INFO 9  :$(which shell) $(whoami)" 2>&1) | tee -a "${_log_path}"
+
+#  ( action 2>&1) | tee -a "${_log_path}"
+    # test when form cron tab Writing to console is Permission denied
+  # shellcheck disable=SC2116
+  local _command_tee_or_not_tee="tee -a ${_log_path}"
+#  if ! test -t 1 ; then
+##    echo first part
+##    ( echo third part  2>&1) | "${_command_tee_or_not_tee}"
+##  else
+##    echo second part goes to the log only
+##    ( echo fourth part goes to both log and console 2>&1) | tee -a ${_log_path}
+#    _msg=$( ( ( echo . 2>&1 ) | "${_command_tee_or_not_tee}" ) 2>&1 )
+#    _err=$?
+#    if [ ${_err} -ne 0 ] ||
+#      [[ "${_msg}" != *"Permission denied"* ]] ||
+#      [[ "${_msg}" != *"Erlaubnis verweigert"* ]] ||
+#      [[ "${_msg}" != *"Erlaubnis abgelehnt"* ]] ||
+#      [[ "${_msg}" != *"Erlaubnis verwehrt"* ]] ||
+#      [[ "${_msg}" != *"Permiso denegado"* ]]; then
+#      {
+#        _command_tee_or_not_tee=">> ${_log_file}"
+#      }
+#    fi
+#
+#  fi
+#
+#  _msg=$(test -t 1 2>&1)
+#  _err=$?
+#  # shellcheck disable=SC1009
+#  if [ ${_err} -ne 0 ] ||
+#    [[ "${_msg}" != *"Permission denied"* ]] ||
+#    [[ "${_msg}" != *"Erlaubnis verweigert"* ]] ||
+#    [[ "${_msg}" != *"Erlaubnis abgelehnt"* ]] ||
+#    [[ "${_msg}" != *"Erlaubnis verwehrt"* ]] ||
+#    [[ "${_msg}" != *"Permiso denegado"* ]]; then
+#    {
+#      exec 3>&1 4>&2 >>"${_log_file}" 2>&1 # How to redirect output  REF: https://stackoverflow.com/questions/314675/how-to-redirect-output-of-an-entire-shell-script-within-the-script-itself
+#      # exec 1>>"${_log_file}" 2>&1  # How to write output to both console and file REF: https://stackoverflow.com/questions/18460186/writing-outputs-to-log-file-and-console
+#    }
+#  fi
+#
+#  # shellcheck disable=SC1009
+#  # shellcheck disable=SC2116
+#  _msg=$( ( (echo "." 2>&1) | tee -a "${_log_path}") 2>&1)
+#  _err=$?
+#  if [ ${_err} -ne 0 ] ||
+#    [[ "${_msg}" != *"Permission denied"* ]] ||
+#    [[ "${_msg}" != *"Erlaubnis verweigert"* ]] ||
+#    [[ "${_msg}" != *"Erlaubnis abgelehnt"* ]] ||
+#    [[ "${_msg}" != *"Erlaubnis verwehrt"* ]] ||
+#    [[ "${_msg}" != *"Permiso denegado"* ]]; then
+#    {
+#      exec 3>&1 4>&2 >>"${_log_file}" 2>&1 # How to redirect output  REF: https://stackoverflow.com/questions/314675/how-to-redirect-output-of-an-entire-shell-script-within-the-script-itself
+#      # exec 1>>"${_log_file}" 2>&1  # How to write output to both console and file REF: https://stackoverflow.com/questions/18460186/writing-outputs-to-log-file-and-console
+#    }
+#  fi
+
+  local _target_folder="${HOME}/_/clis/bash_intuivo_cli"
+  # shellcheck disable=SC2164
+  # shellcheck disable=SC2155
+  local _msg=$(cd "${_target_folder}" 2>&1)
+  _err=$?
+  [ ${_err} -ne 0 ] && ( (log "ERROR while CD into \ntarget_folder: ${_target_folder}\nmsg:${_msg}" 2>&1) | tee -a "${_log_path}") && exit 1
+  # shellcheck disable=SC2164
+  cd "${_target_folder}"
+  # shellcheck disable=SC2155
+  local _current_branch=$(/usr/bin/git rev-parse --abbrev-ref HEAD 2>&1)
+  _err=$?
+  [ ${_err} -ne 0 ] && _current_branch="master"
+  # shellcheck disable=SC2155
+  local _target_branch="${_current_branch}"
+  _err=$?
+  # shellcheck disable=SC2155
+  local _git_remote_url=$(/usr/bin/git config --get remote.origin.url)
+  _err=$?
+  # shellcheck disable=SC2155
+  local _git_commit_hash_local=$(/usr/bin/git rev-parse "${_target_branch}")
+  _err=$?
+  # shellcheck disable=SC2155
+  local _git_commit_hash_remote=$(/usr/bin/git ls-remote $_git_remote_url "${_target_branch}" | awk '{ print $1}')
+  _err=$?
+  # shellcheck disable=SC2155
+  local _status_message="Self update ran on/at $(date '+%Y-%m-%d %H:%M:%S')"
+  _err=$?
+  local _output_message="${_status_message}, ${_target_branch} up to date, nothing to do"
+  _err=$?
+  local _update_message
+  local -i _updated=0
+  local -i _update_error=0
+
+  (log INFO _no_wall_ "${_no_wall_broadcast_no_banner}" 2>&1) | tee -a "${_log_path}"
+  (log INFO _log_file "${_log_file}" 2>&1) | tee -a "${_log_path}"
+  (log INFO _log_path "${_log_path}" 2>&1) | tee -a "${_log_path}"
+  (log INFO _____home "${HOME}" 2>&1) | tee -a "${_log_path}"
+  (log INFO sudo_user "${SUDO_USER}" 2>&1) | tee -a "${_log_path}"
+  (log INFO _____user "${USER}" 2>&1) | tee -a "${_log_path}"
+  (log INFO _____pwd "$(pwd)" 2>&1) | tee -a "${_log_path}"
+  (log INFO ___local "${_git_commit_hash_local}" 2>&1) | tee -a "${_log_path}"
+  (log INFO __remote "${_git_commit_hash_remote}" 2>&1) | tee -a "${_log_path}"
+  if [[ "${_git_commit_hash_local}" != "${_git_commit_hash_remote}" ]]; then
+    {
+      if [[ "${_current_branch}" != "${_target_branch}" ]]; then
+        {
+          # PULL TO ANOTHER ORIGIN TO ANOTHER BRANCH WHILE STAYING THIS BRANCH
+          _update_message=$(/usr/bin/git fetch -f origin master:master 2>&1) # master to master sample
+          _update_message=$(/usr/bin/git fetch -f origin main:main 2>&1) # master to master sample
+          _update_message=$(/usr/bin/git fetch -f origin "${_target_branch}":"${_target_branch}" 2>&1)
+        }
+      else
+        {
+          _update_message=$(/usr/bin/git pull -f 2>&1)
+        }
+      fi
+      (echo remote "${_update_message}" 2>&1) | tee -a "${_log_path}"
+
+      _err=$?
+      if [ ${_err} -ne 0 ]; then
+      {
+        _output_message="${_status_message}, Error occurred: [$_err] ${_update_message}"
+        _update_error=1
+      }
+      else
+      {
+       if [[ "${_update_message}" == *"Already up to date"* ]] ;  then
+       {
+         _updated=0
+       }
+       else
+       {
+         _output_message="${_update_message}, ${_status_message}, ${_target_branch} pulled"
+         _updated=1
+       }
+       fi
+      }
+      fi
+    }
+  else
+    {
+      _output_message="${_status_message}, ${_target_branch} already up to date (nothing to do)"
+    }
+  fi # end if git_commit_hash_
+
+  ( log INFO "${_output_message}" 2>&1 ) | tee -a "${_log_path}"
+
+  # Run external cron file
+  ( "${_target_folder}/update_cron_bash_intuivo_cli.bash" 2>&1 ) | tee -a "${_log_path}"
+
+  if [ ${_update_error} -ne 0 ] ; then
+  {
+        (log ERROR "${_output_message}" 2>&1) | tee -a "${_log_path}"
+  }
+  fi
+
+  # restore stdout and stderr
+  if [ ${_no_wall_broadcast_no_banner} -ne 0 ] ; then
+  {
+    exec 1>&3 2>&4 # How to redirect output  REF: https://stackoverflow.com/questions/314675/how-to-redirect-output-of-an-entire-shell-script-within-the-script-itself
+  }
+  else
+  {
+    exec 1>&3  # How to redirect output  REF: https://stackoverflow.com/questions/314675/how-to-redirect-output-of-an-entire-shell-script-within-the-script-itself
+  }
+  fi
+  if [ ${_updated} -ne 0 ] ; then
+  {
+    touch "${_lock_updated}"
+    if [ ${_no_wall_broadcast_no_banner} -ne 0 ] ; then
+    {
+       wall <<<"${_output_message}"
+    }
+    else
+    {
+       wall <<< "${_output_message}" # wall: --nobanner is available only for root
+    }
+    fi
+  }
+  fi
+
+  [ -e "${_lock_file}" ] && rm "${_lock_file}"
+
+  if [ ${_update_error} -ne 0 ] ; then
+  {
+        exit 1
+  }
+  fi
+
+  exit 0
+
+} # end updateSelf
+
+function doLog() {
+  # Sample use: REF: https://stackoverflow.com/questions/18460186/writing-outputs-to-log-file-and-console
+  #
+  # echo pass params and print them to a log file and terminal
+  # with timestamp and $host_name and $0 PID
+  # usage:
+  # doLog "INFO some info message"
+  # doLog "DEBUG some debug message"
+  # doLog "WARN some warning message"
+  # doLog "ERROR some really ERROR message"
+  # doLog "FATAL some really fatal message"
+  #
+  # shellcheck disable=SC2155
+  local type_of_msg=$(echo "${@}" | cut -d" " -f1)
+  # shellcheck disable=SC2155
+  local msg=$(echo "${@}" | cut -d" " -f2-)
+  # shellcheck disable=SC2155
+  local -i do_print_debug_msgs=0
+  local run_unit
+  local host_name
+  local product_instance_dir
+  [[ $type_of_msg == DEBUG ]] && [[ "${do_print_debug_msgs}" -ne 1 ]] && return
+  [[ $type_of_msg == INFO ]] && type_of_msg="INFO " # one space for aligning
+  [[ $type_of_msg == WARN ]] && type_of_msg="WARN " # as well
+
+  # print to the terminal if we have one
+  test -t 1 && echo " [${type_of_msg}] $(date "+%Y.%m.%d-%H:%M:%S %Z") [${run_unit}][@${host_name}] [$$] ${msg}"
+
+  # define default log file none specified in cnf file
+  test -z "${log_file}" &&
+    mkdir -p "${product_instance_dir}/dat/log/bash" &&
+    log_file="${product_instance_dir}/dat/log/bash/${run_unit}.$(date "+%Y%m").log"
+  echo " [$type_of_msg] $(date "+%Y.%m.%d-%H:%M:%S %Z") [${run_unit}][@${host_name}] [$$] ${msg}" >>"${log_file}"
+} # end func doLog
+
+function log() {
+  #  usage:
+  # doLog "INFO some info message"
+  # doLog "DEBUG some debug message"
+  # doLog "WARN some warning message"
+  # doLog "ERROR some really ERROR message"
+  # doLog "FATAL some really fatal message"
+  # shellcheck disable=SC2155
+  local type_of_msg=$(echo "${@}" | cut -d" " -f1)
+  # shellcheck disable=SC2155
+  local msg=$(echo "${@}" | cut -d" " -f2-)
+  echo " [$type_of_msg] $(date "+%Y.%m.%d-%H:%M:%S %Z")[$$] ${msg}"
+
+} # end log
+
+updateSelf
