@@ -4,24 +4,6 @@
 # @author Zeus Intuivo <zeus@intuivo.com>
 #
 #
-if ! ( command -v realpath >/dev/null 2>&1; ) ; then # MAC  # updated realpath macos 20210902
-{
-  # updated realpath macos 20210902
-  export realpath    # updated realpath macos 20210902
-  function realpath() ( # Macos after BigSur is missing realpath  # updated realpath macos 20210902
-    local OURPWD=$PWD
-    cd "$(dirname "$1")"
-    local LINK=$(readlink "$(basename "$1")")
-    while [ "$LINK" ]; do
-      cd "$(dirname "$LINK")"
-      LINK=$(readlink "$(basename "$1")")
-    done
-    local REALPATH="$PWD/$(basename "$1")"
-    cd "$OURPWD"
-    echo "$REALPATH"
-  )
-}
-fi
 
 load_execute_command_wget(){
     local provider="$HOME/_/clis/execute_command_intuivo_cli/execute_command"
@@ -290,24 +272,6 @@ fi
 
 
   cat << EOF >> .temp_keys
-if ! ( command -v realpath >/dev/null 2>&1; ) ; then # MAC  # updated realpath macos 20210902
-{
-  # updated realpath macos 20210902
-  export realpath    # updated realpath macos 20210902
-  function realpath() ( # Macos after BigSur is missing realpath  # updated realpath macos 20210902
-    local OURPWD=\$PWD
-    cd "\$(dirname "\$1")"
-    local LINK=\$(readlink "\$(basename "\$1")")
-    while [ "\$LINK" ]; do
-      cd "\$(dirname "\$LINK")"
-      LINK=\$(readlink "\$(basename "\$1")")
-    done
-    local REALPATH="\$PWD/\$(basename "\$1")"
-    cd "\$OURPWD"
-    echo "\$REALPATH"
-  )
-}
-fi
 
 # journal section
 export JOURNAL_PUT_COMMIT_METHOD="${JOURNAL_PUT_COMMIT_METHOD}"    #   "can only be 'put' or 'commit'. PUT makes a direct add and push and COMMIT just commits without pushing "
