@@ -16,10 +16,23 @@
         _link="$(readlink "$(basename "${1}")")"
       done
       local _resolved_path=""
-      _resolved_path="${PWD}/$(basename "${1}")"
+      _resolved_path="${PWD}/$(basename "$1")"
       cd "${_our_pwd}" || (echo "${1}" && return 0)
       echo "${_resolved_path}"
       return 0
     }
   }
   fi
+  export realpath
+function realpath() (
+  local OURPWD=$PWD
+  cd "$(dirname "$1")"
+  local LINK=$(readlink "$(basename "$1")")
+  while [ "$LINK" ]; do
+    cd "$(dirname "$LINK")"
+    LINK=$(readlink "$(basename "$1")")
+  done
+  local REALPATH="$PWD/$(basename "$1")"
+  cd "$OURPWD"
+  echo "$REALPATH"
+)
