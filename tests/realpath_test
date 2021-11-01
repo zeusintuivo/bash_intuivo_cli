@@ -1,9 +1,0 @@
-#!/usr/bin/env bash
-#
-# @author Zeus Intuivo <zeus@intuivo.com>
-#
-. ../realpath
-
-
-echo $(realpath "${HOME}/_/work/sensorberg/projects/web/smart-workspace-backend_mirror/../journals/smart-workspace-backend_mirror/")
-
