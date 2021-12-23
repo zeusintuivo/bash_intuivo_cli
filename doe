@@ -24,13 +24,13 @@ upcase_downcase_capitalize(){
 
     local fromsource="""${1}"""
     local totarget="""${2}"""
-	local changelogfile="$(echo "$(date +%Y%m%d%H%M)_${fromsource}_${totarget}.log")"
-	Rerunchangelogfile="$(echo "$(date +%Y%m%d%H%M)_${fromsource}_${totarget}.sh")"
+    local changelogfile="$(echo "$(date +%Y%m%d%H%M)_${fromsource}_${totarget}.log")"
+    Rerunchangelogfile="$(echo "$(date +%Y%m%d%H%M)_${fromsource}_${totarget}.sh")"
     echo  "" > ${Rerunchangelogfile}
     echo  "" > ${changelogfile}
-	[ ! -e .gitignore ] && echo .git > .gitignore
-	echo ${changelogfile} >> .gitignore
-	echo ${Rerunchangelogfile} >> .gitignore
+    [ ! -e .gitignore ] && echo .git > .gitignore
+    echo ${changelogfile} >> .gitignore
+    echo ${Rerunchangelogfile} >> .gitignore
 
     if [[ -z "${fromsource}" ]]  ||  [[ -z "${totarget}" ]] ; then
     {
@@ -64,22 +64,20 @@ upcase_downcase_capitalize(){
     }
     fi
 
-	[ ! -e .ersetzeignore_dirs ] && echo .git > .ersetzeignore_dirs
+    [ ! -e .ersetzeignore_dirs ] && echo .git > .ersetzeignore_dirs
     echo ${changelogfile} >> .ersetzeignore_files
     echo ${Rerunchangelogfile} >> .ersetzeignore_files
 
     [ ! -e .nurignore_dirs ] && echo .git > .nurignore_dirs
-	echo ${changelogfile} >> .nurignore_files
+    echo ${changelogfile} >> .nurignore_files
     echo ${Rerunchangelogfile} >> .nurignore_files
 
-	exec 3>&1 1>>${changelogfile} 2>&1  # How to write output to both console and file REF: https://stackoverflow.com/questions/18460186/writing-outputs-to-log-file-and-console
+    exec 3>&1 1>>${changelogfile} 2>&1  # How to write output to both console and file REF: https://stackoverflow.com/questions/18460186/writing-outputs-to-log-file-and-console
 
     john_doe_it "${fromsource}" "${totarget}"  | tee /dev/fd/3  # How to write output to both console and file REF: https://stackoverflow.com/questions/18460186/writing-outputs-to-log-file-and-console
     john_doe_it "${lower_case_fromsource}" "${lower_case_totarget}"  | tee /dev/fd/3  # How to write output to both console and file REF: https://stackoverflow.com/questions/18460186/writing-outputs-to-log-file-and-console
-# echo "
     john_doe_it "${upper_case_fromsource}" "${upper_case_totarget}"  | tee /dev/fd/3  # How to write output to both console and file REF: https://stackoverflow.com/questions/18460186/writing-outputs-to-log-file-and-console
     john_doe_it "${capitalized_fromsource}" "${capitalized_totarget}"  | tee /dev/fd/3  # How to write output to both console and file REF: https://stackoverflow.com/questions/18460186/writing-outputs-to-log-file-and-console
-# "
     return 0
 } # end upcase_downcase_capitalize
 
@@ -89,36 +87,39 @@ john_doe_it(){
     local totarget="""${2}"""
 
     echo "--------------------start äö "${fromsource}" "${totarget}""
-	echo äö "${fromsource}" "${totarget}" >> ${Rerunchangelogfile}
-	local two aoet=$(äö "${fromsource}" "${totarget}"  2>&1; ) #capture stdout and stderr
-	if [ $? != 0 ] ; then
+    echo äö "${fromsource}" "${totarget}" >> ${Rerunchangelogfile}
+    local two aoet=""
+    aoet=$(äö "${fromsource}" "${totarget}"  2>&1; ) #capture stdout and stderr
+    if [ $? != 0 ] ; then
     {
-        if [ "${aoet}" ==  *"SORRY NO FOUND OCCURENCES"* ] ; then
+        if [[ "${aoet}" ==  *"SORRY NO FOUND OCCURENCES"* ]] ; then
         {
             (echo "# Not Found." >> ${Rerunchangelogfile})
-        } else {
+        }
+        else
+        {
             (echo "# ERROR Something went wrong.")
             while read -r two; do
-		    if [ -n "${two}" ]  ; then # if not empty
-			     (echo "${two}" >> ${Rerunchangelogfile})
-		    fi
-	        done <<< "${aoet}"
+            {
+              [[ -z "${two}" ]] && continue # if not empty
+              (echo "${two}" >> ${Rerunchangelogfile})
+            }
+            done <<< "${aoet}"
             (echo "# Failed." >> ${Rerunchangelogfile})
         }
         fi
     }
     fi
-	wait
+    wait
     echo "------------------------------end   äö "${fromsource}" "${totarget}""
-	echo "----------------------------------------------------------start to_this "${fromsource}" "${totarget}""
-	to_this "${fromsource}" "${totarget}"
-	echo to_this "${fromsource}" "${totarget}" >> ${Rerunchangelogfile}
-	[ $? != 0 ] && (echo "ERROR Something went wrong.") && (echo "# Failed." >> ${Rerunchangelogfile})
-# echo "
-``
-	to_this "${fromsource}" "${totarget}"
-	echo to_this "${fromsource}" "${totarget}" >> ${Rerunchangelogfile}
-	[ $? != 0 ] && (echo "ERROR Something went wrong.") && (echo "# Failed." >> ${Rerunchangelogfile})
+    echo "----------------------------------------------------------start to_this "${fromsource}" "${totarget}""
+    to_this "${fromsource}" "${totarget}"
+    echo to_this "${fromsource}" "${totarget}" >> ${Rerunchangelogfile}
+    [ $? != 0 ] && (echo "ERROR Something went wrong.") && (echo "# Failed." >> ${Rerunchangelogfile})
+
+    to_this "${fromsource}" "${totarget}"
+    echo to_this "${fromsource}" "${totarget}" >> ${Rerunchangelogfile}
+    [ $? != 0 ] && (echo "ERROR Something went wrong.") && (echo "# Failed." >> ${Rerunchangelogfile})
 
 	to_this "${fromsource}" "${totarget}"
 	echo to_this "${fromsource}" "${totarget}" >> ${Rerunchangelogfile}
@@ -130,9 +131,9 @@ john_doe_it(){
 
 	wait
 	echo "----------------------------------------------------------------------------end to_this "${fromsource}" "${totarget}""
-	git add .
-	git commit -m "john doe it dö did "${fromsource}" "${totarget}""
-# "
+	#git add .
+	#git commit -m "john doe it dö did "${fromsource}" "${totarget}""
+
 } # end upcase_downcase_capitalize
 
 
