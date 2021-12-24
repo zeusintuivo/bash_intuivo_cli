@@ -7,7 +7,7 @@
 # find * -type f  | xargs -I {} sed -i -e 's@bash_crm_cli@bash_intuivo_cli@g' {}
 #
 THISSCRIPTNAME=`basename "$0"`
-#bash shell script check input argument
+# bash shell script check input argument
 FAIL=0;
 echo "   ";
 if [ -z "$1" ]
@@ -47,7 +47,7 @@ if [[ "$1" == "-h" ]] ; then
     }
     exit 0;
 fi
-
+VERBOSE=0;
 DEFAULTSEEKER="sift"
 if [ ! -z "$3" ] # Third argument not zempty
   then
@@ -57,14 +57,28 @@ if [ ! -z "$3" ] # Third argument not zempty
 
 fi
 
+ ####        ####       #            ####       #####        ####
+ ####        ####       #            ####       #####        ####
+#    #      #    #      #           #    #      #    #      #
+#    #      #    #      #           #    #      #    #      #
+#           #    #      #           #    #      #    #       ####
+#           #    #      #           #    #      #    #       ####
+#           #    #      #           #    #      #####            #
+#           #    #      #           #    #      #####            #
+#    #      #    #      #           #    #      #   #       #    #
+#    #      #    #      #           #    #      #   #       #    #
+ ####        ####       ######       ####       #    #       ####
+ ####        ####       ######       ####       #    #       ####
+
+#
+# COLORS - Ouput - Start
+#
+
 red=`tput setaf 1`
 cyan=`tput setaf 6`
 green=`tput setaf 2`
 reset=`tput sgr0`
-
-BLACK=$(tput setaf 0)
-RED=$(tput setaf 1)
-GREEN=$(tput setaf 2)
+black=$(tput setaf 0)
 yellow=$(tput setaf 3)
 LIME_YELLOW=$(tput setaf 190)
 POWDER_BLUE=$(tput setaf 153)
@@ -78,6 +92,9 @@ BLINK=$(tput blink)
 REVERSE=$(tput smso)
 UNDERLINE=$(tput smul)
 
+#
+# COLORS - Ouput - end
+#
 
 SEEKER="./ack";
 IGNORE_DIR="ignore";
@@ -100,7 +117,7 @@ trap '{ msg_red " KEYBOARD INTERRUPT."; exit 130; }' INT
 #
 test_positives(){
   KIND=""
-  if ls werwerwerwerwerwerwerwerwerwerwerr >/dev/null 2>&1; then 
+  if ls werwerwerwerwerwerwerwerwerwerwerr >/dev/null 2>&1; then
     if (( $? == 0 )) ;  then  # Intel processor
       KIND="INTEL"
     fi
@@ -216,11 +233,26 @@ fi
 #
 if command -v sift >/dev/null 2>&1; then
     {
-        msg_green " sift INSTALLED."
-        #-i, --ignore-case      case insensitive (default: off) Case sentive by default
-        #-n, --line-number      show line numbers (default: off)
-        #-Q, --literal          treat pattern as literal, quote meta characters
-        #--output-sep=          output separator (default: "\n")
+      if [ $VERBOSE -eq 1 ] ; then
+        {
+            #  NOT Colored
+            if [ ! -z "$COLORED" ] ; then
+                {
+                  echo " sift INSTALLED."
+                }
+              else
+                {
+                  msg_green " sift INSTALLED."
+                }
+              fi
+
+        }
+      fi
+      # -i, --ignore-case      case insensitive (default: off) Case sentive by default
+      # -n, --line-number      show line numbers (default: off)
+      # -Q, --literal          treat pattern as literal, quote meta characters
+      # --output-sep=          output separator (default: "\n")
+      # --no-color             disable colored output
       # Error: sift Error: files skipped due to very long lines
       # Fix:
       #   REF: https://github.com/svent/sift/issues/16
@@ -232,91 +264,89 @@ if command -v sift >/dev/null 2>&1; then
         IGNORE_DIR="exclude-dirs";
         IGNORE_FILE="exclude-files";
         PRINTCOMMAND="-l --output-sep=\"\\x00\"";
-    }
+}
 else
+{
+
+  if command -v ag >/dev/null 2>&1; then
+  {
+      msg_green " ag INSTALLED."
+      # -s  is for case sensitive
+      # -Q --literal            Don't parse PATTERN as a regular expression
+      # -0 --null --print0      Separate filenames with null (for 'xargs -0')
+      # --nocolor               Disable colors (Enabled by default)
+      SEEKER="ag -sQ ";
+      IGNORE_DIR="ignore";
+      IGNORE_FILE="ignore";
+      PRINTCOMMAND="-l --print0";
+  }
+  else
+  {
+    # msg_red " NEED TO INSTALL ag."
+    # msg_red " ENTER SUDO PASSWORD AND PRESS ENTER."
+    # sudo apt-get install silversearcher-ag -fy
+
+    if command -v ack >/dev/null 2>&1; then
     {
-
-    if command -v ag >/dev/null 2>&1; then
-        {
-
-        msg_green " ag INSTALLED."
-        # -s  is for case sensitive
-        #-Q --literal            Don't parse PATTERN as a regular expression
-        #-0 --null --print0      Separate filenames with null (for 'xargs -0')
-        SEEKER="ag -sQ ";
-        IGNORE_DIR="ignore";
-        IGNORE_FILE="ignore";
-        PRINTCOMMAND="-l --print0";
-        }
+      msg_green " ack INSTALLED."
+      # ack is case sensitve by default
+      # --print0 Print null byte as separator between filenames, only works with -f, -g, -l, -L or -c.
+      # -Q, --literal                 Quote all metacharacters; PATTERN is litera
+      # --nocolor         Highlight the matching text (default: on unless --nocolor)
+      #
+      # Ack DOES NOT SUPPORT HIDDING LINE NUMBERS
+      SEEKER="ack -Q ";
+      IGNORE_DIR="ignore-dir";
+      IGNORE_FILE="ignore-file";
+      PRINTCOMMAND="-l --print0";
+    }
     else
+    {
+      # msg_red " NEED TO INSTALL ack."
+      # msg_red " ENTER SUDO PASSWORD AND PRESS ENTER."
+      # sudo apt-get install ack-grep -fy
+
+      ls ./ack  | egrep 'ack' &>/dev/null
+      err_buff=$?
+      if [[ "${PROCESSOR_ERROR}" == "MAC" ]] && [ $err_buff == 1 ]; then
+      {
+        msg_green " ./ack INSTALLED."
+        SEEKER="./ack -Q ";
+        IGNORE_DIR="ignore-dir";
+        IGNORE_FILE="ignore-file";
+        PRINTCOMMAND="-l --print0";
+      }
+      elif [[ "${PROCESSOR_ERROR}" == "INTEL" ]] && (( $err_buff == 0 )); then
+      {
+        msg_green " ./ack INSTALLED."
+        SEEKER="./ack -Q ";
+        IGNORE_DIR="ignore-dir";
+        IGNORE_FILE="ignore-file";
+        PRINTCOMMAND="-l --print0";
+      }
+      else
+      {
+        # msg_red " NEED TO INSTALL ./ack "
+        # msg_red " ENTER SUDO PASSWORD AND PRESS ENTER."
+        # cp ~/bin/ack .
+
+        if command -v grep >/dev/null 2>&1; then
         {
-
-        #msg_red " NEED TO INSTALL ag."
-        #msg_red " ENTER SUDO PASSWORD AND PRESS ENTER."
-        #sudo apt-get install silversearcher-ag -fy
-
-        if command -v ack >/dev/null 2>&1; then
-            {
-
-            msg_green " ack INSTALLED."
-            # ack is case sensitve by default
-            # --print0 Print null byte as separator between filenames, only works with -f, -g, -l, -L or -c.
-            # -Q, --literal                 Quote all metacharacters; PATTERN is litera
-            SEEKER="ack -Q ";
-            IGNORE_DIR="ignore-dir";
-            IGNORE_FILE="ignore-file";
-            PRINTCOMMAND="-l --print0";
-
-            }
-        else
-            {
-
-            #msg_red " NEED TO INSTALL ack."
-            #msg_red " ENTER SUDO PASSWORD AND PRESS ENTER."
-            #sudo apt-get install ack-grep -fy
-
-            ls ./ack  | egrep 'ack' &>/dev/null
-            err_buff=$?
-            if [[ "${PROCESSOR_ERROR}" == "MAC" ]] && [ $err_buff == 1 ]; then
-            {
-                msg_green " ./ack INSTALLED."
-                SEEKER="./ack -Q ";
-                IGNORE_DIR="ignore-dir";
-                IGNORE_FILE="ignore-file";
-                PRINTCOMMAND="-l --print0";
-            }
-            elif [[ "${PROCESSOR_ERROR}" == "INTEL" ]] && (( $err_buff == 0 )); then
-                {
-
-                msg_green " ./ack INSTALLED."
-                SEEKER="./ack -Q ";
-                IGNORE_DIR="ignore-dir";
-                IGNORE_FILE="ignore-file";
-                PRINTCOMMAND="-l --print0";
-                }
-            else
-                {
-
-                #msg_red " NEED TO INSTALL ./ack "
-                #msg_red " ENTER SUDO PASSWORD AND PRESS ENTER."
-                # cp ~/bin/ack .
-
-                if command -v grep >/dev/null 2>&1; then
-                    {
-                    #-i, --ignore-case
-                    # Perform case insensitive matching.  By default, grep is case sensitive.
-                    #
-                    #-E, --extended-regexp
-                    # Interpret pattern as an extended regular expression (i.e. force grep to behave as
-                    # egrep).
-                    #
-                    #-e pattern, --regexp=pattern
-                    # Specify a pattern used during the search of the input: an input line is selected if it
-                    # matches any of the specified patterns.  This option is most useful when multiple -e
-                    # options are used to specify multiple patterns, or when a pattern begins with a dash
-                    # (`-').
-                    #-F, --fixed-strings
-                    # Interpret pattern as a set of fixed strings (i.e. force grep to behave as fgrep).
+          #-i, --ignore-case
+          # Perform case insensitive matching.  By default, grep is case sensitive.
+          #
+          #-E, --extended-regexp
+          # Interpret pattern as an extended regular expression (i.e. force grep to behave as
+          # egrep).
+          #
+          #-e pattern, --regexp=pattern
+          # Specify a pattern used during the search of the input: an input line is selected if it
+          # matches any of the specified patterns.  This option is most useful when multiple -e
+          # options are used to specify multiple patterns, or when a pattern begins with a dash
+          # (`-').
+          #-F, --fixed-strings
+          # Interpret pattern as a set of fixed strings (i.e. force grep to behave as fgrep).
+          # --color=never     disable color
           #
           # grep (GNU grep) 2.25
           # -l, --files-with-matches
@@ -334,91 +364,90 @@ else
           #    -print0, perl -0, sort -z, and xargs -0  to  process  arbitrary
           #    file names, even those that contain newline characters.
           #
-                    msg_green " grep INSTALLED."
-                    SEEKER="grep -rnE ";
-                    IGNORE_DIR="exclude-dir";
-                    IGNORE_FILE="exclude";
-                    FILESCOMMAND=".";
-                #PRINTCOMMAND="-l --print0";
-                    PRINTCOMMAND="-l --null";
-                    }
-                else
-                    {
 
-                    echo "${green} ${red} CANNOT SEARCH ....MISSING SEARCHER SIFT, ACK, AG, ./ACK, ./AG, ./SIFT OR GREP  ";
-                    exit 1;
-                    #msg_red " NEED TO INSTALL grep."
-                    }
-                fi
-                }
-            fi
-            }
+          msg_green " grep INSTALLED."
+          SEEKER="grep -nrE "
+          IGNORE_DIR="exclude-dir";
+          IGNORE_FILE="exclude";
+          FILESCOMMAND=".";
+          # PRINTCOMMAND="-l --print0";
+          PRINTCOMMAND="-l --null";
+        }
+        else
+        {
+           echo "${green} ${red} CANNOT SEARCH ....MISSING SEARCHER SIFT, ACK, AG, ./ACK, ./AG, ./SIFT OR GREP  ";
+           exit 1;
+           # msg_red " NEED TO INSTALL grep."
+        }
         fi
         }
+      fi
+      }
     fi
     }
+  fi
+  }
 fi
-#CHECK FOR CHOICE FORCE IT
-if command -v ${DEFAULTSEEKER} >/dev/null 2>&1; then
-    {
-        SEEKER="${DEFAULTSEEKER}";
+# CHECK FOR CHOICE FORCE IT
+if command -v "${DEFAULTSEEKER}" >/dev/null 2>&1; then
+{
+  SEEKER="${DEFAULTSEEKER}";
+  echo "${cyan}  using chosen option ... ${SEEKER}  "
+  msg_green " ${SEEKER} INSTALLED."
 
-        echo "${cyan}  using chosen option ... ${SEEKER}  "
-        msg_green " ${SEEKER} INSTALLED."
-
-        # make case sentive for local sift
-        if [ $DEFAULTSEEKER == "sift" ]; then
-        {
-            SEEKER="sift -nQ --blocksize 50M";
-            IGNORE_DIR="exclude-dirs";
-            IGNORE_FILE="exclude-files"
-            PRINTCOMMAND="-l --output-sep=\"\\x00\"";
-            }
-        fi
-        # make case sentive for ag
-        if [ $DEFAULTSEEKER == "ag" ]; then
-        {
-            SEEKER="ag -sQ "
-            IGNORE_DIR="ignore";
-            IGNORE_FILE="ignore";
-            PRINTCOMMAND="-l --print0";
-        }
-        fi
-        # make case sentive for ag
-        if [ $DEFAULTSEEKER == "ack" ]; then
-        {
-            SEEKER="ack -Q "
-            IGNORE_DIR="ignore-dir";
-            IGNORE_FILE="ignore-dir";
-            PRINTCOMMAND="-l --print0";
-        }
-        fi
-        # make case sentive for local ./ack
-        if [ $DEFAULTSEEKER == "./ack" ]; then
-        {
-            SEEKER="./ack -Q "
-            IGNORE_DIR="ignore-dir";
-            IGNORE_FILE="ignore-file";
-            PRINTCOMMAND="-l --print0";
-        }
-        fi
-        #use extended expressions
-        if [ $DEFAULTSEEKER == "grep" ]; then
-        {
-            SEEKER="grep -rnE "
-            IGNORE_DIR="exclude-dir";
-            IGNORE_FILE="exclude";
-            FILESCOMMAND=".";
-            #PRINTCOMMAND="-l --print0";
-            PRINTCOMMAND="-l --null";
-        }
-        fi
-    }
+  # make case sentive for local sift
+  if [ $DEFAULTSEEKER == "sift" ]; then
+  {
+    SEEKER="sift -nQ --blocksize 50M";
+    IGNORE_DIR="exclude-dirs";
+    IGNORE_FILE="exclude-files"
+    PRINTCOMMAND="-l --output-sep=\"\\x00\"";
+  }
+  fi
+  # make case sentive for ag
+  if [[ "$DEFAULTSEEKER" == "ag" ]] ; then
+  {
+    SEEKER="ag -sQ "
+    IGNORE_DIR="ignore";
+    IGNORE_FILE="ignore";
+    PRINTCOMMAND="-l --print0";
+  }
+  fi
+  # make case sentive for ag
+  if [ $DEFAULTSEEKER == "ack" ]; then
+  {
+    SEEKER="ack -Q "
+    IGNORE_DIR="ignore-dir";
+    IGNORE_FILE="ignore-dir";
+    PRINTCOMMAND="-l --print0";
+  }
+  fi
+  # make case sentive for local ./ack
+  if [ $DEFAULTSEEKER == "./ack" ]; then
+  {
+    SEEKER="./ack -Q "
+    IGNORE_DIR="ignore-dir";
+    IGNORE_FILE="ignore-file";
+    PRINTCOMMAND="-l --print0";
+  }
+  fi
+  # use extended expressions
+  if [ $DEFAULTSEEKER == "grep" ]; then
+  {
+    SEEKER="grep -rnE "
+    IGNORE_DIR="exclude-dir";
+    IGNORE_FILE="exclude";
+    FILESCOMMAND=".";
+    # PRINTCOMMAND="-l --print0";
+    PRINTCOMMAND="-l --null";
+  }
+  fi
+}
 else
-    {
-    #echo "${red}   your seeker ${DEFAULTSEEKER} was not found!"
-    echo "${cyan}  using ...${SEEKER}  "
-    }
+{
+  # echo "${red}   your seeker ${DEFAULTSEEKER} was not found!"
+  echo "${cyan}  using ...${SEEKER}  "
+}  
 fi
 
 
@@ -477,6 +506,7 @@ DIRSTOEXCLUDE=".cargo
 .ecryptfs
 .gvfs
 .git
+.idea
 .vagrant
 .servo
 coverage
@@ -491,7 +521,7 @@ python
 storage/debugbar
 storage/logs
 target
-
+tmp
 log
 ports
 app/Stubs
@@ -503,7 +533,7 @@ app/logs
 app/session
 ${MOREIGNORE_DIRS}"
 
-
+IGNORELIST=""
 
     while read -r ONE_FILENAME; do
       # if not empty
@@ -551,7 +581,7 @@ err_buff=$?;
 # ack  --ignore-dir=vendor --ignore-dir=bower_components  --ignore-dir=node_modules --ignore-dir=storage/debugbar  --ignore-dir=storage/logs  --ignore-dir=app/Stubs "$SEEKING"
 # ag  --ignore-dir=vendor --ignore-dir=bower_components  --ignore-dir=node_modules --ignore-dir=storage/debugbar  --ignore-dir=storage/logs  --ignore-dir=app/Stubs "$SEEKING"
 # grep  --exclude-dir=vendor --exclude-dir=bower_components  --exclude-dir=node_modules --exclude-dir=storage/debugbar  --exclude-dir=storage/logs  --exclude-dir=app/Stubs "$SEEKING"
-#THIS IS GREP FOR MAC
+# THIS IS GREP FOR MAC
 # grep  --exclude-dir=vendor --exclude-dir=bower_components  --exclude-dir=node_modules --exclude-dir=storage/debugbar  --exclude-dir=storage/logs  --exclude-dir=app/Stubs -e "$SEEKING" *
 
 if [[ $SEEKING == *"/"* ]]
@@ -573,8 +603,9 @@ echo "${cyan}   ${SEEKER} \"${SEEKING}\" ${FILESCOMMAND} ${IGNORELIST}  "
 fi
 
 # If  | egrep "$SEEKING" &>/dev/null | returned an error....so it was... it was found/not found say it and stop execution for not found
-#if [ ! $? -eq 0 ] ; then #mac
-#if (( $? == 0 )) ;  then #work
+# if [ ! $? -eq 0 ] ; then #mac
+# if (( $? == 0 )) ;  then #work
+
 ################       ##############         ####          ####    ####        ####    ################
 ################       ##############         ####          ####    ####        ####    ################
 ####                 ####          ####       ####          ####    ######      ####    ####          ####
@@ -665,6 +696,61 @@ echo "   ";
 
 echo "${yellow} REPLACING NOW !        . . . using ${REPLACER} command ";
 
+# REF # http://stackoverflow.com/questions/11245144/replace-whole-line-containing-a-string-using-sed
+# The accepted answer did not work for me for several reasons:
+#
+#  • my version of sed does not like -i with a zero length extension
+#  • the syntax of the c\ command is weird and I couldn't get it to work
+#  • I didn't realize some of my issues are coming from unescaped slashes
+#
+# So here is the solution I came up with which I think should work for most cases:
+#
+APPLIED_ENTER=0
+function enter_escape_for_sed() {
+  #sed ':a;N;$!ba;s/\n/0N33NT3R/g'  # GNU sed
+  sed -e ':a' -e 'N' -e '$!ba' -e 's/\n/\\n/g'  #  cross-platform compatible syntax which works with BSD sed
+  APPLIED_ENTER=$?
+} # end enter_escape_for_sed
+function enter_decode() {
+  sed 's/\\n/\n/g'
+} # end enter_decode
+function escape_slashes() {
+    sed 's/\//\\\//g'
+} # end escape_slashes
+function escape_quotes() {
+    sed 's/\"/\\\"/g'
+} # end escape_quotes
+function change_line() {
+    # So the sample usage to fix the problem posed:
+    # change_line "TEXT_TO_BE_REPLACED" "This line is removed by the admin." yourFile
+
+    local OLD_LINE_PATTERN=$1; shift
+    local NEW_LINE=$1; shift
+    local FILE=$1
+
+    local NEW=$(echo "${NEW_LINE}" | escape_slashes)
+    sed -i .bak '/'"${OLD_LINE_PATTERN}"'/s/.*/'"${NEW}"'/' "${FILE}"
+    mv "${FILE}.bak" /tmp/
+} # end change_line
+
+# OLD_LINE_PATTERN=$SEEKING;
+# NEW_LINE=$2;
+# FILE=$3
+IMPLACING=$(echo "${NEW}"  | escape_slashes | escape_quotes)
+TESTENTERIMPLACING=$(echo "${IMPLACING}" | enter_escape_for_sed)
+
+if [[ "${IMPLACING}" == "${TESTENTERIMPLACING}" ]] ; then
+{
+  APPLIED_ENTER=0
+}
+else
+{
+  APPLIED_ENTER=1
+  IMPLACING=$TESTENTERIMPLACING
+}
+fi
+
+err_buff=0
 
 #
 # REPLACE - start
@@ -683,7 +769,7 @@ if [[ $SEEKING == *"/"* || $IMPLACING == *"/"* ]]; then
             # Get list and scroll through the list
             # FILES=$(${SEEKER} "$SEEKING"     ${FILESCOMMAND} ${PRINTCOMMAND} ${IGNORELIST})
             # echo "FILES FOUND: $FILES"
-            # Scroll the list and make invidual replacements
+            # Scroll the list and make individual replacements
             # while read -r FILE; do
             #  {
             #     sed -i -e s/"$SEEKING"/"$IMPLACING"/g "$FILE"
@@ -803,7 +889,14 @@ fi
 
 echo "${green}  SEEKING ${yellow}  CONFIRM ${green} NEW VALUES NOW :   ";
 echo "    ";
+err_buff=0
 SEEKING=$IMPLACING;
+# echo "applied enter: ${APPLIED_ENTER}"
+if [[ "${APPLIED_ENTER}" != 0 ]]; then
+{
+  SEEKING=$(echo $IMPLACING | enter_decode);
+}
+fi
 
 if [[ $SEEKING == *"/"* ]]
 then
