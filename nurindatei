@@ -994,7 +994,7 @@ else
   if [ $VERBOSE -eq 1 ] && [ -z "$PIPED" ] ; then
   {
     echo -e "${CYAN}  using ...${SEEKER}  "
-}  
+}
 fi
 }
 fi
@@ -1479,19 +1479,11 @@ if [[ "${FOUND}" == "YES" ]] ; then
           }
         else
           {
-            # Filename
-            # awk '{print "[38;5;13m" $0}' /tmp/tmp1.txt > /tmp/temp1.txt   # pink    #filename
-            awk '{print $0}' /tmp/tmp1.txt > /tmp/temp1.txt # nocolor
-            # File linenumber
-            # awk '{print "[38;5;28m" $0}'  /tmp/tmp2.txt > /tmp/temp2.txt # GREEN     #line number
-            # awk '{print "[0" $0}'  /tmp/tmp2.txt > /tmp/temp2.txt # RESET     #line number
-            # awk '{print $0}'  /tmp/tmp2.txt > /tmp/temp2.txt  #      #line number
-            awk '{print $0}'  /tmp/tmp2.txt > /tmp/temp2.txt  # nocolor
-            #  RESET color
-            # awk '{print "[38;5;231m" $0}' /tmp/tmp4.txt > /tmp/tomp4.txt #RESET color  # first results
-
-            # awk '{print "[0m" $0}' /tmp/tmp4.txt  > /tmp/tomp4.txt #RESET color  # first results
-            awk '{print "[38;5;9m" $0}' /tmp/tmp4.txt  > /tmp/tomp4.txt #RESET color  # first results
+            # linenumber
+            awk '{print "[38;5;28m" $0}'  /tmp/tmp1.txt > /tmp/temp1.txt # GREEN     #line number
+            # results    RESET color
+            awk '{print "[0m" $0}' /tmp/tmp2.txt  > /tmp/temp2.txt #RESET color  #  RESET color
+            awk '{print $0}' /tmp/tmp4.txt  > /tmp/tomp4.txt  # nocolor
 
             # the rest of the results
             if [[ "${REPLACERGNU}" == "YES" ]] ; then
@@ -1574,7 +1566,7 @@ if [[ "${FOUND}" == "YES" ]] ; then
           while read -r line; do
           {
             [[ -z "${line}" ]] && continue
-            echo -e "${FILE}:${line}${RESET}"
+            echo -e "[38;5;13m${FILE}:${line}${RESET}"
           }
           done <<< "$(sed 's^:g' < /tmp/temp19.txt  | sed 's:*$g')" #| sed 's:*$g' #| sed 's:$g'  #| sed 's.$g'
 
@@ -1587,19 +1579,11 @@ if [[ "${FOUND}" == "YES" ]] ; then
           while read -r line; do
           {
             [[ -z "${line}" ]] && continue
-            echo -e "${FILE}:${line}${RESET}"
+            echo -e "[38;5;13m${FILE}:${line}${RESET}"
           }
           done <<< "$(sed 's^:g' < /tmp/temp19.txt | sed 's:*$g')" #| sed 's:*$g' #| sed 's:$g'  #| sed 's.$g'
         }
         fi
-        #        ➜  en ü download_and_write
-        #
-        # download_and_write
-        #
-        #      uiload/configVictimHost.inc:3 $GLOBALS['download_and_write'] = true;
-        #      ntuiload/bajar.inc:12     if ($GLOBALS['download_and_write']) {
-        #     ntuiload/guardar.inc:12     if ($GLOBALS['download_and_write'])  return file_put_contents($filename, $file_contents_string);
-        #      ntui
 
         # while read line; do
            # echo "=========================="
@@ -1633,7 +1617,7 @@ if [[ "${FOUND}" == "YES" ]] ; then
   }
 else
 {
-  if [ -z "$PIPED" ] ; then    # not PIPED
+  if [[ -z "$PIPED" ]] ; then    # not PIPED
   {
     # NOT Colored
     if [[ -n "$COLORED" ]] ; then
@@ -1655,7 +1639,7 @@ else
 }
 fi
 # not PIPED
-if [ -z "$PIPED" ]; then
+if [[ -z "$PIPED" ]]; then
 {
   echo "   ";
 }
