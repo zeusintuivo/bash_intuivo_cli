@@ -3,6 +3,8 @@
 #
 # @author Zeus Intuivo <zeus@intuivo.com>
 #
+# ls  | xargs -I {} sed -i -e 's@bash_crm_cli@bash_intuivo_cli@g' {}
+# find * -type f  | xargs -I {} sed -i -e 's@bash_crm_cli@bash_intuivo_cli@g' {}
 #
 THISSCRIPTNAME=`basename "$0"`
 # bash shell script check input argument
@@ -295,6 +297,29 @@ fi
 # COLORS - Ouput - Start
 #
 
+red=`tput setaf 1`
+RED=`tput setaf 1`
+blue=$(tput setaf 4)
+BLUE=$(tput setaf 4)
+cyan=`tput setaf 6`
+CYAN=$(tput setaf 6)
+green=`tput setaf 2`
+GREEN=`tput setaf 2`
+RESET=`tput sgr0`
+reset=`tput sgr0`
+BLACK=$(tput setaf 0)
+black=$(tput setaf 0)
+YELLOW=$(tput setaf 3)
+yellow=$(tput setaf 3)
+LIME_YELLOW=$(tput setaf 190)
+POWDER_BLUE=$(tput setaf 153)
+MAGENTA=$(tput setaf 5)
+WHITE=$(tput setaf 7)
+BRIGHT=$(tput bold)
+NORMAL=$(tput sgr0)
+BLINK=$(tput blink)
+REVERSE=$(tput smso)
+UNDERLINE=$(tput smul)
 [[ -z "${BLACK}" ]] && BLACK="\\033[38;5;16m"
 [[ -z "${GREEN}" ]] && GREEN="\\033[38;5;22m"
 [[ -z "${CYAN}" ]] && CYAN="\\033[38;5;123m"
@@ -390,14 +415,14 @@ check_replacer () {
     echo "checked";
     return;
   else
-    # msg_red "${GREEN} ${RED} CANNOT REPLACE ...${1} IS MISSING ";
+    # msg_red "${green} ${red} CANNOT REPLACE ...${1} IS MISSING ";
     # msg_red " NEED TO INSTALL ${1}.       Linux:    sudo apt-get install ${1}         Mac:     brew install ${1}   "
     echo "install";
     return;
   fi
 }
 msg_install () {
-  msg_red "${GREEN} ${RED} CANNOT REPLACE ...${1} IS MISSING ";
+  msg_red "${green} ${red} CANNOT REPLACE ...${1} IS MISSING ";
   msg_red " NEED TO INSTALL ${1}.       Linux:    sudo apt-get install ${1}         Mac:     brew install ${1}   "
 }
 # REPLACER="sed";
@@ -515,7 +540,7 @@ if command -v sift >/dev/null 2>&1; then
   PRINTCOMMAND="-l --output-sep=\"\\x00\"";
 }
 else
-  {
+{
 
   if command -v ag >/dev/null 2>&1; then
   {
@@ -534,14 +559,14 @@ else
     fi
   }
   fi
-    # -s  is for case sensitive
-    #-Q --literal            Don't parse PATTERN as a regular expression
-    #-0 --null --print0      Separate filenames with null (for 'xargs -0')
-    #--nocolor               Disable colors (Enabled by default)
+      # -s  is for case sensitive
+      # -Q --literal            Don't parse PATTERN as a regular expression
+      # -0 --null --print0      Separate filenames with null (for 'xargs -0')
+      # --nocolor               Disable colors (Enabled by default)
      # NOT PIPED then show line numbers
     if [[ -z "$PIPED" ]] ; then
     {
-        SEEKER="ag -sQ ";
+      SEEKER="ag -sQ ";
     }
     fi
     #  PIPED then hide line numbers
@@ -556,13 +581,12 @@ else
       SEEKER="${SEEKER} --nocolor ";
     }
     fi
-    IGNORE_DIR="ignore";
-    IGNORE_FILE="ignore";
-    PRINTCOMMAND="-l --print0";
+      IGNORE_DIR="ignore";
+      IGNORE_FILE="ignore";
+      PRINTCOMMAND="-l --print0";
   }
   else
   {
-
     # msg_red " NEED TO INSTALL ag."
     # msg_red " ENTER SUDO PASSWORD AND PRESS ENTER."
     # sudo apt-get install silversearcher-ag -fy
@@ -621,7 +645,7 @@ else
 
       ls ./ack  | egrep 'ack' &>/dev/null
       err_buff=$?
-      if [[ "${PROCESSOR_ERROR}" == "MAC" ]] && [ $err_buff == 0 ]; then
+      if [[ "${PROCESSOR_ERROR}" == *"MAC"* ]] && [ $err_buff == 0 ]; then
       {
           if [ $VERBOSE -eq 1 ] ; then
             {
@@ -641,7 +665,7 @@ else
         # NOT PIPED then show line numbers
         if [ -z "$PIPED" ] ; then
             {
-                SEEKER="./ack -Q ";
+        SEEKER="./ack -Q ";
             }
           fi
         #  PIPED then hide line numbers
@@ -680,7 +704,7 @@ else
         # NOT PIPED then show line numbers
         if [ -z "$PIPED" ] ; then
             {
-                SEEKER="./ack -Q ";
+        SEEKER="./ack -Q ";
             }
         fi
         #  PIPED then hide line numbers
@@ -700,14 +724,13 @@ else
         PRINTCOMMAND="-l --print0";
       }
       else
-        {
-
+      {
         # msg_red " NEED TO INSTALL ./ack "
         # msg_red " ENTER SUDO PASSWORD AND PRESS ENTER."
         # cp ~/bin/ack .
 
         if command -v grep >/dev/null 2>&1; then
-          {
+        {
           #-i, --ignore-case
           # Perform case insensitive matching.  By default, grep is case sensitive.
           #
@@ -759,7 +782,7 @@ else
           # WHEN PIPED then show line numbers
           if [ -z "$PIPED" ] ; then
             {
-                SEEKER="grep -nrE "
+          SEEKER="grep -nrE "
             }
           fi
           #  PIPED then hide line numbers
@@ -779,21 +802,21 @@ else
           FILESCOMMAND=".";
           # PRINTCOMMAND="-l --print0";
           PRINTCOMMAND="-l --null";
-          }
+        }
         else
-          {
+        {
             # NOT Colored
             if [[ -n "$COLORED" ]] ; then
               {
                 echo "CANNOT SEARCH ....MISSING SEARCHER SIFT, ACK, AG, ./ACK, ./AG, ./SIFT OR GREP  ";
-                exit 1;
+           exit 1;
               } else {
                 echo -e "${RED} CANNOT SEARCH ....MISSING SEARCHER SIFT, ACK, AG, ./ACK, ./AG, ./SIFT OR GREP  ";
                 exit 1;
               }
             fi
-            #msg_red " NEED TO INSTALL grep."
-          }
+           # msg_red " NEED TO INSTALL grep."
+        }
         fi
         }
       fi
@@ -808,7 +831,7 @@ fi
 # echo -e "${RED}" | tr -dc '[:print:]' ;
 # exit 1;
 
-#CHECK FOR CHOICE FORCE IT
+# CHECK FOR CHOICE FORCE IT
 if command -v "${DEFAULTSEEKER}" >/dev/null 2>&1; then
     {
         SEEKER="${DEFAULTSEEKER}";
@@ -852,14 +875,14 @@ if command -v "${DEFAULTSEEKER}" >/dev/null 2>&1; then
                 SEEKER="${SEEKER} --no-color ";
             }
             fi
-            IGNORE_DIR="exclude-dirs";
-            IGNORE_FILE="exclude-files"
-            PRINTCOMMAND="-l --output-sep=\"\\x00\"";
-        }
-        fi
-        # make case sentive for ag
-        if [[ "$DEFAULTSEEKER" == "ag" ]] ; then
-        {
+    IGNORE_DIR="exclude-dirs";
+    IGNORE_FILE="exclude-files"
+    PRINTCOMMAND="-l --output-sep=\"\\x00\"";
+  }
+  fi
+  # make case sentive for ag
+  if [[ "$DEFAULTSEEKER" == "ag" ]] ; then
+  {
             # NOT PIPED then show line numbers
             if [ -z "$PIPED" ] ; then
             {
@@ -878,19 +901,19 @@ if command -v "${DEFAULTSEEKER}" >/dev/null 2>&1; then
                     SEEKER="${SEEKER} --nocolor ";
                 }
             fi
-            IGNORE_DIR="ignore";
-            IGNORE_FILE="ignore";
-            PRINTCOMMAND="-l --print0";
-        }
-        fi
-        # make case sentive for ag
-        if [[ "$DEFAULTSEEKER" == "ack" ]] ; then
-        {
+    IGNORE_DIR="ignore";
+    IGNORE_FILE="ignore";
+    PRINTCOMMAND="-l --print0";
+  }
+  fi
+  # make case sentive for ag
+  if [[ "$DEFAULTSEEKER" == "ack" ]] ; then
+  {
             # Ack DOES NOT SUPPORT HIDDING LINE NUMBERS
             # WHEN PIPED then show line numbers
               if [ -z "$PIPED" ] ; then
               {
-                  SEEKER="ack  -Q ";
+    SEEKER="ack -Q "
               }
             fi
             #  PIPED then hide line numbers
@@ -905,19 +928,19 @@ if command -v "${DEFAULTSEEKER}" >/dev/null 2>&1; then
                     SEEKER="${SEEKER} --nocolor ";
                 }
             fi
-            IGNORE_DIR="ignore-dir";
-            IGNORE_FILE="ignore-dir";
-            PRINTCOMMAND="-l --print0";
-        }
-        fi
-        # make case sentive for local ./ack
-        if [ -e "./ack" ] && [[ "$DEFAULTSEEKER" == "./ack" ]] ; then
-        {
+    IGNORE_DIR="ignore-dir";
+    IGNORE_FILE="ignore-dir";
+    PRINTCOMMAND="-l --print0";
+  }
+  fi
+  # make case sentive for local ./ack
+  if [ -e "./ack" ] && [[ "$DEFAULTSEEKER" == "./ack" ]] ; then
+  {
             # Ack DOES NOT SUPPORT HIDDING LINE NUMBERS
             # WHEN PIPED then show line numbers
             if [ -z "$PIPED" ] ; then
             {
-                SEEKER="./ack -Q "
+    SEEKER="./ack -Q "
             }
             fi
             #  PIPED then hide line numbers
@@ -932,18 +955,18 @@ if command -v "${DEFAULTSEEKER}" >/dev/null 2>&1; then
                     SEEKER="${SEEKER} --nocolor ";
                 }
             fi
-            IGNORE_DIR="ignore-dir";
-            IGNORE_FILE="ignore-file";
-            PRINTCOMMAND="-l --print0";
-        }
-        fi
-        # use extended expressions
-        if [[ "$DEFAULTSEEKER" == "grep" ]] ; then
-        {
+    IGNORE_DIR="ignore-dir";
+    IGNORE_FILE="ignore-file";
+    PRINTCOMMAND="-l --print0";
+  }
+  fi
+  # use extended expressions
+  if [[ "$DEFAULTSEEKER" == "grep" ]] ; then
+  {
             # WHEN PIPED then show line numbers
             if [ -z "$PIPED" ] ; then
               {
-                  SEEKER="grep -rE "
+    SEEKER="grep -rnE "
               }
             fi
             #  PIPED then hide line numbers
@@ -958,21 +981,21 @@ if command -v "${DEFAULTSEEKER}" >/dev/null 2>&1; then
                     SEEKER="${SEEKER} --color=never ";
                 }
             fi
-            IGNORE_DIR="exclude-dir";
-            IGNORE_FILE="exclude";
-            FILESCOMMAND=".";
-            # PRINTCOMMAND="-l --print0";
-            PRINTCOMMAND="-l --null";
-        }
-        fi
-    }
+    IGNORE_DIR="exclude-dir";
+    IGNORE_FILE="exclude";
+    FILESCOMMAND=".";
+    # PRINTCOMMAND="-l --print0";
+    PRINTCOMMAND="-l --null";
+  }
+  fi
+}
 else
 {
   if [ $VERBOSE -eq 1 ] && [ -z "$PIPED" ] ; then
   {
     echo -e "${CYAN}  using ...${SEEKER}  "
-  }
-  fi
+}  
+fi
 }
 fi
 
@@ -1038,10 +1061,10 @@ coverage
 AbsoluteUrlBundle
 app/Stubs
 bower_components
+node_modules
 cache
 .cache
 dist
-node_modules
 python
 storage/debugbar
 storage/logs
