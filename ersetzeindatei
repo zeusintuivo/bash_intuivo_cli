@@ -515,6 +515,10 @@ MOREIGNORE_FILES=""
 MOREIGNORE_DIRS=""
 [ -f .ersetzeignore_dirs ] && MOREIGNORE_DIRS=$(<.ersetzeignore_dirs)
 
+# echo "MOREIGNORE_FILES:${MOREIGNORE_FILES}"
+# echo "MOREIGNORE_DIRS:${MOREIGNORE_DIRS}"
+# exit 0
+
 FILESTOEXCLUDE=".dir_bash_history
 .gitignore
 .ersetzeignore_dirs
@@ -568,21 +572,24 @@ app/cache
 app/logs
 app/session
 ${MOREIGNORE_DIRS}"
+# echo "FILESTOEXCLUDE:${FILESTOEXCLUDE}"
+# echo "DIRSTOEXCLUDE:${DIRSTOEXCLUDE}"
+# exit 0
 
 IGNORELIST=""
 
-    while read -r ONE_FILENAME; do
-      # if not empty
-      if [[ -n "${ONE_FILENAME}" ]] ; then
-        IGNORELIST="${IGNORELIST} ${EXCLUDEFILE}${ONE_FILENAME}"
-      fi
+    for ONE_FILENAME in ${FILESTOEXCLUDE}; do
+    # while read -r ONE_FILENAME; do
+      [[ -z "${ONE_FILENAME}" ]] && continue  # if not empty
+      IGNORELIST="${IGNORELIST} ${EXCLUDEFILE}${ONE_FILENAME}"
     done <<< "${FILESTOEXCLUDE}"
-    while read -r ONE_DIRNAME; do
-      # if not empty
-      if [[ -n "${ONE_DIRNAME}" ]] ; then
-        IGNORELIST="${IGNORELIST} ${EXCLUDEDIR}${ONE_DIRNAME}"
-      fi
+    for ONE_DIRNAME in ${DIRSTOEXCLUDE}; do
+    # while read -r ONE_DIRNAME; do
+      [[ -z "${ONE_DIRNAME}" ]] && continue  # if not empty
+      IGNORELIST="${IGNORELIST} ${EXCLUDEDIR}${ONE_DIRNAME}"
     done <<< "${DIRSTOEXCLUDE}"
+# echo "IGNORELIST:${IGNORELIST}"
+# exit 0
 #
 # COMPOSE IGNORE ONELINER - end
 #
@@ -605,6 +612,8 @@ SEEKING="$2";
 
                 echo "   ";
 echo "${reset} ${green} Seek ignoring $(echo ${IGNORELIST} | sed  "s@${EXCLUDEDIR}@@g" | sed  "s@${EXCLUDEFILE}@@g"  | sed  "s@ @,@g") with ${SEEKER} -- "
+
+# exit 0
 #
 # S E E K I N G   I N S T A L L    C H E C K  - End
 #
@@ -613,10 +622,10 @@ echo "${reset} ${green} Seek ignoring $(echo ${IGNORELIST} | sed  "s@${EXCLUDEDI
 # echo "${CYAN}  grep  --exclude-dir=vendor --exclude-dir=bower_components  --exclude-dir=node_modules --exclude-dir=storage/debugbar  --exclude-dir=storage/logs  --exclude-dir=app/Stubs \"${SEEKING}\" "
 
 # If verbose  and # not PIPED
-if [ $VERBOSE -eq 1 ] && [ -z "$PIPED" ]; then
-  {
-    echo "   ";
-  }
+if [ $VERBOSE -eq 1 ] && [[ -z "$PIPED" ]]; then
+{
+  echo "   ";
+}
 fi
 err_buff=$?;
 # THIS IS GREP FOR LINUX
@@ -633,6 +642,7 @@ then
 
         echo "${cyan}   ${SEEKER} \"${SEEKING}\" ${FILESCOMMAND} ${IGNORELIST}   ${FILE}"
                 ${SEEKER} "$SEEKING" ${FILESCOMMAND}     ${IGNORELIST}   ${FILE}
+                err_buff=$?
                 ${SEEKER} "$SEEKING" ${FILESCOMMAND}     ${IGNORELIST}   ${FILE} | ${SEEKER} "$SEEKING" ${FILESCOMMAND}  &>/dev/null
       }
       else
@@ -640,10 +650,11 @@ then
 
         echo "${cyan}   ${SEEKER} \"${SEEKING}\" ${FILESCOMMAND} ${IGNORELIST}   ${FILE}"
                 ${SEEKER} "$SEEKING" ${FILESCOMMAND}     ${IGNORELIST}   ${FILE}
+                err_buff=$?
                 ${SEEKER} "$SEEKING" ${FILESCOMMAND}     ${IGNORELIST}   ${FILE} | ${SEEKER} "$SEEKING" ${FILESCOMMAND}  &>/dev/null
 }
 fi
-
+# exit 0
 # If  | egrep "$SEEKING" &>/dev/null | returned an error....so it was... it was found/not found say it and stop execution for not found
 # if [ ! $? -eq 0 ] ; then #mac
 # if (( $? == 0 )) ;  then #work
@@ -663,16 +674,15 @@ fi
 ####                   ##############           ##############      ####        ####    ################
 ####                   ##############           ##############      ####        ####    ################
 
-err_buff=$?
 # echo "err_buff=$err_buff"
 # echo "PROCESSOR_ERROR=$PROCESSOR_ERROR"
-if [[ "${PROCESSOR_ERROR}" == "INTEL" ]] && (( $err_buff == 0 )); then
+if [[ "${PROCESSOR_ERROR}" == *"INTEL"* ]] && (( $err_buff == 0 )); then
 {
     msg_green "${green} FOUND !"
     echo "    ";
     FOUND=1
 }
-elif [[ "${PROCESSOR_ERROR}" == "MAC" ]] && [ $err_buff == 0 ]; then
+elif [[ "${PROCESSOR_ERROR}" == *"MAC"* ]] && [ $err_buff == 0 ]; then
 {
     msg_green "${green} FOUND !"
     echo "    ";
@@ -776,6 +786,9 @@ function escape_slashes() {
 function escape_quotes() {
     sed 's/\"/\\\"/g'
 } # end escape_quotes
+function escape_single_quotes() {
+    sed "s/'/\\'/g"
+} # end escape_single_quotes
 function change_line() {
     # So the sample usage to fix the problem posed:
     # change_line "TEXT_TO_BE_REPLACED" "This line is removed by the admin." yourFile
@@ -792,7 +805,7 @@ function change_line() {
 # OLD_LINE_PATTERN=$SEEKING;
 # NEW_LINE=$2;
 # FILE=$3
-IMPLACING=$(echo "${NEW}"  | escape_slashes | escape_quotes)
+IMPLACING=$(echo "${NEW}"  | escape_slashes | escape_quotes| escape_single_quotes)
 TESTENTERIMPLACING=$(echo "${IMPLACING}" | enter_escape_for_sed)
 
 if [[ "${IMPLACING}" == "${TESTENTERIMPLACING}" ]] ; then
@@ -806,6 +819,26 @@ else
 }
 fi
 
+escape_backslashes_for_sed() {
+    sed 's/\\/\\\\/g'
+} # end escape_backslashes_for_sed
+
+
+
+SEEKERNEW=$(echo -n "${SEEKING}"  | escape_backslashes_for_sed )
+TESTENTERSEEKING=$(echo -n "${SEEKERNEW}" )
+#APPLIED_ENTER_SEEK=0
+#if [[ "${SEEKING}" == "${TESTENTERSEEKING}" ]] ; then
+#{
+#  APPLIED_ENTER_SEEK=0
+#}
+#else
+#{
+#  APPLIED_ENTER_SEEK=1
+SEEKING=$TESTENTERSEEKING
+#}
+#fi
+
 err_buff=0
 
 #
@@ -813,72 +846,125 @@ err_buff=0
 #
 # If it contains forward slashes then use a different seeker
 if [[ $SEEKING == *"/"* || $IMPLACING == *"/"* ]]; then
-  # contains slashes
+# contains slashes
+{
+  if [[ "${REPLACER}" == "sed" ]] ; then
+  # sed
   {
-    if [[ "${REPLACER}" == "sed" ]] ; then
-      # sed
-      {
-        if [[ "${REPLACERGNU}" == "YES" ]] ; then
-          # sed GNU
-          {
-         echo "${cyan}   sed  -i  -e s\"${SEEKING}\"\"${IMPLACING}\"g ${FILE}"
-                         sed  -i  -e s"$SEEKING""$IMPLACING"g "${FILE}" | ${SEEKER} "$SEEKING" ${FILESCOMMAND} &>/dev/null
-#                         err_buff=$?
-          }
-        else
-          # sed mac
-          # MAC REPLACER Has to HAVE A FILENAME.EXTENSION provided for the -i (inplace) option
-          {
-          # Sample use: ${THISSCRIPTNAME} /usr/bin/env\ bash  /bin/bash
-          echo "${cyan}  sed  -i'.sedbak'  -e s\"${SEEKING}\"\"${IMPLACING}\"g ${FILE}"
-                         sed  -i'.sedbak'  -e s"$SEEKING""$IMPLACING"g ${FILE} | ${SEEKER} "$SEEKING" ${FILESCOMMAND}  &>/dev/null
-#                         err_buff=$?
-          }
-        fi
-      }
+    if [[ "${REPLACERGNU}" == "YES" ]] ; then
+    # sed GNU
+    {
+         echo "${cyan}   sed  -i  -e s^_\"${SEEKING}\"^_\"${IMPLACING}\"^_g ${FILE}"
+                         sed  -i  -e s^_"$SEEKING"^_"$IMPLACING"^_g "${FILE}" | ${SEEKER} "$SEEKING" ${FILESCOMMAND} &>/dev/null
+                         err_buff=$?
+
+#      echo "${cyan}   sed  -i  -e 's'\"${SEEKING}\"''\"${IMPLACING}\"'g' ${FILE}"
+#                     sed  -i  -e 's'"$SEEKING"''"$IMPLACING"'g' "${FILE}"
+#                      sed  -i  -e s"$SEEKING""$IMPLACING"g "${FILE}" | ${SEEKER} "$SEEKING" ${FILESCOMMAND} &>/dev/null
+#                      err_buff=$?
+    }
     else
-      # ex
-      # REF: http://askubuntu.com/questions/20414/find-and-replace-text-within-a-file-using-commands
-      {
-        echo "${cyan}   ex -sc '%s$SEEKING$IMPLACINGg|x' ${FILE} "
-                        ex -sc '%s$SEEKING$IMPLACINGg|x' ${FILE}
-#                        err_buff=$?
-      }
+    # sed mac
+    # MAC REPLACER Has to HAVE A FILENAME.EXTENSION provided for the -i (inplace) option
+    {
+      # Sample use: ${THISSCRIPTNAME} /usr/bin/env\ bash  /bin/bash
+          echo "${cyan}  sed  -i'.sedbak'  -e s^_\"${SEEKING}\"^_\"${IMPLACING}\"^_g ${FILE}"
+                         sed  -i'.sedbak'  -e s^_"$SEEKING"^_"$IMPLACING"^_g ${FILE} | ${SEEKER} "$SEEKING" ${FILESCOMMAND}  &>/dev/null
+                         err_buff=$?
+#      echo "${cyan}  sed  -i'.sedbak'  -e 's'\"${SEEKING}\"''\"${IMPLACING}\"'g' ${FILE}"
+#                    sed  -i'.sedbak'  -e 's'"$SEEKING"''"$IMPLACING"'g' "${FILE}"
+#                     sed  -i'.sedbak'  -e s"$SEEKING""$IMPLACING"g ${FILE} | ${SEEKER} "$SEEKING" ${FILESCOMMAND}  &>/dev/null
+#                     err_buff=$?
+    }
     fi
   }
   else
-  # contains not slashes in the expresion
+  # ex
+  # REF: http://askubuntu.com/questions/20414/find-and-replace-text-within-a-file-using-commands
   {
-    if [[ "${REPLACER}" == "sed" ]] ; then
-      # sed
-      {
+    echo "${cyan}   ex -sc '%s'\"$SEEKING\"''\"$IMPLACING\"'g|x' \"${FILE}\" "
+#                   ex -sc '%s'"$SEEKING"''"$IMPLACING"'g|x' "${FILE}"
+                    ex -sc %s$SEEKING$IMPLACINGg|x "${FILE}"
+                    err_buff=$?
+  }
+  fi
+}
+else
+# contains not slashes in the expression
+{
+  if [[ "${REPLACER}" == "sed" ]] ; then
+  # sed
+  {
         if [[ "${REPLACERGNU}" == "YES" ]] ; then
         # sed GNU
         {
-            echo "${cyan}   sed -i -e s/\"${SEEKING}\"/\"${IMPLACING}\"/g ${FILE}"
-                            sed -i -e s/"$SEEKING"/"$IMPLACING"/g ${FILE} | ${SEEKER} "$SEEKING" ${FILESCOMMAND} &>/dev/null
-#                            err_buff=$?
+          # ersetzeindatei react-service.php ".php<br>\n'" ".php<br>'.PHP_EOL"
+          # echo -en "  SEEKING:"
+          # echo "\"${SEEKING}\" == \".php<br>\\\\n'\"  "
+          # if [[ "${SEEKING}" == ".php<br>\\\\n'" ]] ; then
+          # {
+          #  echo passed
+          # }
+          # else
+          # {
+          #  echo failed
+          # }
+          # fi
+          # exit 0
+          # echo -en "IMPLACING:"
+          # echo "\"${IMPLACING}\""
+           echo "${cyan}   sed -i -e s/\"${SEEKING}\"/\"${IMPLACING}\"/g ${FILE}"
+                           sed -i -e s/"$SEEKING"/"$IMPLACING"/g ${FILE} | ${SEEKER} "$SEEKING" ${FILESCOMMAND} &>/dev/null
+                           err_buff=$?
+
+          # echo "${cyan}   sed -i -e 's/'\"${SEEKING}\"'/'\"${IMPLACING}\"'/g' \"${FILE}\""
+#           echo "${cyan}   sed -i -e s/\"${SEEKING}\"/\"${IMPLACING}\"/g \"${FILE}\""
+#                           sed -i -e 's/'"$SEEKING"'/'"$IMPLACING"'/g' "${FILE}"
+                             # Leaving ' and " out of the statement to make it possible
+                             # to send both " ' inside replace statements
+#                            sed -i -e s/"$SEEKING"/"$IMPLACING"/g ${FILE}
+                            # err_buff=$? # Sed returns 0 when changed and 1 when not changed
+#                            sed -i -e s/"$SEEKING"/"$IMPLACING"/g ${FILE} | ${SEEKER} "$SEEKING" ${FILESCOMMAND} &>/dev/null
+                            # echo err_buff:$err_buff
+                            # exit 0
+
+
         }
         else
         # sed mac
         # MAC REPLACER Has to HAVE A FILENAME.EXTENSION provided for the -i (inplace) option
         {
-            echo "${cyan}   sed  -i'.sedbak'  -e s/\"${SEEKING}\"/\"${IMPLACING}\"/g" ${FILE}
-                            sed  -i'.sedbak'  -e s/"$SEEKING"/"$IMPLACING"/g ${FILE} | ${SEEKER} "$SEEKING" ${FILESCOMMAND}  &>/dev/null
+#           echo "${cyan}   sed  -i'.sedbak'  -e s/\"${SEEKING}\"/\"${IMPLACING}\"/g" ${FILE}
+           echo "${cyan}   sed  -i'.sedbak'  -e 's/'\"${SEEKING}\"'/'\"${IMPLACING}\"'/g' \"${FILE}\""
+#                           sed  -i'.sedbak'  -e 's/'"$SEEKING"'/'"$IMPLACING"'/g' "${FILE}"
+                             sed  -i'.sedbak'  -e s/"$SEEKING"/"$IMPLACING"/g ${FILE} | ${SEEKER} "$SEEKING" ${FILESCOMMAND}  &>/dev/null
+                            err_buff=$?
+
+#                            err_buff=$?
+
+#            echo "${cyan}   sed  -i'.sedbak'  -e 's/'\"${SEEKING}\"'/'\"${IMPLACING}\"'/g' \"${FILE}\""
+#                           sed  -i'.sedbak'  -e 's/'"$SEEKING"'/'"$IMPLACING"'/g' "${FILE}"
+#                            sed  -i'.sedbak'  -e s/"$SEEKING"/"$IMPLACING"/g ${FILE} | ${SEEKER} "$SEEKING" ${FILESCOMMAND}  &>/dev/null
+#                            err_buff=$?
+
 #                            err_buff=$?
         }
         fi
-      }
+    }
     else
       # ex
-      {
+    {
         # VIM ex To find and replace all occurrences of case insensitive 'eth1' with 'br1', enter:
         echo "${cyan}   ex -sc '+%s/$SEEKING/$IMPLACING/g|x' ${FILE} "
                         ex -sc '+%s/$SEEKING/$IMPLACING/g|x' ${FILE}
+#        echo "${cyan}   ex -sc '+%s/$SEEKING/$IMPLACING/g|x' \"${FILE}\" "
+#                        ex -sc +%s/$SEEKING/$IMPLACING/g|x \"${FILE}\"
+                        err_buff=$?
+
 #                        err_buff=$?
-      }
+    }
     fi
-  }
+}
 fi
 #echo "    ";
 #
@@ -900,14 +986,13 @@ fi
 # If  | egrep "$SEEKING" &>/dev/null | returned an error....so it was... it was found/not found say it and stop execution for not found
 #if [ $? == 0 ]; then
 #if (( $? != 0 )) ;  then  #Inverse respose It will be EMPTY $? when replacements where made!
-err_buff=$?
-if [[ "${PROCESSOR_ERROR}" == "INTEL" ]] && (( $err_buff != 0 )); then
+if [[ "${PROCESSOR_ERROR}" == *"INTEL"* ]] && (( err_buff != 0 )); then
     {
     msg_green "${green} REPLACED !"
     echo "    ";
     FOUND=1
     }
-elif [[ "${PROCESSOR_ERROR}" == "MAC" ]] && [ $err_buff != 0 ]; then
+elif [[ "${PROCESSOR_ERROR}" == *"MAC"* ]] && [ $err_buff != 0 ]; then
     {
     msg_green "${green} REPLACED !"
     echo "    ";
@@ -942,16 +1027,27 @@ SEEKING=$IMPLACING;
 # echo "applied enter: ${APPLIED_ENTER}"
 if [[ "${APPLIED_ENTER}" != 0 ]]; then
 {
-  SEEKING=$(echo $IMPLACING | enter_decode);
+  SEEKING=$(echo "$IMPLACING" | enter_decode);
 }
 fi
 
-if [[ $SEEKING == *"/"* ]]
+# echo "Test Confirm";
+# exit 0
+
+# echo "
+# SEEKER:${SEEKER}
+# SEEKING:${SEEKING}
+# FILESCOMMAND:${FILESCOMMAND}
+# IGNORELIST:${IGNORELIST}
+# FILE:${FILE}
+# "
+# exit 0
+if [[ "$SEEKING" == *"/"* ]]
 then
 {
 
 
-echo "${cyan}   ${SEEKER} \"${SEEKING}\" ${FILESCOMMAND} ${IGNORELIST}  ${FILE} "
+echo "${cyan}   ${SEEKER} \"${SEEKING}\" ${FILESCOMMAND} \"${IGNORELIST}\"  \"${FILE}\" "
                 ${SEEKER} "$SEEKING" ${FILESCOMMAND}     ${IGNORELIST}  ${FILE}
                 err_buff=$?
                 #err_buff=$?
@@ -960,13 +1056,15 @@ echo "${cyan}   ${SEEKER} \"${SEEKING}\" ${FILESCOMMAND} ${IGNORELIST}  ${FILE} 
 else
 {
 
-echo "${cyan}   ${SEEKER} \"${SEEKING}\" ${FILESCOMMAND} ${IGNORELIST}  ${FILE} "
+echo "${cyan}   ${SEEKER} \"${SEEKING}\" ${FILESCOMMAND} \"${IGNORELIST}\"  \"${FILE}\" "
                 ${SEEKER} "$SEEKING" ${FILESCOMMAND}     ${IGNORELIST}  ${FILE}
                 err_buff=$?
                 #$err_buff=$?
 #                ${SEEKER} "$SEEKING" ${FILESCOMMAND}     ${IGNORELIST}  ${FILE}  | ${SEEKER} "$SEEKING" ${FILESCOMMAND}  &>/dev/null
 }
 fi
+# echo "Test CONFIRM";
+# exit 0
 ########       #####     ###        ###   ##########  ###   ########       ###        ###   #########  ########
 #########      #####     ###        ###   ##########  ###   ########       ###        ###   #########  ########
 ##      ##   ##     ##   #####      ###   ###         ###   ###     ##     #####    #####   ##         ###     ##
@@ -1000,7 +1098,7 @@ fi
 #if [ ! $? == 0 ]; then #mac
 err_buff=$?
 # echo "err_buff=$err_buff"
-if [[ "${PROCESSOR_ERROR}" == "INTEL" ]] && (( $err_buff == 0 )); then
+if [[ "${PROCESSOR_ERROR}" == *"INTEL"* ]] && (( err_buff == 0 )); then
     {
     echo "    ";
     echo "${cyan} REPLACE CONFIRMED ${green} FOUND !"
@@ -1009,7 +1107,7 @@ if [[ "${PROCESSOR_ERROR}" == "INTEL" ]] && (( $err_buff == 0 )); then
     fi
     echo "    ";
     }
-elif [[ "${PROCESSOR_ERROR}" == "MAC" ]] && [ $err_buff == 0 ]; then
+elif [[ "${PROCESSOR_ERROR}" == *"MAC"* ]] && [ $err_buff == 0 ]; then
     {
     echo "    ";
     echo "${cyan} REPLACE CONFIRMED ${green} FOUND !"

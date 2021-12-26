@@ -750,6 +750,27 @@ else
 }
 fi
 
+escape_backslashes_for_sed() {
+    sed 's/\\/\\\\/g'
+} # end escape_backslashes_for_sed
+
+
+
+SEEKERNEW=$(echo -n "${SEEKING}"  | escape_backslashes_for_sed )
+TESTENTERSEEKING=$(echo -n "${SEEKERNEW}" )
+#APPLIED_ENTER_SEEK=0
+#if [[ "${SEEKING}" == "${TESTENTERSEEKING}" ]] ; then
+#{
+#  APPLIED_ENTER_SEEK=0
+#}
+#else
+#{
+#  APPLIED_ENTER_SEEK=1
+SEEKING=$TESTENTERSEEKING
+#}
+#fi
+
+
 err_buff=0
 
 #
