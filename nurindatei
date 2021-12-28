@@ -1082,18 +1082,19 @@ ${MOREIGNORE_DIRS}"
 
 IGNORELIST=""
 
+    # for ONE_FILENAME in ${FILESTOEXCLUDE}
     while read -r ONE_FILENAME; do
-      # if not empty
-      if [[ -n "${ONE_FILENAME}" ]] ; then
-        IGNORELIST="${IGNORELIST} ${EXCLUDEFILE}${ONE_FILENAME}"
-      fi
+      [[ -z "${ONE_FILENAME}" ]] && continue  # skip if zempty
+      [[ "${FILE}" ==  "${ONE_FILENAME}" ]] && continue # remove file from ignore if specifically named
+      IGNORELIST="${IGNORELIST} ${EXCLUDEFILE}${ONE_FILENAME}"
     done <<< "${FILESTOEXCLUDE}"
     while read -r ONE_DIRNAME; do
-      # if not empty
-      if [[ -n "${ONE_DIRNAME}" ]] ; then
-        IGNORELIST="${IGNORELIST} ${EXCLUDEDIR}${ONE_DIRNAME}"
-      fi
+      [[ -z "${ONE_DIRNAME}" ]] && continue  # skip if zempty
+      [[ ${FILE} == ${ONE_DIRNAME} ]] && continue # remove file from ignore if specifically named
+      IGNORELIST="${IGNORELIST} ${EXCLUDEDIR}${ONE_DIRNAME}"
     done <<< "${DIRSTOEXCLUDE}"
+    # echo "${IGNORELIST}"
+    # exit 0
 #
 # COMPOSE IGNORE ONELINER - end
 #
@@ -1182,11 +1183,10 @@ fi
 # THIS IS GREP FOR MAC
 # grep  --exclude-dir=vendor --exclude-dir=bower_components  --exclude-dir=node_modules --exclude-dir=storage/debugbar  --exclude-dir=storage/logs  --exclude-dir=app/Stubs -e "$SEEKING" *
 
-if [[ $SEEKING == *"/"* ]]
-then
+if [[ $SEEKING == *"/"* ]] ; then
 {
-            ${SEEKER} "$SEEKING" ${FILESCOMMAND}      ${IGNORELIST} "${FILE}" &>/dev/null
-            err_buff=$?
+    ${SEEKER} "$SEEKING" ${FILESCOMMAND}      ${IGNORELIST} "${FILE}" &>/dev/null
+    err_buff=$?
     if [ $VERBOSE -eq 1 ] ; then
     {
       # NOT Colored
@@ -1229,44 +1229,44 @@ then
         fi
       }
     else # YES PIPED
-      {
-            # NOT Colored
-            if [[ -n "$COLORED" ]] ; then
+    {
+          # NOT Colored
+          if [[ -n "$COLORED" ]] ; then
+          {
+            if [[ "${REPLACERGNU}" == "YES" ]] ; then
+            # sed GNU
             {
-              if [[ "${REPLACERGNU}" == "YES" ]] ; then
-              # sed GNU
-              {
-                echo  "sed GNU ";
-                echo "$PIPED" | ${SEEKER} "$SEEKING" ${FILESCOMMAND}      ${IGNORELIST}  | sed 's\\\\\\g' | sed s"$SEEKING""$SEEKING"g
-              }
-              else
-              # sed mac
-              # MAC REPLACER Has to HAVE A FILENAME.EXTENSION provided for the -i (inplace) option
-              {
-                echo "sed MAC ";
-                echo "$PIPED" | ${SEEKER} "$SEEKING" ${FILESCOMMAND}      ${IGNORELIST}  | sed 's\\\\\\g' | sed s"$SEEKING""$SEEKING"g
-              }
-              fi
+              echo  "sed GNU ";
+              echo "$PIPED" | ${SEEKER} "$SEEKING" ${FILESCOMMAND}      ${IGNORELIST}  | sed 's\\\\\\g' | sed s"$SEEKING""$SEEKING"g
             }
-            else # Colored
-              {
-                if [[ "${REPLACERGNU}" == "YES" ]] ; then
-                # sed GNU
-                {
-                  echo -e "${YELLOW} sed GNU ";
-                  echo "$PIPED" | ${SEEKER} "$SEEKING" ${FILESCOMMAND}      ${IGNORELIST}  | sed 's\\\\\\g' | sed s"$SEEKING""[38;5;196m$SEEKING${RESET_PROMPT}"g
-                }
-                else
-                # sed mac
-                # MAC REPLACER Has to HAVE A FILENAME.EXTENSION provided for the -i (inplace) option
-                {
-                  echo -e "${YELLOW} sed MAC ";
-                  echo "$PIPED" | ${SEEKER} "$SEEKING" ${FILESCOMMAND}      ${IGNORELIST}  | sed 's\\\\\\g' | sed s"$SEEKING""[38;5;196m$SEEKING${RESET_PROMPT}"g
-                }
-                fi
-              }
+            else
+            # sed mac
+            # MAC REPLACER Has to HAVE A FILENAME.EXTENSION provided for the -i (inplace) option
+            {
+              echo "sed MAC ";
+              echo "$PIPED" | ${SEEKER} "$SEEKING" ${FILESCOMMAND}      ${IGNORELIST}  | sed 's\\\\\\g' | sed s"$SEEKING""$SEEKING"g
+            }
             fi
-      }
+          }
+          else # Colored
+          {
+            if [[ "${REPLACERGNU}" == "YES" ]] ; then
+            # sed GNU
+            {
+              echo -e "${YELLOW} sed GNU ";
+              echo "$PIPED" | ${SEEKER} "$SEEKING" ${FILESCOMMAND}      ${IGNORELIST}  | sed 's\\\\\\g' | sed s"$SEEKING""[38;5;196m$SEEKING${RESET_PROMPT}"g
+            }
+            else
+            # sed mac
+            # MAC REPLACER Has to HAVE A FILENAME.EXTENSION provided for the -i (inplace) option
+            {
+              echo -e "${YELLOW} sed MAC ";
+              echo "$PIPED" | ${SEEKER} "$SEEKING" ${FILESCOMMAND}      ${IGNORELIST}  | sed 's\\\\\\g' | sed s"$SEEKING""[38;5;196m$SEEKING${RESET_PROMPT}"g
+            }
+            fi
+          }
+          fi
+    }
     fi
 }
 else # else SEEKING does not contain  *"/"*
@@ -1298,7 +1298,10 @@ else # else SEEKING does not contain  *"/"*
       {
         echo -e "${YELLOW} sed GNU ";
         # ${SEEKER} "$SEEKING" ${FILESCOMMAND}      ${IGNORELIST}  &>/dev/null
+        # echo "RESULT=\$(${SEEKER} "$SEEKING" ${FILESCOMMAND}      ${IGNORELIST} "${FILE}"| sed 's@\\@\\\\@g')"
         RESULT=$(${SEEKER} "$SEEKING" ${FILESCOMMAND}      ${IGNORELIST} "${FILE}"| sed 's@\\@\\\\@g')
+        # echo RESULT:$RESULT
+        # exit 0
       }
       else
       # sed mac
@@ -1406,7 +1409,7 @@ if [[ "${FOUND}" == "YES" ]] ; then
         # rm /tmp/temp17.txt
         # rm /tmp/temp19.txt
         # Count ":" occurrences  REF: http://stackoverflow.com/questions/16679369/count-occurrences-of-char-in-string-using-bash
-        #$OCCURRENCES=$(grep -o ":" <<<  "$RESULT" | wc -l)
+        # $OCCURRENCES=$(grep -o ":" <<<  "$RESULT" | wc -l)
         # File linenumber
         cut -f1 -d":" <<< "$RESULT" > /tmp/tmp1.txt #line number  or 'filename' with ^ the above
         if [[ "${REPLACERGNU}" == "YES" ]] ; then
