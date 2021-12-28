@@ -483,7 +483,7 @@ else
 {
   # echo "${red}   your seeker ${DEFAULTSEEKER} was not found!"
   echo "${cyan}  using ...${SEEKER}  "
-}  
+}
 fi
 
 
@@ -805,8 +805,8 @@ function change_line() {
 # OLD_LINE_PATTERN=$SEEKING;
 # NEW_LINE=$2;
 # FILE=$3
-IMPLACING=$(echo "${NEW}"  | escape_slashes | escape_quotes| escape_single_quotes)
-TESTENTERIMPLACING=$(echo "${IMPLACING}" | enter_escape_for_sed)
+IMPLACING=$(echo -n "${NEW}"  | escape_slashes | escape_quotes| escape_single_quotes)
+TESTENTERIMPLACING=$(echo -n "${IMPLACING}" | enter_escape_for_sed)
 
 if [[ "${IMPLACING}" == "${TESTENTERIMPLACING}" ]] ; then
 {
@@ -854,27 +854,20 @@ if [[ $SEEKING == *"/"* || $IMPLACING == *"/"* ]]; then
     if [[ "${REPLACERGNU}" == "YES" ]] ; then
     # sed GNU
     {
-         echo "${cyan}   sed  -i  -e s^_\"${SEEKING}\"^_\"${IMPLACING}\"^_g ${FILE}"
-                         sed  -i  -e s^_"$SEEKING"^_"$IMPLACING"^_g "${FILE}" | ${SEEKER} "$SEEKING" ${FILESCOMMAND} &>/dev/null
-                         err_buff=$?
-
-#      echo "${cyan}   sed  -i  -e 's'\"${SEEKING}\"''\"${IMPLACING}\"'g' ${FILE}"
-#                     sed  -i  -e 's'"$SEEKING"''"$IMPLACING"'g' "${FILE}"
-#                      sed  -i  -e s"$SEEKING""$IMPLACING"g "${FILE}" | ${SEEKER} "$SEEKING" ${FILESCOMMAND} &>/dev/null
-#                      err_buff=$?
+        echo "${cyan}   sed  -i  -e s\"${SEEKING}\"\"${IMPLACING}\"g ${FILE}"
+                        sed  -i  -e s"$SEEKING""$IMPLACING"g "${FILE}"
+                        sed  -i  -e s"$SEEKING""$IMPLACING"g "${FILE}" | ${SEEKER} "$SEEKING" ${FILESCOMMAND} &>/dev/null
+                     err_buff=$?
     }
     else
     # sed mac
     # MAC REPLACER Has to HAVE A FILENAME.EXTENSION provided for the -i (inplace) option
     {
       # Sample use: ${THISSCRIPTNAME} /usr/bin/env\ bash  /bin/bash
-          echo "${cyan}  sed  -i'.sedbak'  -e s^_\"${SEEKING}\"^_\"${IMPLACING}\"^_g ${FILE}"
-                         sed  -i'.sedbak'  -e s^_"$SEEKING"^_"$IMPLACING"^_g ${FILE} | ${SEEKER} "$SEEKING" ${FILESCOMMAND}  &>/dev/null
-                         err_buff=$?
-#      echo "${cyan}  sed  -i'.sedbak'  -e 's'\"${SEEKING}\"''\"${IMPLACING}\"'g' ${FILE}"
-#                    sed  -i'.sedbak'  -e 's'"$SEEKING"''"$IMPLACING"'g' "${FILE}"
-#                     sed  -i'.sedbak'  -e s"$SEEKING""$IMPLACING"g ${FILE} | ${SEEKER} "$SEEKING" ${FILESCOMMAND}  &>/dev/null
-#                     err_buff=$?
+     echo "${cyan}  sed  -i.sedbak  -e s\"${SEEKING}\"\"${IMPLACING}\"g ${FILE}"
+                    sed  -i.sedbak  -e s"$SEEKING""$IMPLACING"g "${FILE}"
+                    sed  -i.sedbak  -e s"$SEEKING""$IMPLACING"g ${FILE} | ${SEEKER} "$SEEKING" ${FILESCOMMAND}  &>/dev/null
+                    err_buff=$?
     }
     fi
   }
@@ -900,19 +893,32 @@ else
         {
           # ersetzeindatei react-service.php ".php<br>\n'" ".php<br>'.PHP_EOL"
           # echo -en "  SEEKING:"
-          # echo "\"${SEEKING}\" == \".php<br>\\\\n'\"  "
+          # echo -n "\"${SEEKING}\" == \".php<br>\\\\n'\"  "
           # if [[ "${SEEKING}" == ".php<br>\\\\n'" ]] ; then
+          # ersetzeindatei velophil_test_2021_12_28_12_16.sql  velophil.test- velophil-berlin-
+          # echo -en "  SEEKING:"
+          # echo -n "\"${SEEKING}\" == \"velophil.test-\"  "
+          # if [[ "${SEEKING}" == "velophil.test-" ]] ; then
           # {
-          #  echo passed
+          #  echo -e "${green}passed"
           # }
           # else
           # {
-          #  echo failed
+          #  echo -e "${red}         failed"
+          # }
+          # fi
+          # echo -en "IMPLACING:"
+          # echo -n "\"${IMPLACING}\" == \"velophil-berlin-\"  "
+          # if [[ -n "${IMPLACING}" ]] && [[ "${IMPLACING}" == "velophil-berlin-" ]]; then
+          # {
+          #  echo -e "${green}passed"
+          # }
+          # else
+          # {
+          #  echo -e "${red}            failed"
           # }
           # fi
           # exit 0
-          # echo -en "IMPLACING:"
-          # echo "\"${IMPLACING}\""
            echo "${cyan}   sed -i -e s/\"${SEEKING}\"/\"${IMPLACING}\"/g ${FILE}"
                            sed -i -e s/"$SEEKING"/"$IMPLACING"/g ${FILE} | ${SEEKER} "$SEEKING" ${FILESCOMMAND} &>/dev/null
                            err_buff=$?

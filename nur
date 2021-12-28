@@ -1756,14 +1756,14 @@ if [[ "${FOUND}" == "YES" ]] ; then
       # sed GNU
       {
         # echo -e "${YELLOW} sed GNU ";
-        sed 's^:g' < /tmp/temp19.txt | sed 's:*$g' #| sed 's:*$g' #| sed 's:$g'  #| sed 's.$g'
+        sed s^:g < /tmp/temp19.txt | sed 's:*$g' #| sed 's:*$g' #| sed 's:$g'  #| sed 's.$g'
       }
       else
       # sed mac
       # MAC REPLACER Has to HAVE A FILENAME.EXTENSION provided for the -i (inplace) option
       {
         # echo -e "${YELLOW} sed MAC ";
-        sed 's^:g' < /tmp/temp19.txt | sed 's:*$g' #| sed 's:*$g' #| sed 's:$g'  #| sed 's.$g'
+        sed s^:g < /tmp/temp19.txt | sed 's:*$g' #| sed 's:*$g' #| sed 's:$g'  #| sed 's.$g'
       }
       fi
 

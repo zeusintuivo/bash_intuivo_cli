@@ -447,7 +447,7 @@ else
 {
   # echo "${red}   your seeker ${DEFAULTSEEKER} was not found!"
   echo "${cyan}  using ...${SEEKER}  "
-}  
+}
 fi
 
 
@@ -720,6 +720,9 @@ function escape_slashes() {
 function escape_quotes() {
     sed 's/\"/\\\"/g'
 } # end escape_quotes
+function escape_single_quotes() {
+    sed "s/'/\\'/g"
+} # end escape_single_quotes
 function change_line() {
     # So the sample usage to fix the problem posed:
     # change_line "TEXT_TO_BE_REPLACED" "This line is removed by the admin." yourFile
@@ -736,8 +739,11 @@ function change_line() {
 # OLD_LINE_PATTERN=$SEEKING;
 # NEW_LINE=$2;
 # FILE=$3
-IMPLACING=$(echo "${NEW}"  | escape_slashes | escape_quotes)
-TESTENTERIMPLACING=$(echo "${IMPLACING}" | enter_escape_for_sed)
+# echo  "1 IMPLACING:${IMPLACING}"
+IMPLACING=$(echo -n "${IMPLACING}"  | escape_slashes | escape_quotes| escape_single_quotes)
+# echo  "2 IMPLACING:${IMPLACING}"
+TESTENTERIMPLACING=$(echo -n "${IMPLACING}" | enter_escape_for_sed)
+# echo  "3 IMPLACING:${IMPLACING}"
 
 if [[ "${IMPLACING}" == "${TESTENTERIMPLACING}" ]] ; then
 {
@@ -749,7 +755,8 @@ else
   IMPLACING=$TESTENTERIMPLACING
 }
 fi
-
+# echo  "4 IMPLACING:${IMPLACING}"
+# exit 0
 escape_backslashes_for_sed() {
     sed 's/\\/\\\\/g'
 } # end escape_backslashes_for_sed
@@ -831,7 +838,32 @@ if [[ $SEEKING == *"/"* || $IMPLACING == *"/"* ]]; then
         if [[ "${REPLACERGNU}" == "YES" ]] ; then
           # sed GNU
           {
-            echo "${yellow} sed GNU ";
+            echo "${yellow} sed GNU "
+            # echo "Test"
+            # echo ersetze  velophil.test- velophil-berlin-
+            # echo -en "  SEEKING:"
+            # echo -n "\"${SEEKING}\" == \"velophil.test-\"  "
+            # if [[ "${SEEKING}" == "velophil.test-" ]] ; then
+            # {
+            #  echo -e "${green}passed"
+            # }
+            # else
+            # {
+            #  echo -e "${red}         failed"
+            # }
+            # fi
+            # echo -en "IMPLACING:"
+            # echo -n "\"${IMPLACING}\" == \"velophil-berlin-\"  "
+            # if [[ -n "${IMPLACING}" ]] && [[ "${IMPLACING}" == "velophil-berlin-" ]]; then
+            # {
+            #  echo -e "${green}passed"
+            # }
+            # else
+            # {
+            #  echo -e "${red}            failed"
+            # }
+            # fi
+            # exit 0
             # Get list and scroll through the list
             # FILES=$(${SEEKER} "$SEEKING"     ${FILESCOMMAND} ${PRINTCOMMAND} ${IGNORELIST})
             # echo "FILES FOUND: $FILES"

@@ -1454,14 +1454,14 @@ if [[ "${FOUND}" == "YES" ]] ; then
         }
         else
         {
-          cut -f3 -d":" <<< "$RESULT" | sed 's'"${SEEKING}"''"[38;5;201m${SEEKING}[0m"'g' > /tmp/tmp4.txt
-          cut -f4 -d":" <<< "$RESULT" | sed 's'"${SEEKING}"''"[38;5;201m${SEEKING}[0m"'g' > /tmp/tmp6.txt
-          cut -f5 -d":" <<< "$RESULT" | sed 's'"${SEEKING}"''"[38;5;201m${SEEKING}[0m"'g' > /tmp/tmp8.txt
-          cut -f6 -d":" <<< "$RESULT" | sed 's'"${SEEKING}"''"[38;5;201m${SEEKING}[0m"'g' > /tmp/tmp10.txt
-          cut -f7 -d":" <<< "$RESULT" | sed 's'"${SEEKING}"''"[38;5;201m${SEEKING}[0m"'g' > /tmp/tmp12.txt
-          cut -f8 -d":" <<< "$RESULT" | sed 's'"${SEEKING}"''"[38;5;201m${SEEKING}[0m"'g' > /tmp/tmp14.txt
-          cut -f9 -d":" <<< "$RESULT" | sed 's'"${SEEKING}"''"[38;5;201m${SEEKING}[0m"'g' > /tmp/tmp16.txt
-          cut -f10 -d":" <<< "$RESULT" | sed 's'"${SEEKING}"''"[38;5;201m${SEEKING}[0m"'g' > /tmp/tmp18.txt
+          cut -f3 -d":" <<< "$RESULT" | sed s"${SEEKING}""[38;5;201m${SEEKING}[0m"g > /tmp/tmp4.txt
+          cut -f4 -d":" <<< "$RESULT" | sed s"${SEEKING}""[38;5;201m${SEEKING}[0m"g > /tmp/tmp6.txt
+          cut -f5 -d":" <<< "$RESULT" | sed s"${SEEKING}""[38;5;201m${SEEKING}[0m"g > /tmp/tmp8.txt
+          cut -f6 -d":" <<< "$RESULT" | sed s"${SEEKING}""[38;5;201m${SEEKING}[0m"g > /tmp/tmp10.txt
+          cut -f7 -d":" <<< "$RESULT" | sed s"${SEEKING}""[38;5;201m${SEEKING}[0m"g > /tmp/tmp12.txt
+          cut -f8 -d":" <<< "$RESULT" | sed s"${SEEKING}""[38;5;201m${SEEKING}[0m"g > /tmp/tmp14.txt
+          cut -f9 -d":" <<< "$RESULT" | sed s"${SEEKING}""[38;5;201m${SEEKING}[0m"g > /tmp/tmp16.txt
+          cut -f10 -d":" <<< "$RESULT" | sed s"${SEEKING}""[38;5;201m${SEEKING}[0m"g > /tmp/tmp18.txt
         }
         fi
 
@@ -1480,28 +1480,28 @@ if [[ "${FOUND}" == "YES" ]] ; then
               # sed GNU
               {
                 # echo "sed GNU ";
-                sed 's'"$SEEKING"''"$SEEKING"'g' < /tmp/tomp4.txt > /tmp/temp4.txt   #first results
-                sed 's'"$SEEKING"''"$SEEKING"'g' < /tmp/tmp6.txt  > /tmp/temp6.txt
-                sed 's'"$SEEKING"''"$SEEKING"'g' < /tmp/tmp8.txt  > /tmp/temp8.txt
-                sed 's'"$SEEKING"''"$SEEKING"'g' < /tmp/tmp10.txt > /tmp/temp10.txt
-                sed 's'"$SEEKING"''"$SEEKING"'g' < /tmp/tmp12.txt > /tmp/temp12.txt
-                sed 's'"$SEEKING"''"$SEEKING"'g' < /tmp/tmp14.txt > /tmp/temp14.txt
-                sed 's'"$SEEKING"''"$SEEKING"'g' < /tmp/tmp16.txt > /tmp/temp16.txt
-                sed 's'"$SEEKING"''"$SEEKING"'g' < /tmp/tmp18.txt > /tmp/temp18.txt
+                sed s"$SEEKING""$SEEKING"g < /tmp/tomp4.txt > /tmp/temp4.txt   #first results
+                sed s"$SEEKING""$SEEKING"g < /tmp/tmp6.txt  > /tmp/temp6.txt
+                sed s"$SEEKING""$SEEKING"g < /tmp/tmp8.txt  > /tmp/temp8.txt
+                sed s"$SEEKING""$SEEKING"g < /tmp/tmp10.txt > /tmp/temp10.txt
+                sed s"$SEEKING""$SEEKING"g < /tmp/tmp12.txt > /tmp/temp12.txt
+                sed s"$SEEKING""$SEEKING"g < /tmp/tmp14.txt > /tmp/temp14.txt
+                sed s"$SEEKING""$SEEKING"g < /tmp/tmp16.txt > /tmp/temp16.txt
+                sed s"$SEEKING""$SEEKING"g < /tmp/tmp18.txt > /tmp/temp18.txt
               }
             else
               # sed mac
               # MAC REPLACER Has to HAVE A FILENAME.EXTENSION provided for the -i (inplace) option
               {
                 # echo "sed MAC ";
-                sed 's'"$SEEKING"''"$SEEKING"'g' < /tmp/tomp4.txt  > /tmp/temp4.txt   #first results
-                sed 's'"$SEEKING"''"$SEEKING"'g' < /tmp/tmp6.txt   > /tmp/temp6.txt
-                sed 's'"$SEEKING"''"$SEEKING"'g' < /tmp/tmp8.txt   > /tmp/temp8.txt
-                sed 's'"$SEEKING"''"$SEEKING"'g' < /tmp/tmp10.txt  > /tmp/temp10.txt
-                sed 's'"$SEEKING"''"$SEEKING"'g' < /tmp/tmp12.txt  > /tmp/temp12.txt
-                sed 's'"$SEEKING"''"$SEEKING"'g' < /tmp/tmp14.txt  > /tmp/temp14.txt
-                sed 's'"$SEEKING"''"$SEEKING"'g' < /tmp/tmp16.txt  > /tmp/temp16.txt
-                sed 's'"$SEEKING"''"$SEEKING"'g' < /tmp/tmp18.txt  > /tmp/temp18.txt
+                sed s"$SEEKING""$SEEKING"g < /tmp/tomp4.txt  > /tmp/temp4.txt   #first results
+                sed s"$SEEKING""$SEEKING"g < /tmp/tmp6.txt   > /tmp/temp6.txt
+                sed s"$SEEKING""$SEEKING"g < /tmp/tmp8.txt   > /tmp/temp8.txt
+                sed s"$SEEKING""$SEEKING"g < /tmp/tmp10.txt  > /tmp/temp10.txt
+                sed s"$SEEKING""$SEEKING"g < /tmp/tmp12.txt  > /tmp/temp12.txt
+                sed s"$SEEKING""$SEEKING"g < /tmp/tmp14.txt  > /tmp/temp14.txt
+                sed s"$SEEKING""$SEEKING"g < /tmp/tmp16.txt  > /tmp/temp16.txt
+                sed s"$SEEKING""$SEEKING"g < /tmp/tmp18.txt  > /tmp/temp18.txt
               }
             fi
           }
@@ -1520,28 +1520,28 @@ if [[ "${FOUND}" == "YES" ]] ; then
               # sed GNU
               {
                 # echo -e "${YELLOW} sed GNU ";
-                sed 's'"$SEEKING"''"[38;5;9m$SEEKING${RESET_PROMPT}"'g' < /tmp/tomp4.txt > /tmp/temp4.txt
-                sed 's'"$SEEKING"''"[38;5;9m$SEEKING${RESET_PROMPT}"'g' < /tmp/tmp6.txt  > /tmp/temp6.txt
-                sed 's'"$SEEKING"''"[38;5;9m$SEEKING${RESET_PROMPT}"'g' < /tmp/tmp8.txt  > /tmp/temp8.txt
-                sed 's'"$SEEKING"''"[38;5;9m$SEEKING${RESET_PROMPT}"'g' < /tmp/tmp10.txt > /tmp/temp10.txt
-                sed 's'"$SEEKING"''"[38;5;9m$SEEKING${RESET_PROMPT}"'g' < /tmp/tmp12.txt > /tmp/temp12.txt
-                sed 's'"$SEEKING"''"[38;5;9m$SEEKING${RESET_PROMPT}"'g' < /tmp/tmp14.txt > /tmp/temp14.txt
-                sed 's'"$SEEKING"''"[38;5;9m$SEEKING${RESET_PROMPT}"'g' < /tmp/tmp16.txt > /tmp/temp16.txt
-                sed 's'"$SEEKING"''"[38;5;9m$SEEKING${RESET_PROMPT}"'g' < /tmp/tmp18.txt > /tmp/temp18.txt
+                sed s"$SEEKING""[38;5;9m$SEEKING${RESET_PROMPT}"g < /tmp/tomp4.txt > /tmp/temp4.txt
+                sed s"$SEEKING""[38;5;9m$SEEKING${RESET_PROMPT}"g < /tmp/tmp6.txt  > /tmp/temp6.txt
+                sed s"$SEEKING""[38;5;9m$SEEKING${RESET_PROMPT}"g < /tmp/tmp8.txt  > /tmp/temp8.txt
+                sed s"$SEEKING""[38;5;9m$SEEKING${RESET_PROMPT}"g < /tmp/tmp10.txt > /tmp/temp10.txt
+                sed s"$SEEKING""[38;5;9m$SEEKING${RESET_PROMPT}"g < /tmp/tmp12.txt > /tmp/temp12.txt
+                sed s"$SEEKING""[38;5;9m$SEEKING${RESET_PROMPT}"g < /tmp/tmp14.txt > /tmp/temp14.txt
+                sed s"$SEEKING""[38;5;9m$SEEKING${RESET_PROMPT}"g < /tmp/tmp16.txt > /tmp/temp16.txt
+                sed s"$SEEKING""[38;5;9m$SEEKING${RESET_PROMPT}"g < /tmp/tmp18.txt > /tmp/temp18.txt
               }
             else
               # sed mac
               # MAC REPLACER Has to HAVE A FILENAME.EXTENSION provided for the -i (inplace) option
               {
                 # echo -e "${YELLOW} sed MAC ";
-                sed 's'"$SEEKING"''"[38;5;9m$SEEKING${RESET_PROMPT}"'g' < /tmp/tomp4.txt > /tmp/temp4.txt
-                sed 's'"$SEEKING"''"[38;5;9m$SEEKING${RESET_PROMPT}"'g' < /tmp/tmp6.txt  > /tmp/temp6.txt
-                sed 's'"$SEEKING"''"[38;5;9m$SEEKING${RESET_PROMPT}"'g' < /tmp/tmp8.txt  > /tmp/temp8.txt
-                sed 's'"$SEEKING"''"[38;5;9m$SEEKING${RESET_PROMPT}"'g' < /tmp/tmp10.txt > /tmp/temp10.txt
-                sed 's'"$SEEKING"''"[38;5;9m$SEEKING${RESET_PROMPT}"'g' < /tmp/tmp12.txt > /tmp/temp12.txt
-                sed 's'"$SEEKING"''"[38;5;9m$SEEKING${RESET_PROMPT}"'g' < /tmp/tmp14.txt > /tmp/temp14.txt
-                sed 's'"$SEEKING"''"[38;5;9m$SEEKING${RESET_PROMPT}"'g' < /tmp/tmp16.txt > /tmp/temp16.txt
-                sed 's'"$SEEKING"''"[38;5;9m$SEEKING${RESET_PROMPT}"'g' < /tmp/tmp18.txt > /tmp/temp18.txt
+                sed s"$SEEKING""[38;5;9m$SEEKING${RESET_PROMPT}"g < /tmp/tomp4.txt > /tmp/temp4.txt
+                sed s"$SEEKING""[38;5;9m$SEEKING${RESET_PROMPT}"g < /tmp/tmp6.txt  > /tmp/temp6.txt
+                sed s"$SEEKING""[38;5;9m$SEEKING${RESET_PROMPT}"g < /tmp/tmp8.txt  > /tmp/temp8.txt
+                sed s"$SEEKING""[38;5;9m$SEEKING${RESET_PROMPT}"g < /tmp/tmp10.txt > /tmp/temp10.txt
+                sed s"$SEEKING""[38;5;9m$SEEKING${RESET_PROMPT}"g < /tmp/tmp12.txt > /tmp/temp12.txt
+                sed s"$SEEKING""[38;5;9m$SEEKING${RESET_PROMPT}"g < /tmp/tmp14.txt > /tmp/temp14.txt
+                sed s"$SEEKING""[38;5;9m$SEEKING${RESET_PROMPT}"g < /tmp/tmp16.txt > /tmp/temp16.txt
+                sed s"$SEEKING""[38;5;9m$SEEKING${RESET_PROMPT}"g < /tmp/tmp18.txt > /tmp/temp18.txt
               }
             fi
           }
@@ -1598,7 +1598,7 @@ if [[ "${FOUND}" == "YES" ]] ; then
             [[ -z "${line}" ]] && continue
             echo -e "[38;5;13m${FILE}:${line}${RESET}"
           }
-          done <<< "$(sed 's^:g' < /tmp/temp19.txt  | sed 's:*$g')" #| sed 's:*$g' #| sed 's:$g'  #| sed 's.$g'
+          done <<< "$(sed s^:g < /tmp/temp19.txt  | sed 's:*$g')" #| sed 's:*$g' #| sed 's:$g'  #| sed 's.$g'
 
         }
         else
@@ -1611,7 +1611,7 @@ if [[ "${FOUND}" == "YES" ]] ; then
             [[ -z "${line}" ]] && continue
             echo -e "[38;5;13m${FILE}:${line}${RESET}"
           }
-          done <<< "$(sed 's^:g' < /tmp/temp19.txt | sed 's:*$g')" #| sed 's:*$g' #| sed 's:$g'  #| sed 's.$g'
+          done <<< "$(sed s^:g < /tmp/temp19.txt | sed 's:*$g')" #| sed 's:*$g' #| sed 's:$g'  #| sed 's.$g'
         }
         fi
 
