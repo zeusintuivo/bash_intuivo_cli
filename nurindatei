@@ -1595,10 +1595,11 @@ if [[ "${FOUND}" == "YES" ]] ; then
         # sed GNU
         {
           # echo -e "${YELLOW} sed GNU ";
-          echo -e "${RESET}"
+          echo -en "${RESET}"
           while read -r line; do
           {
             [[ -z "${line}" ]] && continue
+            [[ "${line}" == "[38;5;28m [0m" ]] && continue
             echo -e "[38;5;13m${FILE}:${line}${RESET}"
           }
           done <<< "$(sed s^:g < /tmp/temp19.txt  | sed 's:*$g')" #| sed 's:*$g' #| sed 's:$g'  #| sed 's.$g'
