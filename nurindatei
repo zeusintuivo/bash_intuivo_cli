@@ -1185,6 +1185,31 @@ fi
 
 if [[ $SEEKING == *"/"* ]] ; then
 {
+APPLIED_ENTER=0
+function enter_escape_for_sed() {
+  #sed ':a;N;$!ba;s/\n/0N33NT3R/g'  # GNU sed
+  sed -e ':a' -e 'N' -e '$!ba' -e 's/\n/\\n/g'  #  cross-platform compatible syntax which works with BSD sed
+  APPLIED_ENTER=$?
+} # end enter_escape_for_sed
+function enter_decode() {
+  sed 's/\\n/\n/g'
+} # end enter_decode
+function escape_slashes() {
+    sed 's/\//\\\//g'
+} # end escape_slashes
+function escape_quotes() {
+    sed 's/\"/\\\"/g'
+} # end escape_quotes
+function escape_single_quotes() {
+    sed "s/'/\\'/g"
+} # end escape_single_quotes
+function escape_squared_open_brackets() {
+    sed "s/\[/\\[/g"
+} # end escape_squared_open_brackets
+function escape_squared_close_brackets() {
+    sed "s/\]/\\]/g"
+} # end escape_squared_close_brackets
+
     ${SEEKER} "$SEEKING" ${FILESCOMMAND}      ${IGNORELIST} "${FILE}" &>/dev/null
     err_buff=$?
     if [ $VERBOSE -eq 1 ] ; then
@@ -1271,6 +1296,52 @@ if [[ $SEEKING == *"/"* ]] ; then
 }
 else # else SEEKING does not contain  *"/"*
 {
+APPLIED_CHANGE=0
+function enter_escape_for_sed() {
+  #sed ':a;N;$!ba;s/\n/0N33NT3R/g'  # GNU sed
+  sed -e ':a' -e 'N' -e '$!ba' -e 's/\n/\\n/g'  #  cross-platform compatible synta>
+  APPLIED_CHANGE=$?
+} # end enter_escape_for_sed
+function enter_decode() {
+  sed 's/\\n/\n/g'
+} # end enter_decode
+function escape_slashes() {
+    sed 's/\//\\\//g'
+} # end escape_slashes
+function escape_backslashes_for_sed() {
+    sed 's/\\/\\\\/g'
+} # end escape_backslashes_for_sed
+function escape_quotes() {
+    sed 's/\"/\\\"/g'
+} # end escape_quotes
+function escape_single_quotes() {
+    sed "s/'/\\'/g"
+} # end escape_single_quotes
+function escape_squared_open_brackets() {
+    sed "s/\[/\\[/g"
+} # end escape_squared_open_brackets
+function escape_squared_close_brackets() {
+    sed "s/\]/\\]/g"
+} # end escape_squared_close_brackets
+# DEBUG echo "SEEKING:$SEEKING"
+
+INSEEKING=$(echo -n "${SEEKING}"|escape_backslashes_for_sed|escape_squared_open_brackets|escape_squared_close_brackets  | escape_quotes| escape_single_quotes )
+TESTERINSEEKING=$(echo -n "${INSEEKING}" | enter_escape_for_sed)
+# DEBUG echo "INSEEKING:$INSEEKING"
+
+
+if [[ "${INSEEKING}" == "${TESTERINSEEKING}" ]] ; then
+{
+  APPLIED_CHANGE=0
+}
+else
+{
+  APPLIED_CHANGE=1
+  SEEKING="${TESTERINSEEKING}"
+}
+fi
+# DEBUG echo "SEEKING:$SEEKING"
+#exit 0
     if [ $VERBOSE -eq 1 ] ; then
     {
       # NOT Colored
@@ -1278,16 +1349,92 @@ else # else SEEKING does not contain  *"/"*
       {
         echo "   ${SEEKER} \"${SEEKING}\" ${FILESCOMMAND}  ${IGNORELIST}  \"${FILE}\""
         # ${SEEKER} "$SEEKING" ${FILESCOMMAND}     ${IGNORELIST}   "${FILE}"
-        RESULT=$(${SEEKER} "$SEEKING" ${FILESCOMMAND}     ${IGNORELIST}   "${FILE}")
+        RESULT=$(${SEEKER} "$SEEKING" ${FILESCOMMAND}     ${IGNORELIST}   "${FILE}")    # store result for display
+err_buff=$?
+FOUND="No"
+if [[ "${PROCESSOR_ERROR}" == *"INTEL"* ]] && (( err_buff == 0 )); then
+  FOUND="YES"
+elif [[ "${PROCESSOR_ERROR}" == *"MAC"* ]] && [ $err_buff -eq 0 ]; then
+  FOUND="YES"
+fi
+if [[ "${FOUND}" == "YES" ]] ; then
+{
+
+        echo  "${RESULT}" | sed s/"$SEEKING"/"$SEEKING"/g                                   
+}
+fi
+
       }
       else
       {
         # colored
-        echo -e "${CYAN}   ${SEEKER} \"${SEEKING}\" ${FILESCOMMAND}  ${IGNORELIST}  \"${FILE}\""
+        echo -e "1 ${CYAN}   ${SEEKER} \"${SEEKING}\" ${FILESCOMMAND}  ${IGNORELIST}  \"${FILE}\""
         # ${SEEKER} "$SEEKING" ${FILESCOMMAND}     ${IGNORELIST}   "${FILE}"
-        RESULT=$(${SEEKER} "$SEEKING" ${FILESCOMMAND}     ${IGNORELIST}   "${FILE}")
+        RESULT=$(${SEEKER} "$SEEKING" ${FILESCOMMAND}     ${IGNORELIST}   "${FILE}")  # store result for display
+        # echo "?:$?"
+err_buff=$?
+FOUND="No"
+if [[ "${PROCESSOR_ERROR}" == *"INTEL"* ]] && (( err_buff == 0 )); then
+  FOUND="YES"
+elif [[ "${PROCESSOR_ERROR}" == *"MAC"* ]] && [ $err_buff -eq 0 ]; then
+  FOUND="YES"
+fi
+if [[ "${FOUND}" == "YES" ]] ; then
+{
+        echo -e "1 ${RESULT}" | sed s/"$SEEKING"/"$SEEKING"/g  # generate error for errbuff assignment after all these ifs end
+
+}
+fi
       }
       fi
+    }
+else # NOT VERBOSE
+{
+      # NOT Colored
+      if [[ -n "$COLORED" ]] ; then
+      {
+        # echo "   ${SEEKER} \"${SEEKING}\" ${FILESCOMMAND}  ${IGNORELIST}  \"${FILE}\""
+        # ${SEEKER} "$SEEKING" ${FILESCOMMAND}     ${IGNORELIST}   "${FILE}"
+        RESULT=$(${SEEKER} "$SEEKING" ${FILESCOMMAND}     ${IGNORELIST}   "${FILE}")    # store result for display
+err_buff=$?
+FOUND="No"
+if [[ "${PROCESSOR_ERROR}" == *"INTEL"* ]] && (( err_buff == 0 )); then
+  FOUND="YES"
+elif [[ "${PROCESSOR_ERROR}" == *"MAC"* ]] && [ $err_buff -eq 0 ]; then
+  FOUND="YES"
+fi
+if [[ "${FOUND}" == "YES" ]] ; then
+{
+
+        echo  "${RESULT}" | sed s/"$SEEKING"/"$SEEKING"/g >/dev/null 2>&1; # generate error for errbuff assignment after all these ifs end
+}
+fi
+
+      }
+      else
+      {
+        # colored
+        # echo -e "1 ${CYAN}   ${SEEKER} \"${SEEKING}\" ${FILESCOMMAND}  ${IGNORELIST}  \"${FILE}\""
+        # ${SEEKER} "$SEEKING" ${FILESCOMMAND}     ${IGNORELIST}   "${FILE}"
+        RESULT=$(${SEEKER} "$SEEKING" ${FILESCOMMAND}     ${IGNORELIST}   "${FILE}")  # store result for display
+        # echo "?:$?"
+err_buff=$?
+FOUND="No"
+if [[ "${PROCESSOR_ERROR}" == *"INTEL"* ]] && (( err_buff == 0 )); then
+  FOUND="YES"
+elif [[ "${PROCESSOR_ERROR}" == *"MAC"* ]] && [ $err_buff -eq 0 ]; then
+  FOUND="YES"
+fi
+if [[ "${FOUND}" == "YES" ]] ; then
+{
+        echo -e "1 ${RESULT}" | sed s/"$SEEKING"/"$SEEKING"/g >/dev/null 2>&1; # generate error for errbuff assignment after all these ifs end
+
+}
+fi
+      }
+      fi
+
+
     }
     fi
     # not PIPED
@@ -1296,20 +1443,45 @@ else # else SEEKING does not contain  *"/"*
       if [[ "${REPLACERGNU}" == "YES" ]] ; then
       # sed GNU
       {
-        echo -e "${YELLOW} sed GNU ";
+if [[ "${FOUND}" == "YES" ]] ; then
+{
+        # echo -e "${YELLOW} 1 sed GNU ";
         # ${SEEKER} "$SEEKING" ${FILESCOMMAND}      ${IGNORELIST}  &>/dev/null
         # echo "RESULT=\$(${SEEKER} "$SEEKING" ${FILESCOMMAND}      ${IGNORELIST} "${FILE}"| sed 's@\\@\\\\@g')"
         RESULT=$(${SEEKER} "$SEEKING" ${FILESCOMMAND}      ${IGNORELIST} "${FILE}"| sed 's@\\@\\\\@g')
+        #echo -e "${RESULT}" | sed s/"$SEEKING"/"$SEEKING"/g # generate error for errbuff assignment after all these ifs end
+
         # echo RESULT:$RESULT
         # exit 0
+}
+else
+{
+        echo -e "${RESULT}" | sed s/"$SEEKING"/"$SEEKING"/g  # generate error for errbuff assignment after all these ifs end
+
+
+}
+fi
+
       }
       else
       # sed mac
       # MAC REPLACER Has to HAVE A FILENAME.EXTENSION provided for the -i (inplace) option
       {
+if [[ "${FOUND}" == "YES" ]] ; then
+{
         echo -e  "${YELLOW} sed MAC ";
         # ${SEEKER} "$SEEKING" ${FILESCOMMAND}      ${IGNORELIST}  &>/dev/null
         RESULT=$(${SEEKER} "$SEEKING" ${FILESCOMMAND}      ${IGNORELIST} "${FILE}"| sed 's@\\@\\\\@g')
+        echo -e "${RESULT}" | sed s/"$SEEKING"/"$SEEKING"/g  # generate error for errbuff assignment after all these ifs end
+}
+else
+{
+        echo -e "${RESULT}" | sed s/"$SEEKING"/"$SEEKING"/g # generate error for errbuff assignment after all these ifs end
+
+
+}
+fi
+
       }
       fi
     }
@@ -1358,17 +1530,17 @@ else # else SEEKING does not contain  *"/"*
 fi
 # If  | egrep "$SEEKING" &>/dev/null | returned an error....so it was... it was found/not found say it and stop execution for not found
 # if [ $? -eq 0 ] ;then #work
-# err_buff=$?
+err_buff=$?
 FOUND="No"
 if [[ "${PROCESSOR_ERROR}" == *"INTEL"* ]] && (( err_buff == 0 )); then
   FOUND="YES"
 elif [[ "${PROCESSOR_ERROR}" == *"MAC"* ]] && [ $err_buff -eq 0 ]; then
   FOUND="YES"
 fi
-# echo "PROCESSOR_ERROR:${PROCESSOR_ERROR}"
-# echo "err_buff:${err_buff}"
-# echo "FOUND:${FOUND}"
-# exit 0
+#echo "PROCESSOR_ERROR:${PROCESSOR_ERROR}"
+#echo "err_buff:${err_buff}"
+#echo "FOUND:${FOUND}"
+#exit 0
 if [[ "${FOUND}" == "YES" ]] ; then
 {
         # not PIPED

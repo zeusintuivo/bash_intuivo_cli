@@ -232,38 +232,38 @@ fi
 # S E E K I N G   I N S T A L L    C H E C K  - Start
 #
 if command -v sift >/dev/null 2>&1; then
+{
+  if [ $VERBOSE -eq 1 ] ; then
+  {
+    #  NOT Colored
+    if [[ -n "$COLORED" ]] ; then
     {
-      if [ $VERBOSE -eq 1 ] ; then
-        {
-            #  NOT Colored
-            if [ ! -z "$COLORED" ] ; then
-                {
-                  echo " sift INSTALLED."
-                }
-              else
-                {
+      echo " sift INSTALLED."
+    }
+    else
+    {
                   msg_green " sift INSTALLED."
-                }
-              fi
+    }
+    fi
 
-        }
-      fi
-      # -i, --ignore-case      case insensitive (default: off) Case sentive by default
-      # -n, --line-number      show line numbers (default: off)
-      # -Q, --literal          treat pattern as literal, quote meta characters
-      # --output-sep=          output separator (default: "\n")
-      # --no-color             disable colored output
-      # Error: sift Error: files skipped due to very long lines
-      # Fix:
-      #   REF: https://github.com/svent/sift/issues/16
-      #    As of version 0.4.0 sift supports two new options:
-      #
-      #    --err-skip-line-length to skip these errors
-      #    --blocksize to specify a larger blocksize, allowing to search files with very long lines. Example: --blocksize 10M
-        SEEKER="sift -nQ  --blocksize 50M";
-        IGNORE_DIR="exclude-dirs";
-        IGNORE_FILE="exclude-files";
-        PRINTCOMMAND="-l --output-sep=\"\\x00\"";
+  }
+  fi
+  #-i, --ignore-case      case insensitive (default: off) Case sentive by default
+  #-n, --line-number      show line numbers (default: off)
+  #-Q, --literal          treat pattern as literal, quote meta characters
+  #--output-sep=          output separator (default: "\n")
+  #--no-color             disable colored output
+  # Error: sift Error: files skipped due to very long lines
+  # Fix:
+  #   REF: https://github.com/svent/sift/issues/16
+  #    As of version 0.4.0 sift supports two new options:
+  #
+  #    --err-skip-line-length to skip these errors
+  #    --blocksize to specify a larger blocksize, allowing to search files with very long lines. Example: --blocksize 10M
+  SEEKER="sift -nQ  --blocksize 50M";
+  IGNORE_DIR="exclude-dirs";
+  IGNORE_FILE="exclude-files";
+  PRINTCOMMAND="-l --output-sep=\"\\x00\"";
 }
 else
 {
@@ -289,9 +289,9 @@ else
     if command -v ack >/dev/null 2>&1; then
     {
       msg_green " ack INSTALLED."
-      # ack is case sensitve by default
-      # --print0 Print null byte as separator between filenames, only works with -f, -g, -l, -L or -c.
-      # -Q, --literal                 Quote all metacharacters; PATTERN is litera
+      # ack is            case sensitve by default
+      # --print0          Print null byte as separator between filenames, only works with -f, -g, -l, -L or -c.
+      # -Q, --literal     Quote all metacharacters; PATTERN is litera
       # --nocolor         Highlight the matching text (default: on unless --nocolor)
       #
       # Ack DOES NOT SUPPORT HIDDING LINE NUMBERS
@@ -308,7 +308,7 @@ else
 
       ls ./ack  | egrep 'ack' &>/dev/null
       err_buff=$?
-      if [[ "${PROCESSOR_ERROR}" == "MAC" ]] && [ $err_buff == 1 ]; then
+      if [[ "${PROCESSOR_ERROR}" == *"MAC"* ]] && [ $err_buff == 0 ]; then
       {
         msg_green " ./ack INSTALLED."
         SEEKER="./ack -Q ";
@@ -347,6 +347,7 @@ else
           #-F, --fixed-strings
           # Interpret pattern as a set of fixed strings (i.e. force grep to behave as fgrep).
           # --color=never     disable color
+
           #
           # grep (GNU grep) 2.25
           # -l, --files-with-matches
@@ -414,7 +415,7 @@ if command -v "${DEFAULTSEEKER}" >/dev/null 2>&1; then
   }
   fi
   # make case sentive for ag
-  if [ $DEFAULTSEEKER == "ack" ]; then
+  if [[ "$DEFAULTSEEKER" == "ack" ]] ; then
   {
     SEEKER="ack -Q "
     IGNORE_DIR="ignore-dir";
@@ -423,7 +424,7 @@ if command -v "${DEFAULTSEEKER}" >/dev/null 2>&1; then
   }
   fi
   # make case sentive for local ./ack
-  if [ $DEFAULTSEEKER == "./ack" ]; then
+  if [ -e "./ack" ] && [[ "$DEFAULTSEEKER" == "./ack" ]] ; then
   {
     SEEKER="./ack -Q "
     IGNORE_DIR="ignore-dir";
@@ -432,7 +433,7 @@ if command -v "${DEFAULTSEEKER}" >/dev/null 2>&1; then
   }
   fi
   # use extended expressions
-  if [ $DEFAULTSEEKER == "grep" ]; then
+  if [[ "$DEFAULTSEEKER" == "grep" ]] ; then
   {
     SEEKER="grep -rnE "
     IGNORE_DIR="exclude-dir";
@@ -478,6 +479,10 @@ MOREIGNORE_FILES=""
 [ -f .ersetzeignore_files ] && MOREIGNORE_FILES=$(<.ersetzeignore_files)
 MOREIGNORE_DIRS=""
 [ -f .ersetzeignore_dirs ] && MOREIGNORE_DIRS=$(<.ersetzeignore_dirs)
+
+# echo "MOREIGNORE_FILES:${MOREIGNORE_FILES}"
+# echo "MOREIGNORE_DIRS:${MOREIGNORE_DIRS}"
+# exit 0
 
 FILESTOEXCLUDE=".dir_bash_history
 .gitignore
@@ -532,21 +537,22 @@ app/cache
 app/logs
 app/session
 ${MOREIGNORE_DIRS}"
+# echo "FILESTOEXCLUDE:${FILESTOEXCLUDE}"
+# echo "DIRSTOEXCLUDE:${DIRSTOEXCLUDE}"
+# exit 0
 
 IGNORELIST=""
 
     while read -r ONE_FILENAME; do
-      # if not empty
-      if [ ! -z "${ONE_FILENAME}" ] ; then
-        IGNORELIST="${IGNORELIST} ${EXCLUDEFILE}${ONE_FILENAME}"
-      fi
+      [[ -z "${ONE_FILENAME}" ]] && continue  # if not empty
+      IGNORELIST="${IGNORELIST} ${EXCLUDEFILE}${ONE_FILENAME}"
     done <<< "${FILESTOEXCLUDE}"
     while read -r ONE_DIRNAME; do
-      # if not empty
-      if [ ! -z "${ONE_DIRNAME}" ] ; then
-        IGNORELIST="${IGNORELIST} ${EXCLUDEDIR}${ONE_DIRNAME}"
-      fi
+      [[ -z "${ONE_DIRNAME}" ]] && continue  # if not empty
+      IGNORELIST="${IGNORELIST} ${EXCLUDEDIR}${ONE_DIRNAME}"
     done <<< "${DIRSTOEXCLUDE}"
+# echo "IGNORELIST:${IGNORELIST}"
+# exit 0
 #
 # COMPOSE IGNORE ONELINER - end
 #
@@ -583,6 +589,52 @@ err_buff=$?;
 # grep  --exclude-dir=vendor --exclude-dir=bower_components  --exclude-dir=node_modules --exclude-dir=storage/debugbar  --exclude-dir=storage/logs  --exclude-dir=app/Stubs "$SEEKING"
 # THIS IS GREP FOR MAC
 # grep  --exclude-dir=vendor --exclude-dir=bower_components  --exclude-dir=node_modules --exclude-dir=storage/debugbar  --exclude-dir=storage/logs  --exclude-dir=app/Stubs -e "$SEEKING" *
+APPLIED_CHANGE=0
+function enter_escape_for_sed() {
+  #sed ':a;N;$!ba;s/\n/0N33NT3R/g'  # GNU sed
+  sed -e ':a' -e 'N' -e '$!ba' -e 's/\n/\\n/g'  #  cross-platform compatible synta>
+  APPLIED_CHANGE=$?
+} # end enter_escape_for_sed
+function enter_decode() {
+  sed 's/\\n/\n/g'
+} # end enter_decode
+function escape_slashes() {
+    sed 's/\//\\\//g'
+} # end escape_slashes
+function escape_backslashes_for_sed() {
+    sed 's/\\/\\\\/g'
+} # end escape_backslashes_for_sed
+function escape_quotes() {
+    sed 's/\"/\\\"/g'
+} # end escape_quotes
+function escape_single_quotes() {
+    sed "s/'/\\'/g"
+} # end escape_single_quotes
+function escape_squared_open_brackets() {
+    sed "s/\[/\\[/g"
+} # end escape_squared_open_brackets
+function escape_squared_close_brackets() {
+    sed "s/\]/\\]/g"
+} # end escape_squared_close_brackets
+# DEBUG echo "SEEKING:$SEEKING"
+
+INSEEKING=$(echo -n "${SEEKING}"|escape_backslashes_for_sed|escape_squared_open_brackets|escape_squared_close_brackets  | escape_quotes| escape_single_quotes )
+TESTERINSEEKING=$(echo -n "${INSEEKING}" | enter_escape_for_sed)
+# DEBUG echo "INSEEKING:$INSEEKING"
+
+
+if [[ "${INSEEKING}" == "${TESTERINSEEKING}" ]] ; then
+{
+  APPLIED_CHANGE=0
+}
+else
+{
+  APPLIED_CHANGE=1
+  SEEKING="${TESTERINSEEKING}"
+}
+fi
+# DEBUG echo "SEEKING:$SEEKING"
+#exit 0
 
 if [[ $SEEKING == *"/"* ]]
 then
@@ -591,6 +643,7 @@ then
 
 echo "${cyan}   ${SEEKER} \"${SEEKING}\" ${FILESCOMMAND} ${IGNORELIST}  "
                 ${SEEKER} "$SEEKING" ${FILESCOMMAND}     ${IGNORELIST}
+                err_buff=$?
 #                ${SEEKER} "$SEEKING" ${FILESCOMMAND}     ${IGNORELIST}   | ${SEEKER} "$SEEKING" ${FILESCOMMAND}  &>/dev/null
 }
 else
@@ -598,6 +651,7 @@ else
 
 echo "${cyan}   ${SEEKER} \"${SEEKING}\" ${FILESCOMMAND} ${IGNORELIST}  "
                 ${SEEKER} "$SEEKING" ${FILESCOMMAND}     ${IGNORELIST}
+                err_buff=$?
 #                ${SEEKER} "$SEEKING" ${FILESCOMMAND}     ${IGNORELIST}   | ${SEEKER} "$SEEKING" ${FILESCOMMAND}  &>/dev/null
 }
 fi
@@ -621,16 +675,15 @@ fi
 ####                   ##############           ##############      ####        ####    ################
 ####                   ##############           ##############      ####        ####    ################
 
-err_buff=$?
 # echo "err_buff=$err_buff"
 # echo "PROCESSOR_ERROR=$PROCESSOR_ERROR"
-if [[ "${PROCESSOR_ERROR}" == "INTEL" ]] && (( $err_buff == 0 )); then
+if [[ "${PROCESSOR_ERROR}" == *"INTEL"* ]] && (( $err_buff == 0 )); then
 {
     msg_green "${green} FOUND !"
     echo "    ";
     FOUND=1
 }
-elif [[ "${PROCESSOR_ERROR}" == "MAC" ]] && [ $err_buff == 0 ]; then
+elif [[ "${PROCESSOR_ERROR}" == *"MAC"* ]] && [ $err_buff == 0 ]; then
 {
     msg_green "${green} FOUND !"
     echo "    ";
@@ -723,6 +776,13 @@ function escape_quotes() {
 function escape_single_quotes() {
     sed "s/'/\\'/g"
 } # end escape_single_quotes
+function escape_squared_bracket() {
+    sed "s/\[/\\[/g"
+}
+function escape_squared_bracket() {
+    sed "s/\]/\\]/g"
+}
+
 function change_line() {
     # So the sample usage to fix the problem posed:
     # change_line "TEXT_TO_BE_REPLACED" "This line is removed by the admin." yourFile
@@ -757,7 +817,7 @@ else
 fi
 # echo  "4 IMPLACING:${IMPLACING}"
 # exit 0
-escape_backslashes_for_sed() {
+function escape_backslashes_for_sed() {
     sed 's/\\/\\\\/g'
 } # end escape_backslashes_for_sed
 
@@ -785,14 +845,14 @@ err_buff=0
 #
 # If it contains forward slashes then use a different seeker
 if [[ $SEEKING == *"/"* || $IMPLACING == *"/"* ]]; then
-  # contains slashes
+# contains slashes
+{
+  if [[ "${REPLACER}" == "sed" ]] ; then
+  # sed
   {
-    if [[ "${REPLACER}" == "sed" ]] ; then
-      # sed
-      {
-        if [[ "${REPLACERGNU}" == "YES" ]] ; then
-          # sed GNU
-          {
+    if [[ "${REPLACERGNU}" == "YES" ]] ; then
+    # sed GNU
+    {
             echo "${yellow} sed GNU ";
             # Get list and scroll through the list
             # FILES=$(${SEEKER} "$SEEKING"     ${FILESCOMMAND} ${PRINTCOMMAND} ${IGNORELIST})
@@ -807,25 +867,29 @@ if [[ $SEEKING == *"/"* || $IMPLACING == *"/"* ]]; then
 
             echo "${cyan}   ${SEEKER} \"${SEEKING}\" ${FILESCOMMAND} ${PRINTCOMMAND} ${IGNORELIST}   | xargs -I {} sed -i  -e s\"${SEEKING}\"\"${IMPLACING}\"g {}"
                             ${SEEKER} "$SEEKING"     ${FILESCOMMAND} ${PRINTCOMMAND} ${IGNORELIST}   | xargs -I {} sed -i  -e s"$SEEKING""$IMPLACING"g {} | ${SEEKER} "$SEEKING" ${FILESCOMMAND}  &>/dev/null
-          }
-        else
-          # sed mac
-          # MAC REPLACER Has to HAVE A FILENAME.EXTENSION provided for the -i (inplace) option
-          {
+                     err_buff=$?
+    }
+    else
+    # sed mac
+    # MAC REPLACER Has to HAVE A FILENAME.EXTENSION provided for the -i (inplace) option
+    {
             echo "${yellow} sed MAC ";
             # Sample use: ${THISSCRIPTNAME} /usr/bin/env\ bash  /bin/bash
             # echo "${cyan}   ${SEEKER} \"${SEEKING}\" ${FILESCOMMAND} ${PRINTCOMMAND} ${IGNORELIST}   | xargs -0 sed -i'.sedbak'  -e s\"${SEEKING}\"\"${IMPLACING}\"g"
             echo "${cyan}   ${SEEKER} \"${SEEKING}\" ${FILESCOMMAND} ${PRINTCOMMAND} ${IGNORELIST}   | xargs -I {} sed -i'.sedbak'  -e s\"${SEEKING}\"\"${IMPLACING}\"g {}"
             #                ${SEEKER} "$SEEKING"     ${FILESCOMMAND} ${PRINTCOMMAND} ${IGNORELIST}   | xargs -0 sed -i'.sedbak'  -e s"$SEEKING""$IMPLACING"g | ${SEEKER} "$SEEKING" ${FILESCOMMAND}  &>/dev/null
                             ${SEEKER} "$SEEKING"     ${FILESCOMMAND} ${PRINTCOMMAND} ${IGNORELIST}   | xargs -I {} sed -i'.sedbak'  -e s"$SEEKING""$IMPLACING"g {} | ${SEEKER} "$SEEKING" ${FILESCOMMAND}  &>/dev/null
-          }
-        fi
-      }
-    else
-      # ex
-      {
+                               err_buff=$?
+    }
+    fi
+  }
+  else
+  # ex
+  # REF: http://askubuntu.com/questions/20414/find-and-replace-text-within-a-file-using-commands
+  {
         echo "${cyan}   ${SEEKER} \"${SEEKING}\" ${FILESCOMMAND} ${PRINTCOMMAND} ${IGNORELIST}   | xargs -I {}  ex +s\"$SEEKING\"\"$IMPLACING\" -cwq {} "
                         ${SEEKER} "$SEEKING"     ${FILESCOMMAND} ${PRINTCOMMAND} ${IGNORELIST}   | xargs -I {}  ex +s"$SEEKING""$IMPLACING" -cwq {}
+                    err_buff=$?
       }
     fi
   }
@@ -876,6 +940,7 @@ if [[ $SEEKING == *"/"* || $IMPLACING == *"/"* ]]; then
 
             echo "${cyan}   ${SEEKER} \"${SEEKING}\" ${FILESCOMMAND} ${PRINTCOMMAND} ${IGNORELIST}   | xargs -I {} sed -i -e s/\"${SEEKING}\"/\"${IMPLACING}\"/g {}"
                             ${SEEKER} "$SEEKING"     ${FILESCOMMAND} ${PRINTCOMMAND} ${IGNORELIST}   | xargs -I {} sed -i -e s/"$SEEKING"/"$IMPLACING"/g {} | ${SEEKER} "$SEEKING" ${FILESCOMMAND}  &>/dev/null
+                           err_buff=$?
           }
         else
           # sed 2.5.1-FreeBSD mac
@@ -883,7 +948,9 @@ if [[ $SEEKING == *"/"* || $IMPLACING == *"/"* ]]; then
           {
             echo "${yellow} sed MAC ";
             echo "${cyan}   ${SEEKER} \"${SEEKING}\" ${FILESCOMMAND} ${PRINTCOMMAND} ${IGNORELIST}   | xargs -I {} sed -i'.sedbak'  -e s/\"${SEEKING}\"/\"${IMPLACING}\"/g {}"
+            
                             ${SEEKER} "$SEEKING"     ${FILESCOMMAND} ${PRINTCOMMAND} ${IGNORELIST}   | xargs -I {} sed -i'.sedbak'  -e s/"$SEEKING"/"$IMPLACING"/g {} | ${SEEKER} "$SEEKING" ${FILESCOMMAND} &>/dev/null
+                           err_buff=$?
           }
         fi
       }
@@ -893,6 +960,7 @@ if [[ $SEEKING == *"/"* || $IMPLACING == *"/"* ]]; then
         # VIM ex To find and replace all occurrences of case insensitive 'eth1' with 'br1', enter:
         echo "${cyan}   ${SEEKER} \"${SEEKING}\" ${FILESCOMMAND} ${PRINTCOMMAND} ${IGNORELIST}   | xargs -I {}  ex +%s/\"$SEEKING\"/\"$IMPLACING\"/gi -cwq {} "
                         ${SEEKER} "$SEEKING"     ${FILESCOMMAND} ${PRINTCOMMAND} ${IGNORELIST}   | xargs -I {}  ex +%s/"$SEEKING"/"$IMPLACING"/gi -cwq {}
+                        err_buff=$?
       }
     fi
   }
@@ -917,14 +985,13 @@ fi
 # If  | egrep "$SEEKING" &>/dev/null | returned an error....so it was... it was found/not found say it and stop execution for not found
 #if [ $? == 0 ]; then
 #if (( $? != 0 )) ;  then  #Inverse respose It will be EMPTY $? when replacements where made!
-err_buff=$?
-if [[ "${PROCESSOR_ERROR}" == "INTEL" ]] && (( $err_buff != 0 )); then
+if [[ "${PROCESSOR_ERROR}" == *"INTEL"* ]] && (( err_buff != 0 )); then
     {
     msg_green "${green} REPLACED !"
     echo "    ";
     FOUND=1
     }
-elif [[ "${PROCESSOR_ERROR}" == "MAC" ]] && [ $err_buff != 0 ]; then
+elif [[ "${PROCESSOR_ERROR}" == *"MAC"* ]] && [ $err_buff != 0 ]; then
     {
     msg_green "${green} REPLACED !"
     echo "    ";
@@ -1001,7 +1068,7 @@ fi
 #if [ ! $? == 0 ]; then #mac
 err_buff=$?
 # echo "err_buff=$err_buff"
-if [[ "${PROCESSOR_ERROR}" == "INTEL" ]] && (( $err_buff == 0 )); then
+if [[ "${PROCESSOR_ERROR}" == *"INTEL"* ]] && (( err_buff == 0 )); then
     {
     echo "    ";
     echo "${cyan} REPLACE CONFIRMED ${green} FOUND !"
@@ -1010,7 +1077,7 @@ if [[ "${PROCESSOR_ERROR}" == "INTEL" ]] && (( $err_buff == 0 )); then
     fi
     echo "    ";
     }
-elif [[ "${PROCESSOR_ERROR}" == "MAC" ]] && [ $err_buff == 0 ]; then
+elif [[ "${PROCESSOR_ERROR}" == *"MAC"* ]] && [ $err_buff == 0 ]; then
     {
     echo "    ";
     echo "${cyan} REPLACE CONFIRMED ${green} FOUND !"

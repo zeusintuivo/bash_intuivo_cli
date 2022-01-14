@@ -578,13 +578,11 @@ ${MOREIGNORE_DIRS}"
 
 IGNORELIST=""
 
-    for ONE_FILENAME in ${FILESTOEXCLUDE}; do
-    # while read -r ONE_FILENAME; do
+    while read -r ONE_FILENAME; do
       [[ -z "${ONE_FILENAME}" ]] && continue  # if not empty
       IGNORELIST="${IGNORELIST} ${EXCLUDEFILE}${ONE_FILENAME}"
     done <<< "${FILESTOEXCLUDE}"
-    for ONE_DIRNAME in ${DIRSTOEXCLUDE}; do
-    # while read -r ONE_DIRNAME; do
+    while read -r ONE_DIRNAME; do
       [[ -z "${ONE_DIRNAME}" ]] && continue  # if not empty
       IGNORELIST="${IGNORELIST} ${EXCLUDEDIR}${ONE_DIRNAME}"
     done <<< "${DIRSTOEXCLUDE}"
@@ -603,8 +601,6 @@ IGNORELIST=""
 #             $PRINTCOMMAND  the pipiing command to funel to results to replacer program
 #             $IGNORELIST  construct of ignored files
 #             halts execution if not found
-
-
 #
 SEEKING="$2";
                 echo "${RESET} ${green} Finding ${RESET} $SEEKING ${green}                 with  ${SEEKER} ."
@@ -644,9 +640,9 @@ then
                 ${SEEKER} "$SEEKING" ${FILESCOMMAND}     ${IGNORELIST}   ${FILE}
                 err_buff=$?
                 ${SEEKER} "$SEEKING" ${FILESCOMMAND}     ${IGNORELIST}   ${FILE} | ${SEEKER} "$SEEKING" ${FILESCOMMAND}  &>/dev/null
-      }
-      else
-      {
+}
+else
+{
 
         echo "${cyan}   ${SEEKER} \"${SEEKING}\" ${FILESCOMMAND} ${IGNORELIST}   ${FILE}"
                 ${SEEKER} "$SEEKING" ${FILESCOMMAND}     ${IGNORELIST}   ${FILE}
@@ -789,6 +785,13 @@ function escape_quotes() {
 function escape_single_quotes() {
     sed "s/'/\\'/g"
 } # end escape_single_quotes
+function escape_squared_bracket() {
+    sed "s/\[/\\[/g"
+}
+function escape_squared_bracket() {
+    sed "s/\]/\\]/g"
+}
+
 function change_line() {
     # So the sample usage to fix the problem posed:
     # change_line "TEXT_TO_BE_REPLACED" "This line is removed by the admin." yourFile
@@ -819,10 +822,9 @@ else
 }
 fi
 
-escape_backslashes_for_sed() {
+function escape_backslashes_for_sed() {
     sed 's/\\/\\\\/g'
 } # end escape_backslashes_for_sed
-
 
 
 SEEKERNEW=$(echo -n "${SEEKING}"  | escape_backslashes_for_sed )
@@ -868,6 +870,7 @@ if [[ $SEEKING == *"/"* || $IMPLACING == *"/"* ]]; then
                     sed  -i.sedbak  -e s"$SEEKING""$IMPLACING"g "${FILE}"
                     sed  -i.sedbak  -e s"$SEEKING""$IMPLACING"g ${FILE} | ${SEEKER} "$SEEKING" ${FILESCOMMAND}  &>/dev/null
                     err_buff=$?
+                               err_buff=$?
     }
     fi
   }
