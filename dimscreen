@@ -5,4 +5,32 @@
 #
 BRIGHTNESS=.7
 [ ! -z "${1}" ]  &&  BRIGHTNESS="${1}"
-xrandr --current --verbose | grep " connected" | cut -d" " -f1 | xargs -I {} xrandr --output {}   --brightness "${BRIGHTNESS}"
+
+#echo "Scann all connected monitors,   get the first word ls HMD1 -list, then apply brightness to each word passwed from the list"
+#echo "xrandr --current --verbose | grep \" connected\" | cut -d\" \" -f1 | xargs -I {} xrandr --output {}   --brightness \"${BRIGHTNESS}\""
+
+function _get_all_active_monitors(){
+  local monitors=$(xrandr --current --verbose | grep " connected"  | cut -d" " -f1)
+  echo "${monitors}"
+} # end _get_all_active_monitors
+
+function _set_brightness(){
+  # xrandr --current --verbose | grep " connected" \
+  #     | cut -d" " -f1 | xargs -I {} xrandr --output {}   --brightness "${BRIGHTNESS}"
+  local monitors="$(_get_all_active_monitors)"
+  local monitor
+  while read -r monitor; do
+  {
+    [[ -z ${monitor} ]] && continue
+    echo Day xrandr --output "${monitor}" --gamma 1:1:1   --brightness "${BRIGHTNESS}"
+    # echo xrandr --output "${monitor}" --gamma 1:1:1   --brightness "${BRIGHTNESS}"
+    echo Night xrandr --output "${monitor}" --gamma 1.0:0.88:0.76  --brightness "${BRIGHTNESS}"
+    echo Night xrandr --output "${monitor}" --gamma 1:1:0.5   --brightness "${BRIGHTNESS}"
+    xrandr --output "${monitor}" --gamma 1.0:0.88:0.76  --brightness "${BRIGHTNESS}"
+    #xrandr --output "${monitor}" --gamma  1:1:0.5   --brightness "${BRIGHTNESS}"
+  }
+  done <<< "${monitors}"
+
+} # end _set_brightness
+
+_set_brightness
