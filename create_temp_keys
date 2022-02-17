@@ -43,6 +43,7 @@ fi
 # git pull push section
 export SSH_KEY="${SSH_KEY}"          # "local name from file 'zeus' or 'mark'"
 export GITUSER="${GITUSER}"          # "user name only 'usename' from the github or gitlab account or bitbucket login"
+export GITTOKEN="${GITTOKEN}"        # generate a token in https://github.com/settings/tokens
 EOF
 if [[ -z "${GITPROVIDER}" ]] ; then
 {
