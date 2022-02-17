@@ -39,6 +39,7 @@ else
 }
 fi
   cat << EOF > .temp_keys
+#!/usr/bin/env bash
 # git pull push section
 export SSH_KEY="${SSH_KEY}"          # "local name from file 'zeus' or 'mark'"
 export GITUSER="${GITUSER}"          # "user name only 'usename' from the github or gitlab account or bitbucket login"
