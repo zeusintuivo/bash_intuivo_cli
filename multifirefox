@@ -1,0 +1,32 @@
+#!/bin/bash
+
+export LOGNAME="$USER"
+
+profiles="$(cat ~/.mozilla/firefox/profiles.ini | grep Name= | cut -d= -f2)"
+
+if echo "$profiles" | grep -Fx "$1" >/dev/null; then
+  profile="$1"
+  shift
+  export LOGNAME="$USER.$profile"
+  exec firefox -P "$profile" "$@"
+else
+  if [[ -z "$1" ]] || [[ "a-" = "a$1" ]] || [[ "a--" = "a$1" ]]; then
+    shift
+  fi
+  if profile="$(echo "$profiles" | zenity --list --title="Choose a Firefox profile" --text="$*" --hide-header --column=)"; then
+    case "$profile" in
+      dev-edition-default)
+        exec firefox-developer "$@"
+        ;;
+      default)
+        exec firefox "$@"
+        ;;
+      *)
+        export LOGNAME="$USER.$profile"
+        exec firefox -P "$profile" "$@"
+        ;;
+    esac
+  fi
+fi
+
+
