@@ -4,7 +4,7 @@
 #
 #
 BRIGHTNESS=.7
-[ ! -z "${1}" ]  &&  BRIGHTNESS="${1}"
+[[ -n "${1}" ]]  &&  BRIGHTNESS="${1}"
 
 #echo "Scann all connected monitors,   get the first word ls HMD1 -list, then apply brightness to each word passwed from the list"
 #echo "xrandr --current --verbose | grep \" connected\" | cut -d\" \" -f1 | xargs -I {} xrandr --output {}   --brightness \"${BRIGHTNESS}\""
@@ -12,25 +12,115 @@ BRIGHTNESS=.7
 function _get_all_active_monitors(){
   local monitors=$(xrandr --current --verbose | grep " connected"  | cut -d" " -f1)
   echo "${monitors}"
+  return 0
 } # end _get_all_active_monitors
+
+function _get_percentage_conversion(){
+  local -i _b=$(echo "${1}" | sed 's/\.//g')
+  # echo $_b
+  if [ ${_b} -gt 10 ] && [ ${_b} -lt 100 ]  ; then
+  {
+    echo ${_b}
+    return 0
+  }
+  fi
+  local -i testb=$(( _b * 10 ))
+  if [ ${1} == "1" ] ; then
+  {
+     testb=100
+  }
+  fi
+  # res=$(( _b * 100 ))
+  local -i res=${testb}
+  if [ ${res} -lt 10 ] ; then
+  {
+    res=10
+  }
+  fi
+  if [ ${res} -gt 100 ] ; then
+  {
+    res=100
+  }
+  fi
+  # REF: https://unix.stackexchange.com/questions/526653/control-screen-brightness-in-i3
+  # brightnessctl set 20%- down and brightnessctl set +20% up (position of the - and + matter) 
+  echo ${res}
+  return 0
+} # end _get_percentage_conversion
+function test_get_percentage_conversion(){
+  local _bright_percentage="$(_get_percentage_conversion ${BRIGHTNESS})"
+  echo "_bright_percentage:${_bright_percentage}%"
+} # end test_get_percentage_conversion
+test_get_percentage_conversion
+# exit 0
+function _get_day_or_night(){
+  # REF: https://unix.stackexchange.com/questions/395933/how-to-check-if-the-current-time-is-between-2300-and-0630
+  local currenttime=$(date +%H:%M)
+  if [[ "${currenttime}" > "06:00" ]] \
+  && [[ "${currenttime}" < "11:30" ]]; then
+  {
+    echo 'day-morgen'
+    return 0
+  }
+  elif [[ "${currenttime}" > "11:29" ]] \
+  && [[ "${currenttime}" < "17:30" ]]; then
+  {
+    echo 'day-mittag'
+    return 0
+  }
+  elif [[ "${currenttime}" > "17:29" ]] \
+  && [[ "${currenttime}" < "20:30" ]]; then
+  {
+    echo 'day-aben'
+    return 0
+  }
+  elif [[ "${currenttime}" > "20:29" ]] \
+  && [[ "${currenttime}" < "22:30" ]]; then
+  {
+    echo 'night-aben'
+    return 0
+  }
+  fi
+  echo 'night'
+  return 0
+} # end _get_day_or_night
+function test_get_day_or_night(){
+  local _day_or_night="$(_get_day_or_night)"
+  echo "_day_or_night:${_day_or_night}"
+} # end test_get_percentage_conversion
+test_get_day_or_night
 
 function _set_brightness(){
   # xrandr --current --verbose | grep " connected" \
   #     | cut -d" " -f1 | xargs -I {} xrandr --output {}   --brightness "${BRIGHTNESS}"
   local monitors="$(_get_all_active_monitors)"
+  local _bright_percentage="$(_get_percentage_conversion ${BRIGHTNESS})"
+  local _day_or_night="$(_get_day_or_night)"
   local monitor
   while read -r monitor; do
   {
     [[ -z ${monitor} ]] && continue
-    echo Day xrandr --output "${monitor}" --gamma 1:1:1   --brightness "${BRIGHTNESS}"
-    # echo xrandr --output "${monitor}" --gamma 1:1:1   --brightness "${BRIGHTNESS}"
-    echo Night xrandr --output "${monitor}" --gamma 1.0:0.88:0.76  --brightness "${BRIGHTNESS}"
-    echo Night xrandr --output "${monitor}" --gamma 1:1:0.5   --brightness "${BRIGHTNESS}"
-    xrandr --output "${monitor}" --gamma 1.0:0.88:0.76  --brightness "${BRIGHTNESS}"
-    #xrandr --output "${monitor}" --gamma  1:1:0.5   --brightness "${BRIGHTNESS}"
+    if [[ "${_day_or_night}" == *"day"* ]] ; then
+    {
+      echo Running Day xrandr --output "${monitor}" --gamma 1:1:1   --brightness "${BRIGHTNESS}"
+      xrandr --output "${monitor}" --gamma 1:1:1   --brightness "${BRIGHTNESS}"
+    }
+    elif [[ "${_day_or_night}" == "night-aben" ]] ; then
+    {
+      echo Running Night xrandr --output "${monitor}" --gamma 1:1:0.5   --brightness "${BRIGHTNESS}"
+      xrandr --output "${monitor}" --gamma 1:1:0.5   --brightness "${BRIGHTNESS}"
+    }
+    else
+    {
+      echo Running Night xrandr --output "${monitor}" --gamma 1.0:0.88:0.76  --brightness "${BRIGHTNESS}"
+      xrandr --output "${monitor}" --gamma 1.0:0.88:0.76  --brightness "${BRIGHTNESS}"
+    }
+    fi
+    echo brightnessctl set ${_bright_percentage}%
+    brightnessctl set ${_bright_percentage}%
   }
   done <<< "${monitors}"
-
+  return 0
 } # end _set_brightness
 
 _set_brightness
