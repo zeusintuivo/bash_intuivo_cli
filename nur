@@ -155,7 +155,7 @@ if [[ -n "$2" ]] ; then
 
   if [[ "$2" == "--nocolor"  ]] ; then
   {
-    COLORED="YES";
+    COLORED=""; # "" is no "YES" is yes
   }
   fi
 
@@ -242,13 +242,13 @@ fi
                   if [ -z "$WHAT" ] ; then
                     {
                       #  Colored
-                      COLORED="YES";
+                      COLORED="YES";  # "" is no "YES" is yes
                       #echo "z"
                     }
                   else
                     {
                       # NOT Colored
-                      COLORED="";
+                      COLORED="";   # "" is no "YES" is yes
                       #echo "!z"
                     }
                   fi
@@ -287,17 +287,19 @@ fi
 # COLORS - Ouput - Start
 #
 
-[[ -z "${BLACK}" ]] && BLACK="\\033[38;5;16m"
-[[ -z "${GREEN}" ]] && GREEN="\\033[38;5;22m"
+[[ -z "${RED}" ]] && RED="\\033[38;5;1m"
+
 [[ -z "${CYAN}" ]] && CYAN="\\033[38;5;123m"
-[[ -z "${PURPLE}" ]] && PURPLE="\\033[01;35m"
+
+[[ -z "${GREEN}" ]] && GREEN="\\033[38;5;22m"
+
+
+[[ -z "${BLACK}" ]] && BLACK="\\033[38;5;16m"
 [[ -z "${PURPLE_BLUE}" ]] && PURPLE_BLUE="\\033[38;5;93m"
 [[ -z "${GRAY241}" ]] && GRAY241="\\033[38;5;241m"
-[[ -z "${YELLOW226}" ]] && YELLOW226="\\033[38;5;226m"
-[[ -z "${YELLOW}" ]] && YELLOW="\\033[01;33m"
-[[ -z "${RESET}" ]] && RESET="\\033[0m"
-[[ -z "${RESET_PROMPT}" ]] && RESET_PROMPT="[0m"
-[[ -z "${RED}" ]] && RED="\\033[38;5;1m"
+
+
+
 [[ -z "${BRIGHT_BLUE87}" ]] && BRIGHT_BLUE87="\\033[38;5;87m"
 
 #
@@ -355,7 +357,8 @@ PROCESSOR_ERROR=$(test_positives)
 #
 # C H E C K   R E P L A C E   F U N C T I O N S   I N S T A L L E D  --Start
 #
-check_replacer () {
+check_version_data () {
+  local -i  _err
   local REPLACER="$1"
   if command -v "${REPLACER}" >/dev/null 2>&1; then
     # It looks installed
@@ -363,60 +366,75 @@ check_replacer () {
     # msg_green " ${1} INSTALLED."
 
     #stdout UND stderr -capture  REF: https://www.thomas-krenn.com/de/wiki/Bash_stdout_und_stderr_umleiten
-    ${REPLACER}  --version &> /tmp/ersetze_test_${REPLACER}.txt
-    # shellcheck disable=SC2155
-    local PROPERLYWORKING=$(cat /tmp/ersetze_test_${REPLACER}.txt)
+    ${REPLACER}  --version &> /tmp/cp_or_sed_command_test_${REPLACER}.txt
+    _err=$?
+    local PROPERLYWORKING=$(cat /tmp/cp_or_sed_command_test_${REPLACER}.txt)
 
+
+    if [[ "$(uname)" == "Darwin" ]] ; then
+      # Do something under Mac OS X platform
+      if [ ${_err} -eq 64 ] && [[ "$PROPERLYWORKING" == *"illegal option -- -"* ]]; then { echo "MAC"; return;} fi
+
+    elif [[ "$(expr substr $(uname -s) 1 5)" == "Linux" ]] ; then
+      # Do something under GNU/Linux platform
+      echo " ";
+
+    elif [[ "$(expr substr $(uname -s) 1 10)" == "MINGW32_NT" ]] ; then
+      # Do something under Windows NT platform
+      echo " ";
+
+      # nothing here
+    fi
     if [[ "$PROPERLYWORKING" == *"dyld:"* ]]; then { echo "error"; return;} fi
-    if [[ "$PROPERLYWORKING" == *"GNU"* ]]; then { echo "GNU"; return;} else { echo "MAC";return;} fi
+    if [[ $PROPERLYWORKING == *"GNU"* ]]; then { echo "GNU"; return;} else { echo "MAC";return;} fi
+    if  [ ${_err} -ne 0 ] ; then { echo "error"; return;} fi
     echo "checked";
     return;
   else
-    # msg_red "${GREEN} ${RED} CANNOT REPLACE ...${1} IS MISSING ";
+    # msg_red "${green} ${red} CANNOT REPLACE ...${1} IS MISSING ";
     # msg_red " NEED TO INSTALL ${1}.       Linux:    sudo apt-get install ${1}         Mac:     brew install ${1}   "
     echo "install";
     return;
   fi
 }
-function msg_install() {
-  msg_red "${GREEN} ${RED} CANNOT REPLACE ...${1} IS MISSING ";
+msg_install () {
+  msg_red "${green} ${red} CANNOT REPLACE ...${1} IS MISSING ";
   msg_red " NEED TO INSTALL ${1}.       Linux:    sudo apt-get install ${1}         Mac:     brew install ${1}   "
 }
 # REPLACER="sed";
-# Try vim's ex ..broke here grrr TODO research how to implement doing erestese_indatei /images/projects/ images/projects index.html did not work at all
-REPLACER="sed"; # changed to sed
-VALIDREPLACER=$(check_replacer "${REPLACER}")
+REPLACER="cp";
+VALIDREPLACER=$(check_version_data "${REPLACER}")
 
 
 if [[ $VALIDREPLACER == "error" ]] ; then
   msg_red "Error with replacer ${REPLACER}"
   msg_red " - Error:"
-  cat /tmp/ersetze_test_${REPLACER}.txt
-   rm /tmp/ersetze_test_${REPLACER}.txt
+  cat /tmp/cp_or_sed_command_test_${REPLACER}.txt
+   rm /tmp/cp_or_sed_command_test_${REPLACER}.txt
 fi
 
 if [[ $VALIDREPLACER == "install" ]] ; then
   msg_install "${REPLACER}"
 fi
-rm /tmp/ersetze_test_${REPLACER}.txt
+rm /tmp/cp_or_sed_command_test_${REPLACER}.txt
 
 # TODO - Remove Repetition HERE
 # ? empty still
 if [[ $VALIDREPLACER == "install" || $VALIDREPLACER == "error"  ]] ; then
   REPLACER="sed";
-  VALIDREPLACER=$(check_replacer "${REPLACER}")
+  VALIDREPLACER=$(check_version_data "${REPLACER}")
 
   if [[ $VALIDREPLACER == "error" ]] ; then
     msg_red "Error with replacer ${REPLACER}"
     msg_red " - Error:"
-    cat /tmp/ersetze_test_${REPLACER}.txt
-     rm /tmp/ersetze_test_${REPLACER}.txt
+    cat /tmp/cp_or_sed_command_test_${REPLACER}.txt
+     rm /tmp/cp_or_sed_command_test_${REPLACER}.txt
     exit 1;
   fi
 
   if [[ $VALIDREPLACER == "install" ]] ; then
     msg_install "${REPLACER}"
-    rm /tmp/ersetze_test_${REPLACER}.txt
+    rm /tmp/cp_or_sed_command_test_${REPLACER}.txt
     exit 1;
   fi
 fi
@@ -1112,6 +1130,10 @@ MOREIGNORE_FILES=""
 MOREIGNORE_DIRS=""
 [ -f .nurignore_dirs ] && MOREIGNORE_DIRS=$(<.nurignore_dirs)
 
+# echo "MOREIGNORE_FILES:${MOREIGNORE_FILES}"
+# echo "MOREIGNORE_DIRS:${MOREIGNORE_DIRS}"
+# exit 0
+
 FILESTOEXCLUDE=".dir_bash_history
 .gitignore
 .ersetzeignore_dirs
@@ -1165,6 +1187,9 @@ app/cache
 app/logs
 app/session
 ${MOREIGNORE_DIRS}"
+# echo "FILESTOEXCLUDE:${FILESTOEXCLUDE}"
+# echo "DIRSTOEXCLUDE:${DIRSTOEXCLUDE}"
+# exit 0
 
 IGNORELIST=""
 
@@ -1180,18 +1205,20 @@ IGNORELIST=""
         IGNORELIST="${IGNORELIST} ${EXCLUDEDIR}${ONE_DIRNAME}"
       fi
     done <<< "${DIRSTOEXCLUDE}"
+# echo "IGNORELIST:${IGNORELIST}"
+# exit 0
 #
 # COMPOSE IGNORE ONELINER - end
 #
 
 
 #
-# COLORS - Ouput - Start
+# COLORS - Output - Start
 #
         # RESET_PROMPT="[38;5;231m"
         RESET_PROMPT="[0m"
 #
-# COLORS - Ouput - end
+# COLORS - Output - end
 #
 
 # S E E K I N G   I N S T A L L    C H E C K  - Results
@@ -1251,6 +1278,8 @@ fi
 #
 # S E E K I N G   I N S T A L L    C H E C K  - End
 #
+
+
 # echo "${CYAN}  ack  --ignore=vendor --ignore-dir=bower_components  --ignore-dir=node_modules --ignore-dir=storage/debugbar  --ignore-dir=storage/logs  --ignore-dir=app/Stubs \"${SEEKING}\" "
 # echo "${CYAN}  ag  --ignore-dir=vendor --ignore-dir=bower_components  --ignore-dir=node_modules --ignore-dir=storage/debugbar  --ignore-dir=storage/logs  --ignore-dir=app/Stubs \"${SEEKING}\" "
 # echo "${CYAN}  grep  --exclude-dir=vendor --exclude-dir=bower_components  --exclude-dir=node_modules --exclude-dir=storage/debugbar  --exclude-dir=storage/logs  --exclude-dir=app/Stubs \"${SEEKING}\" "
@@ -1268,281 +1297,371 @@ fi
 # THIS IS GREP FOR MAC
 # grep  --exclude-dir=vendor --exclude-dir=bower_components  --exclude-dir=node_modules --exclude-dir=storage/debugbar  --exclude-dir=storage/logs  --exclude-dir=app/Stubs -e "$SEEKING" *
 
+### APPLIED CHANGE --- START
+### APPLIED CHANGE --- START
+### APPLIED CHANGE --- START
+### APPLIED CHANGE --- START
+APPLIED_CHANGE=0
+function enter_escape_for_sed() {
+  #sed ':a;N;$!ba;s/\n/0N33NT3R/g'  # GNU sed
+  sed -e ':a' -e 'N' -e '$!ba' -e 's/\n/\\n/g'  #  cross-platform compatible synta>
+  APPLIED_CHANGE=$?
+} # end enter_escape_for_sed
+function enter_decode() {
+  sed 's/\\n/\n/g'
+} # end enter_decode
+function escape_slashes() {
+    sed 's/\//\\\//g'
+} # end escape_slashes
+function escape_backslashes_for_sed() {
+    sed 's/\\/\\\\/g'
+} # end escape_backslashes_for_sed
+function escape_quotes() {
+    sed 's/\"/\\\"/g'
+} # end escape_quotes
+function escape_single_quotes() {
+    sed "s/'/\\'/g"
+} # end escape_single_quotes
+function escape_squared_open_brackets() {
+    sed "s/\[/\\[/g"
+} # end escape_squared_open_brackets
+function escape_squared_close_brackets() {
+    sed "s/\]/\\]/g"
+} # end escape_squared_close_brackets
+# DEBUG echo "SEEKING:$SEEKING"
+
+INSEEKING=$(echo -n "${SEEKING}"|escape_backslashes_for_sed|escape_squared_open_brackets|escape_squared_close_brackets  | escape_quotes| escape_single_quotes )
+TESTERINSEEKING=$(echo -n "${INSEEKING}" | enter_escape_for_sed)
+# DEBUG echo "INSEEKING:$INSEEKING"
+
+
+if [[ "${INSEEKING}" == "${TESTERINSEEKING}" ]] ; then
+{
+  APPLIED_CHANGE=0
+}
+else
+{
+  APPLIED_CHANGE=1
+  [[ -z "${TESTERINSEEKING}" ]] || SEEKING="${TESTERINSEEKING}"
+}
+fi
+# DEBUG echo "SEEKING:$SEEKING"
+#exit 0
+
+### APPLIED CHANGE --- END
+### APPLIED CHANGE --- END
+### APPLIED CHANGE --- END
+### APPLIED CHANGE --- END
+
+
 if [[ $SEEKING == *"/"* ]]
 then
 {
-    ${SEEKER} "$SEEKING" ${FILESCOMMAND}      ${IGNORELIST}  &>/dev/null
-    err_buff=$?
-    if [ $VERBOSE -eq 1 ] ; then
-    {
-      # NOT Colored
-      if [[ -n "$COLORED" ]] ; then
-      {
-        echo "   ${SEEKER} \"${SEEKING}\" ${FILESCOMMAND}  ${IGNORELIST}  "
-      }
-      else
-      {
-        echo -e "${CYAN}   ${SEEKER} \"${SEEKING}\" ${FILESCOMMAND}  ${IGNORELIST}  "
-      }
-      fi
-    }
-    fi
-    # not PIPED
-    if [ -z "$PIPED" ]; then
-    {
-      if [[ "${REPLACERGNU}" == "YES" ]] ; then
-      # sed GNU
-      {
-        # echo -e "${YELLOW} sed GNU ";
-        # ${SEEKER} "$SEEKING" ${FILESCOMMAND}      ${IGNORELIST}  &>/dev/null
-        if [[ -n "${FILESCOMMAND}" ]] ; then
-        {
-          RESULT=$(${SEEKER} "$SEEKING" ${FILESCOMMAND}      ${IGNORELIST} | sed -e 's\\\\\\g')
-        }
-        else
-        {
-          RESULT=$(${SEEKER} "$SEEKING"   ${IGNORELIST} | sed -e 's\\\\\\g')
-        }
-        fi
-
-      }
-      else
-      # sed mac
-      # MAC REPLACER Has to HAVE A FILENAME.EXTENSION provided for the -i (inplace) option
-      {
-        # echo  -e "${YELLOW} sed MAC ";
-        #${SEEKER} "$SEEKING" ${FILESCOMMAND}      ${IGNORELIST}  &>/dev/null
-        if [[ -n "${FILESCOMMAND}" ]] ; then
-        {
-          RESULT=$(${SEEKER} "$SEEKING" ${FILESCOMMAND}      ${IGNORELIST} | sed -e 's\\\\\\g')
-        }
-        else
-        {
-          RESULT=$(${SEEKER} "$SEEKING"      ${IGNORELIST} | sed -e 's\\\\\\g')
-        }
-        fi
 
 
-      }
-      fi
-    }
-    else # YES PIPED
-    {
-      # NOT Colored
-      if [[ -n "$COLORED" ]] ; then
-      {
-        if [[ "${REPLACERGNU}" == "YES" ]] ; then
-        # sed GNU
-        {
-          # echo  "sed GNU ";
-          if [[ -n "${FILESCOMMAND}" ]] ; then
-          {
-            echo "$PIPED" | ${SEEKER} "$SEEKING" ${FILESCOMMAND}      ${IGNORELIST}  | sed 's\\\\\\g' | sed s"$SEEKING""$SEEKING"g
-          }
-          else
-          {
-            echo "$PIPED" | ${SEEKER} "$SEEKING"      ${IGNORELIST}  | sed 's\\\\\\g' | sed s"$SEEKING""$SEEKING"g            RESULT=$(${SEEKER} "$SEEKING"      ${IGNORELIST} | sed -e 's\\\\\\g')
-          }
-          fi
-        }
-        else
-        # sed mac
-        # MAC REPLACER Has to HAVE A FILENAME.EXTENSION provided for the -i (inplace) option
-        {
-          # echo "sed MAC ";
-          if [[ -n "${FILESCOMMAND}" ]] ; then
-          {
-            echo "$PIPED" | ${SEEKER} "$SEEKING" ${FILESCOMMAND}      ${IGNORELIST}  | sed 's\\\\\\g' | sed s"$SEEKING""$SEEKING"g
-          }
-          else
-          {
-            echo "$PIPED" | ${SEEKER} "$SEEKING"      ${IGNORELIST}  | sed 's\\\\\\g' | sed s"$SEEKING""$SEEKING"g
-          }
-          fi
-        }
-        fi
-      }
-      else # Colored
-      {
-        if [[ "${REPLACERGNU}" == "YES" ]] ; then
-        # sed GNU
-        {
-          # echo -e "${YELLOW} sed GNU ";
-          if [[ -n "${FILESCOMMAND}" ]] ; then
-          {
-            echo "$PIPED" | ${SEEKER} "$SEEKING" ${FILESCOMMAND}      ${IGNORELIST}  | sed 's\\\\\\g' | sed s"$SEEKING""[38;5;196m$SEEKING${RESET_PROMPT}"g
-          }
-          else
-          {
-            echo "$PIPED" | ${SEEKER} "$SEEKING"      ${IGNORELIST}  | sed 's\\\\\\g' | sed s"$SEEKING""[38;5;196m$SEEKING${RESET_PROMPT}"g
-          }
-          fi
-        }
-        else
-        # sed mac
-        # MAC REPLACER Has to HAVE A FILENAME.EXTENSION provided for the -i (inplace) option
-        {
-          # echo -e "${YELLOW} sed MAC ";
-          if [[ -n "${FILESCOMMAND}" ]] ; then
-          {
-            echo "$PIPED" | ${SEEKER} "$SEEKING" ${FILESCOMMAND}      ${IGNORELIST}  | sed 's\\\\\\g' | sed s"$SEEKING""[38;5;196m$SEEKING${RESET_PROMPT}"g
-          }
-          else
-          {
-            echo "$PIPED" | ${SEEKER} "$SEEKING"      ${IGNORELIST}  | sed 's\\\\\\g' | sed s"$SEEKING""[38;5;196m$SEEKING${RESET_PROMPT}"g
-          }
-          fi
-        }
-        fi
-      }
-      fi
-    }
-    fi
+echo "${cyan}   ${SEEKER} \"${SEEKING}\" ${FILESCOMMAND} ${IGNORELIST}  "
+                ${SEEKER} "$SEEKING" ${FILESCOMMAND}     ${IGNORELIST}
+                err_buff=$?
+#                ${SEEKER} "$SEEKING" ${FILESCOMMAND}     ${IGNORELIST}   | ${SEEKER} "$SEEKING" ${FILESCOMMAND}  &>/dev/null
 }
-else # else SEEKING does not contain  *"/"*
+else
 {
-    if [ $VERBOSE -eq 1 ] ; then
-    {
-      # NOT Colored
-      if [[ -n "$COLORED" ]] ; then
-      {
-            echo "   ${SEEKER} \"${SEEKING}\" ${FILESCOMMAND}  ${IGNORELIST}  "
-      }
-      else
-      {
-            echo -e "${CYAN}   ${SEEKER} \"${SEEKING}\" ${FILESCOMMAND}  ${IGNORELIST}  "
-      }
-      fi
-    }
-    fi
-    # not PIPED
-    if [[ -z "$PIPED" ]]; then
-    {
-      if [[ "${REPLACERGNU}" == "YES" ]] ; then
-      # sed GNU
-      {
-        # echo -e "${YELLOW} sed GNU ";
-        if [[ -n "${FILESCOMMAND}" ]] ; then
-        {
-          # echo -e "#-DEBUG \nSEEKER:${SEEKER} \nSEEKING:${SEEKING} \nFILESCOMMAND:${FILESCOMMAND} \nIGNORELIST:${IGNORELIST}  &>/dev/null"
-          RESULT="$(${SEEKER} "${SEEKING}" ${FILESCOMMAND}  ${IGNORELIST} | sed 's@\\@\\\\@g')"
-        }
-        else
-        {
-          # echo -e "#-DEBUG \nSEEKER:${SEEKER} \nSEEKING:${SEEKING} \nIGNORELIST:${IGNORELIST}  &>/dev/null"
-          # echo "${SEEKER} "${SEEKING}"  ${IGNORELIST} | sed 's@\\@\\\\@g'"
-          RESULT="$(${SEEKER} "${SEEKING}"  ${IGNORELIST} | sed 's@\\@\\\\@g')"
-        }
-        fi
-      }
-      else
-      # sed mac
-      # MAC REPLACER Has to HAVE A FILENAME.EXTENSION provided for the -i (inplace) option
-      {
-        # echo -e  "${YELLOW} sed MAC ";
-        # ${SEEKER} "$SEEKING" ${FILESCOMMAND}      ${IGNORELIST}  &>/dev/null
-        if [[ -n "${FILESCOMMAND}" ]] ; then
-        {
-          RESULT=$(${SEEKER} "$SEEKING" ${FILESCOMMAND}      ${IGNORELIST} | sed 's@\\@\\\\@g')
-        }
-        else
-        {
-          RESULT=$(${SEEKER} "$SEEKING"      ${IGNORELIST} | sed 's@\\@\\\\@g')
-        }
-        fi
-      }
-      fi
-      # hack for pt, which returns ./ at the beginning of filenames, then remove them ./
-      if [[ -n "${RESULT}" ]] ; then
-      {
-        # echo -e "Not Empty I GOT:\nSEEKER:${SEEKER}\n$RESULT"
-        if [[ "${SEEKER}" == *"pt"* ]]  ; then
-        {
-          RESULT="$(cut -c3- <<< "${RESULT}")"
-          # echo -e "pot GOT:\nSEEKER:${SEEKER}\n$RESULT"
-          # exit
-        }
-        fi
-      }
-      fi
-      # echo -e "empty GOT:\nSEEKER:${SEEKER}\n$RESULT"
-      # exit
-    }
-    else # YES PIPED
-    {
-      # NOT Colored
-      if [[ -n "$COLORED" ]] ; then
-      {
-        if [[ "${REPLACERGNU}" == "YES" ]] ; then
-        # sed GNU
-        {
-          # echo "sed GNU ";
-          if [[ -n "${FILESCOMMAND}" ]] ; then
-          {
-            echo "$PIPED" | ${SEEKER} "$SEEKING" ${FILESCOMMAND}      ${IGNORELIST} | sed 's@\\@\\\\@g'  | sed s/"$SEEKING"/"$SEEKING"/g
-          }
-          else
-          {
-            echo "$PIPED" | ${SEEKER} "$SEEKING"    ${IGNORELIST} | sed 's@\\@\\\\@g'  | sed s/"$SEEKING"/"$SEEKING"/g
-          }
-          fi
-        }
-        else
-        # sed mac
-        # MAC REPLACER Has to HAVE A FILENAME.EXTENSION provided for the -i (inplace) option
-        {
-          # echo "sed MAC ";
-          if [[ -n "${FILESCOMMAND}" ]] ; then
-          {
-            echo "$PIPED" | ${SEEKER} "$SEEKING" ${FILESCOMMAND}      ${IGNORELIST} | sed 's@\\@\\\\@g'  | sed s/"$SEEKING"/"$SEEKING"/g
-          }
-          else
-          {
-            echo "$PIPED" | ${SEEKER} "$SEEKING"      ${IGNORELIST} | sed 's@\\@\\\\@g'  | sed s/"$SEEKING"/"$SEEKING"/g
-          }
-          fi
-        }
-        fi
-      }
-      else # Colored
-      {
-        if [[ "${REPLACERGNU}" == "YES" ]] ; then
-        # sed GNU
-        {
-          # echo -e "${YELLOW} sed GNU ";
-          if [[ -n "${FILESCOMMAND}" ]] ; then
-          {
-            echo -e "$PIPED" | ${SEEKER} "$SEEKING" ${FILESCOMMAND}      ${IGNORELIST} | sed 's@\\@\\\\@g' | sed s/"$SEEKING"/"[38;5;196m$SEEKING${RESET_PROMPT}"/g
-          }
-          else
-          {
-            echo -e "$PIPED" | ${SEEKER} "$SEEKING"      ${IGNORELIST} | sed 's@\\@\\\\@g' | sed s/"$SEEKING"/"[38;5;196m$SEEKING${RESET_PROMPT}"/g
-          }
-          fi
-        }
-        else
-        # sed mac
-        # MAC REPLACER Has to HAVE A FILENAME.EXTENSION provided for the -i (inplace) option
-        {
-          # echo -e "${YELLOW} sed MAC ";
-          if [[ -n "${FILESCOMMAND}" ]] ; then
-          {
-            echo -e "$PIPED" | ${SEEKER} "$SEEKING" ${FILESCOMMAND}      ${IGNORELIST} | sed 's@\\@\\\\@g' | sed s/"$SEEKING"/"[38;5;196m$SEEKING${RESET_PROMPT}"/g
-          }
-          else
-          {
-            echo -e "$PIPED" | ${SEEKER} "$SEEKING"      ${IGNORELIST} | sed 's@\\@\\\\@g' | sed s/"$SEEKING"/"[38;5;196m$SEEKING${RESET_PROMPT}"/g
-          }
-          fi
-        }
-        fi
-      }
-      fi
-      }
-    fi
 
+echo "${cyan}   ${SEEKER} \"${SEEKING}\" ${FILESCOMMAND} ${IGNORELIST}  "
+                ${SEEKER} "$SEEKING" ${FILESCOMMAND}     ${IGNORELIST}
+                err_buff=$?
+#                ${SEEKER} "$SEEKING" ${FILESCOMMAND}     ${IGNORELIST}   | ${SEEKER} "$SEEKING" ${FILESCOMMAND}  &>/dev/null
 }
 fi
+
+
+# DISABLED NUR PIPE -START
+# DISABLED NUR PIPE -START
+# DISABLED NUR PIPE -START
+# DISABLED NUR PIPE -START
+
+
+# if [[ $SEEKING == *"/"* ]]
+# then
+# {
+#     ${SEEKER} "$SEEKING" ${FILESCOMMAND}      ${IGNORELIST}  &>/dev/null
+#     err_buff=$?
+#     if [ $VERBOSE -eq 1 ] ; then
+#     {
+#       # NOT Colored
+#       if [[ -n "$COLORED" ]] ; then
+#       {
+#         echo "   ${SEEKER} \"${SEEKING}\" ${FILESCOMMAND}  ${IGNORELIST}  "
+#       }
+#       else
+#       {
+#         echo -e "${CYAN}   ${SEEKER} \"${SEEKING}\" ${FILESCOMMAND}  ${IGNORELIST}  "
+#       }
+#       fi
+#     }
+#     fi
+#     # not PIPED
+#     if [ -z "$PIPED" ]; then
+#     {
+#       if [[ "${REPLACERGNU}" == "YES" ]] ; then
+#       # sed GNU
+#       {
+#         # echo -e "${YELLOW} sed GNU ";
+#         # ${SEEKER} "$SEEKING" ${FILESCOMMAND}      ${IGNORELIST}  &>/dev/null
+#         if [[ -n "${FILESCOMMAND}" ]] ; then
+#         {
+#           RESULT=$(${SEEKER} "$SEEKING" ${FILESCOMMAND}      ${IGNORELIST} | sed -e 's\\\\\\g')
+#         }
+#         else
+#         {
+#           RESULT=$(${SEEKER} "$SEEKING"   ${IGNORELIST} | sed -e 's\\\\\\g')
+#         }
+#         fi
+
+#       }
+#       else
+#       # sed mac
+#       # MAC REPLACER Has to HAVE A FILENAME.EXTENSION provided for the -i (inplace) option
+#       {
+#         # echo  -e "${YELLOW} sed MAC ";
+#         #${SEEKER} "$SEEKING" ${FILESCOMMAND}      ${IGNORELIST}  &>/dev/null
+#         if [[ -n "${FILESCOMMAND}" ]] ; then
+#         {
+#           RESULT=$(${SEEKER} "$SEEKING" ${FILESCOMMAND}      ${IGNORELIST} | sed -e 's\\\\\\g')
+#         }
+#         else
+#         {
+#           RESULT=$(${SEEKER} "$SEEKING"      ${IGNORELIST} | sed -e 's\\\\\\g')
+#         }
+#         fi
+
+
+#       }
+#       fi
+#     }
+#     else # YES PIPED
+#     {
+#       # NOT Colored
+#       if [[ -n "$COLORED" ]] ; then
+#       {
+#         if [[ "${REPLACERGNU}" == "YES" ]] ; then
+#         # sed GNU
+#         {
+#           # echo  "sed GNU ";
+#           if [[ -n "${FILESCOMMAND}" ]] ; then
+#           {
+#             echo "$PIPED" | ${SEEKER} "$SEEKING" ${FILESCOMMAND}      ${IGNORELIST}  | sed 's\\\\\\g' | sed s"$SEEKING""$SEEKING"g
+#           }
+#           else
+#           {
+#             echo "$PIPED" | ${SEEKER} "$SEEKING"      ${IGNORELIST}  | sed 's\\\\\\g' | sed s"$SEEKING""$SEEKING"g            RESULT=$(${SEEKER} "$SEEKING"      ${IGNORELIST} | sed -e 's\\\\\\g')
+#           }
+#           fi
+#         }
+#         else
+#         # sed mac
+#         # MAC REPLACER Has to HAVE A FILENAME.EXTENSION provided for the -i (inplace) option
+#         {
+#           # echo "sed MAC ";
+#           if [[ -n "${FILESCOMMAND}" ]] ; then
+#           {
+#             echo "$PIPED" | ${SEEKER} "$SEEKING" ${FILESCOMMAND}      ${IGNORELIST}  | sed 's\\\\\\g' | sed s"$SEEKING""$SEEKING"g
+#           }
+#           else
+#           {
+#             echo "$PIPED" | ${SEEKER} "$SEEKING"      ${IGNORELIST}  | sed 's\\\\\\g' | sed s"$SEEKING""$SEEKING"g
+#           }
+#           fi
+#         }
+#         fi
+#       }
+#       else # Colored
+#       {
+#         if [[ "${REPLACERGNU}" == "YES" ]] ; then
+#         # sed GNU
+#         {
+#           # echo -e "${YELLOW} sed GNU ";
+#           if [[ -n "${FILESCOMMAND}" ]] ; then
+#           {
+#             echo "$PIPED" | ${SEEKER} "$SEEKING" ${FILESCOMMAND}      ${IGNORELIST}  | sed 's\\\\\\g' | sed s"$SEEKING""[38;5;196m$SEEKING${RESET_PROMPT}"g
+#           }
+#           else
+#           {
+#             echo "$PIPED" | ${SEEKER} "$SEEKING"      ${IGNORELIST}  | sed 's\\\\\\g' | sed s"$SEEKING""[38;5;196m$SEEKING${RESET_PROMPT}"g
+#           }
+#           fi
+#         }
+#         else
+#         # sed mac
+#         # MAC REPLACER Has to HAVE A FILENAME.EXTENSION provided for the -i (inplace) option
+#         {
+#           # echo -e "${YELLOW} sed MAC ";
+#           if [[ -n "${FILESCOMMAND}" ]] ; then
+#           {
+#             echo "$PIPED" | ${SEEKER} "$SEEKING" ${FILESCOMMAND}      ${IGNORELIST}  | sed 's\\\\\\g' | sed s"$SEEKING""[38;5;196m$SEEKING${RESET_PROMPT}"g
+#           }
+#           else
+#           {
+#             echo "$PIPED" | ${SEEKER} "$SEEKING"      ${IGNORELIST}  | sed 's\\\\\\g' | sed s"$SEEKING""[38;5;196m$SEEKING${RESET_PROMPT}"g
+#           }
+#           fi
+#         }
+#         fi
+#       }
+#       fi
+#     }
+#     fi
+# }
+# else # else SEEKING does not contain  *"/"*
+# {
+#     if [ $VERBOSE -eq 1 ] ; then
+#     {
+#       # NOT Colored
+#       if [[ -n "$COLORED" ]] ; then
+#       {
+#             echo "   ${SEEKER} \"${SEEKING}\" ${FILESCOMMAND}  ${IGNORELIST}  "
+#       }
+#       else
+#       {
+#             echo -e "${CYAN}   ${SEEKER} \"${SEEKING}\" ${FILESCOMMAND}  ${IGNORELIST}  "
+#       }
+#       fi
+#     }
+#     fi
+#     # not PIPED
+#     if [[ -z "$PIPED" ]]; then
+#     {
+#       if [[ "${REPLACERGNU}" == "YES" ]] ; then
+#       # sed GNU
+#       {
+#         # echo -e "${YELLOW} sed GNU ";
+#         if [[ -n "${FILESCOMMAND}" ]] ; then
+#         {
+#           # echo -e "#-DEBUG \nSEEKER:${SEEKER} \nSEEKING:${SEEKING} \nFILESCOMMAND:${FILESCOMMAND} \nIGNORELIST:${IGNORELIST}  &>/dev/null"
+#           RESULT="$(${SEEKER} "${SEEKING}" ${FILESCOMMAND}  ${IGNORELIST} | sed 's@\\@\\\\@g')"
+#         }
+#         else
+#         {
+#           # echo -e "#-DEBUG \nSEEKER:${SEEKER} \nSEEKING:${SEEKING} \nIGNORELIST:${IGNORELIST}  &>/dev/null"
+#           # echo "${SEEKER} "${SEEKING}"  ${IGNORELIST} | sed 's@\\@\\\\@g'"
+#           RESULT="$(${SEEKER} "${SEEKING}"  ${IGNORELIST} | sed 's@\\@\\\\@g')"
+#         }
+#         fi
+#       }
+#       else
+#       # sed mac
+#       # MAC REPLACER Has to HAVE A FILENAME.EXTENSION provided for the -i (inplace) option
+#       {
+#         # echo -e  "${YELLOW} sed MAC ";
+#         # ${SEEKER} "$SEEKING" ${FILESCOMMAND}      ${IGNORELIST}  &>/dev/null
+#         if [[ -n "${FILESCOMMAND}" ]] ; then
+#         {
+#           RESULT=$(${SEEKER} "$SEEKING" ${FILESCOMMAND}      ${IGNORELIST} | sed 's@\\@\\\\@g')
+#         }
+#         else
+#         {
+#           RESULT=$(${SEEKER} "$SEEKING"      ${IGNORELIST} | sed 's@\\@\\\\@g')
+#         }
+#         fi
+#       }
+#       fi
+#       # hack for pt, which returns ./ at the beginning of filenames, then remove them ./
+#       if [[ -n "${RESULT}" ]] ; then
+#       {
+#         # echo -e "Not Empty I GOT:\nSEEKER:${SEEKER}\n$RESULT"
+#         if [[ "${SEEKER}" == *"pt"* ]]  ; then
+#         {
+#           RESULT="$(cut -c3- <<< "${RESULT}")"
+#           # echo -e "pot GOT:\nSEEKER:${SEEKER}\n$RESULT"
+#           # exit
+#         }
+#         fi
+#       }
+#       fi
+#       # echo -e "empty GOT:\nSEEKER:${SEEKER}\n$RESULT"
+#       # exit
+#     }
+#     else # YES PIPED
+#     {
+#       # NOT Colored
+#       if [[ -n "$COLORED" ]] ; then
+#       {
+#         if [[ "${REPLACERGNU}" == "YES" ]] ; then
+#         # sed GNU
+#         {
+#           # echo "sed GNU ";
+#           if [[ -n "${FILESCOMMAND}" ]] ; then
+#           {
+#             echo "$PIPED" | ${SEEKER} "$SEEKING" ${FILESCOMMAND}      ${IGNORELIST} | sed 's@\\@\\\\@g'  | sed s/"$SEEKING"/"$SEEKING"/g
+#           }
+#           else
+#           {
+#             echo "$PIPED" | ${SEEKER} "$SEEKING"    ${IGNORELIST} | sed 's@\\@\\\\@g'  | sed s/"$SEEKING"/"$SEEKING"/g
+#           }
+#           fi
+#         }
+#         else
+#         # sed mac
+#         # MAC REPLACER Has to HAVE A FILENAME.EXTENSION provided for the -i (inplace) option
+#         {
+#           # echo "sed MAC ";
+#           if [[ -n "${FILESCOMMAND}" ]] ; then
+#           {
+#             echo "$PIPED" | ${SEEKER} "$SEEKING" ${FILESCOMMAND}      ${IGNORELIST} | sed 's@\\@\\\\@g'  | sed s/"$SEEKING"/"$SEEKING"/g
+#           }
+#           else
+#           {
+#             echo "$PIPED" | ${SEEKER} "$SEEKING"      ${IGNORELIST} | sed 's@\\@\\\\@g'  | sed s/"$SEEKING"/"$SEEKING"/g
+#           }
+#           fi
+#         }
+#         fi
+#       }
+#       else # Colored
+#       {
+#         if [[ "${REPLACERGNU}" == "YES" ]] ; then
+#         # sed GNU
+#         {
+#           # echo -e "${YELLOW} sed GNU ";
+#           if [[ -n "${FILESCOMMAND}" ]] ; then
+#           {
+#             echo -e "$PIPED" | ${SEEKER} "$SEEKING" ${FILESCOMMAND}      ${IGNORELIST} | sed 's@\\@\\\\@g' | sed s/"$SEEKING"/"[38;5;196m$SEEKING${RESET_PROMPT}"/g
+#           }
+#           else
+#           {
+#             echo -e "$PIPED" | ${SEEKER} "$SEEKING"      ${IGNORELIST} | sed 's@\\@\\\\@g' | sed s/"$SEEKING"/"[38;5;196m$SEEKING${RESET_PROMPT}"/g
+#           }
+#           fi
+#         }
+#         else
+#         # sed mac
+#         # MAC REPLACER Has to HAVE A FILENAME.EXTENSION provided for the -i (inplace) option
+#         {
+#           # echo -e "${YELLOW} sed MAC ";
+#           if [[ -n "${FILESCOMMAND}" ]] ; then
+#           {
+#             echo -e "$PIPED" | ${SEEKER} "$SEEKING" ${FILESCOMMAND}      ${IGNORELIST} | sed 's@\\@\\\\@g' | sed s/"$SEEKING"/"[38;5;196m$SEEKING${RESET_PROMPT}"/g
+#           }
+#           else
+#           {
+#             echo -e "$PIPED" | ${SEEKER} "$SEEKING"      ${IGNORELIST} | sed 's@\\@\\\\@g' | sed s/"$SEEKING"/"[38;5;196m$SEEKING${RESET_PROMPT}"/g
+#           }
+#           fi
+#         }
+#         fi
+#       }
+#       fi
+#       }
+#     fi
+
+# }
+# fi
+
+# DISABLED NUR PIPE -END
+# DISABLED NUR PIPE -END
+# DISABLED NUR PIPE -END
+# DISABLED NUR PIPE -END
+
 # If  | egrep "$SEEKING" &>/dev/null | returned an error....so it was... it was found/not found say it and stop execution for not found
 # if [ $? -eq 0 ] ;then #work
 # err_buff=$?
