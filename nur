@@ -155,7 +155,7 @@ if [[ -n "$2" ]] ; then
 
   if [[ "$2" == "--nocolor"  ]] ; then
   {
-    COLORED="YES";
+    COLORED=""; # "" is no "YES" is yes
   }
   fi
 
@@ -242,13 +242,13 @@ fi
                   if [ -z "$WHAT" ] ; then
                     {
                       #  Colored
-                      COLORED="YES";
+                      COLORED="YES";  # "" is no "YES" is yes
                       #echo "z"
                     }
                   else
                     {
                       # NOT Colored
-                      COLORED="";
+                      COLORED="";   # "" is no "YES" is yes
                       #echo "!z"
                     }
                   fi
@@ -287,17 +287,19 @@ fi
 # COLORS - Ouput - Start
 #
 
-[[ -z "${BLACK}" ]] && BLACK="\\033[38;5;16m"
-[[ -z "${GREEN}" ]] && GREEN="\\033[38;5;22m"
+[[ -z "${RED}" ]] && RED="\\033[38;5;1m"
+
 [[ -z "${CYAN}" ]] && CYAN="\\033[38;5;123m"
-[[ -z "${PURPLE}" ]] && PURPLE="\\033[01;35m"
+
+[[ -z "${GREEN}" ]] && GREEN="\\033[38;5;22m"
+
+
+[[ -z "${BLACK}" ]] && BLACK="\\033[38;5;16m"
 [[ -z "${PURPLE_BLUE}" ]] && PURPLE_BLUE="\\033[38;5;93m"
 [[ -z "${GRAY241}" ]] && GRAY241="\\033[38;5;241m"
-[[ -z "${YELLOW226}" ]] && YELLOW226="\\033[38;5;226m"
-[[ -z "${YELLOW}" ]] && YELLOW="\\033[01;33m"
-[[ -z "${RESET}" ]] && RESET="\\033[0m"
-[[ -z "${RESET_PROMPT}" ]] && RESET_PROMPT="[0m"
-[[ -z "${RED}" ]] && RED="\\033[38;5;1m"
+
+
+
 [[ -z "${BRIGHT_BLUE87}" ]] && BRIGHT_BLUE87="\\033[38;5;87m"
 
 #
@@ -1112,6 +1114,10 @@ MOREIGNORE_FILES=""
 MOREIGNORE_DIRS=""
 [ -f .nurignore_dirs ] && MOREIGNORE_DIRS=$(<.nurignore_dirs)
 
+# echo "MOREIGNORE_FILES:${MOREIGNORE_FILES}"
+# echo "MOREIGNORE_DIRS:${MOREIGNORE_DIRS}"
+# exit 0
+
 FILESTOEXCLUDE=".dir_bash_history
 .gitignore
 .ersetzeignore_dirs
@@ -1165,6 +1171,9 @@ app/cache
 app/logs
 app/session
 ${MOREIGNORE_DIRS}"
+# echo "FILESTOEXCLUDE:${FILESTOEXCLUDE}"
+# echo "DIRSTOEXCLUDE:${DIRSTOEXCLUDE}"
+# exit 0
 
 IGNORELIST=""
 
@@ -1180,18 +1189,20 @@ IGNORELIST=""
         IGNORELIST="${IGNORELIST} ${EXCLUDEDIR}${ONE_DIRNAME}"
       fi
     done <<< "${DIRSTOEXCLUDE}"
+# echo "IGNORELIST:${IGNORELIST}"
+# exit 0
 #
 # COMPOSE IGNORE ONELINER - end
 #
 
 
 #
-# COLORS - Ouput - Start
+# COLORS - Output - Start
 #
         # RESET_PROMPT="[38;5;231m"
         RESET_PROMPT="[0m"
 #
-# COLORS - Ouput - end
+# COLORS - Output - end
 #
 
 # S E E K I N G   I N S T A L L    C H E C K  - Results
@@ -1251,6 +1262,8 @@ fi
 #
 # S E E K I N G   I N S T A L L    C H E C K  - End
 #
+
+
 # echo "${CYAN}  ack  --ignore=vendor --ignore-dir=bower_components  --ignore-dir=node_modules --ignore-dir=storage/debugbar  --ignore-dir=storage/logs  --ignore-dir=app/Stubs \"${SEEKING}\" "
 # echo "${CYAN}  ag  --ignore-dir=vendor --ignore-dir=bower_components  --ignore-dir=node_modules --ignore-dir=storage/debugbar  --ignore-dir=storage/logs  --ignore-dir=app/Stubs \"${SEEKING}\" "
 # echo "${CYAN}  grep  --exclude-dir=vendor --exclude-dir=bower_components  --exclude-dir=node_modules --exclude-dir=storage/debugbar  --exclude-dir=storage/logs  --exclude-dir=app/Stubs \"${SEEKING}\" "
@@ -1267,6 +1280,87 @@ fi
 # grep  --exclude-dir=vendor --exclude-dir=bower_components  --exclude-dir=node_modules --exclude-dir=storage/debugbar  --exclude-dir=storage/logs  --exclude-dir=app/Stubs "$SEEKING"
 # THIS IS GREP FOR MAC
 # grep  --exclude-dir=vendor --exclude-dir=bower_components  --exclude-dir=node_modules --exclude-dir=storage/debugbar  --exclude-dir=storage/logs  --exclude-dir=app/Stubs -e "$SEEKING" *
+
+### APPLIED CHANGE --- START
+### APPLIED CHANGE --- START
+### APPLIED CHANGE --- START
+### APPLIED CHANGE --- START
+APPLIED_CHANGE=0
+function enter_escape_for_sed() {
+  #sed ':a;N;$!ba;s/\n/0N33NT3R/g'  # GNU sed
+  sed -e ':a' -e 'N' -e '$!ba' -e 's/\n/\\n/g'  #  cross-platform compatible synta>
+  APPLIED_CHANGE=$?
+} # end enter_escape_for_sed
+function enter_decode() {
+  sed 's/\\n/\n/g'
+} # end enter_decode
+function escape_slashes() {
+    sed 's/\//\\\//g'
+} # end escape_slashes
+function escape_backslashes_for_sed() {
+    sed 's/\\/\\\\/g'
+} # end escape_backslashes_for_sed
+function escape_quotes() {
+    sed 's/\"/\\\"/g'
+} # end escape_quotes
+function escape_single_quotes() {
+    sed "s/'/\\'/g"
+} # end escape_single_quotes
+function escape_squared_open_brackets() {
+    sed "s/\[/\\[/g"
+} # end escape_squared_open_brackets
+function escape_squared_close_brackets() {
+    sed "s/\]/\\]/g"
+} # end escape_squared_close_brackets
+# DEBUG echo "SEEKING:$SEEKING"
+
+INSEEKING=$(echo -n "${SEEKING}"|escape_backslashes_for_sed|escape_squared_open_brackets|escape_squared_close_brackets  | escape_quotes| escape_single_quotes )
+TESTERINSEEKING=$(echo -n "${INSEEKING}" | enter_escape_for_sed)
+# DEBUG echo "INSEEKING:$INSEEKING"
+
+
+if [[ "${INSEEKING}" == "${TESTERINSEEKING}" ]] ; then
+{
+  APPLIED_CHANGE=0
+}
+else
+{
+  APPLIED_CHANGE=1
+  [[ -z "${TESTERINSEEKING}" ]] || SEEKING="${TESTERINSEEKING}"
+}
+fi
+# DEBUG echo "SEEKING:$SEEKING"
+#exit 0
+
+### APPLIED CHANGE --- END
+### APPLIED CHANGE --- END
+### APPLIED CHANGE --- END
+### APPLIED CHANGE --- END
+
+### PERFORM NUR PIPE - START
+### PERFORM NUR PIPE - START
+### PERFORM NUR PIPE - START
+### PERFORM NUR PIPE - START
+
+  ##########             ##############                 ##                 ############               ##########             ##          ##
+  ##########             ##############                 ##                 ############               ##########             ##          ##
+##          ##           ##                           ##  ##               ##          ##           ##          ##           ##          ##
+##          ##           ##                           ##  ##               ##          ##           ##          ##           ##          ##
+##                       ##                         ##      ##             ##          ##           ##                       ##          ##
+##                       ##                         ##      ##             ##          ##           ##                       ##          ##
+  ##########             ##########               ##          ##           ############             ##                       ##############
+  ##########             ##########               ##          ##           ############             ##                       ##############
+            ##           ##                       ##############           ##      ##               ##                       ##          ##
+            ##           ##                       ##############           ##      ##               ##                       ##          ##
+##          ##           ##                       ##          ##           ##        ##             ##          ##           ##          ##
+##          ##           ##                       ##          ##           ##        ##             ##          ##           ##          ##
+  ##########             ##############           ##          ##           ##          ##             ##########             ##          ##
+  ##########             ##############           ##          ##           ##          ##             ##########             ##          ##
+
+### PERFORM NUR PIPE - START
+### PERFORM NUR PIPE - START
+### PERFORM NUR PIPE - START
+### PERFORM NUR PIPE - START
 
 if [[ $SEEKING == *"/"* ]]
 then
@@ -1543,6 +1637,32 @@ else # else SEEKING does not contain  *"/"*
 
 }
 fi
+
+### PERFORM NUR PIPE --- END
+### PERFORM NUR PIPE --- END
+### PERFORM NUR PIPE --- END
+### PERFORM NUR PIPE --- END
+
+  ##########             ##############                 ##                 ############               ##########             ##          ##
+  ##########             ##############                 ##                 ############               ##########             ##          ##
+##          ##           ##                           ##  ##               ##          ##           ##          ##           ##          ##
+##          ##           ##                           ##  ##               ##          ##           ##          ##           ##          ##
+##                       ##                         ##      ##             ##          ##           ##                       ##          ##
+##                       ##                         ##      ##             ##          ##           ##                       ##          ##
+  ##########             ##########               ##          ##           ############             ##                       ##############
+  ##########             ##########               ##          ##           ############             ##                       ##############
+            ##           ##                       ##############           ##      ##               ##                       ##          ##
+            ##           ##                       ##############           ##      ##               ##                       ##          ##
+##          ##           ##                       ##          ##           ##        ##             ##          ##           ##          ##
+##          ##           ##                       ##          ##           ##        ##             ##          ##           ##          ##
+  ##########             ##############           ##          ##           ##          ##             ##########             ##          ##
+  ##########             ##############           ##          ##           ##          ##             ##########             ##          ##
+
+### PERFORM NUR PIPE --- END
+### PERFORM NUR PIPE --- END
+### PERFORM NUR PIPE --- END
+### PERFORM NUR PIPE --- END
+
 # If  | egrep "$SEEKING" &>/dev/null | returned an error....so it was... it was found/not found say it and stop execution for not found
 # if [ $? -eq 0 ] ;then #work
 # err_buff=$?
