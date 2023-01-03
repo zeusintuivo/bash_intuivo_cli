@@ -894,8 +894,8 @@ fi
 
 #CHECK FOR CHOICE FORCE IT
 if command -v "${DEFAULTSEEKER}" >/dev/null 2>&1; then
-    {
-        SEEKER="${DEFAULTSEEKER}";
+{
+  SEEKER="${DEFAULTSEEKER}";
         if [ $VERBOSE -eq 1 ] ; then
         {
            # NOT Colored
@@ -934,14 +934,14 @@ if command -v "${DEFAULTSEEKER}" >/dev/null 2>&1; then
                 SEEKER="${SEEKER} --no-color ";
             }
             fi
-            IGNORE_DIR="exclude-dirs";
-            IGNORE_FILE="exclude-files"
-            PRINTCOMMAND="-l --output-sep=\"\\x00\"";
-        }
-        fi
-        # make case sensitive for ag
-        if [[ "$DEFAULTSEEKER" == "ag" ]] ; then
-        {
+    IGNORE_DIR="exclude-dirs";
+    IGNORE_FILE="exclude-files"
+    PRINTCOMMAND="-l --output-sep=\"\\x00\"";
+  }
+  fi
+  # make case sentive for ag
+  if [[ "$DEFAULTSEEKER" == "ag" ]] ; then
+  {
             # NOT PIPED then show line numbers
             if [ -z "$PIPED" ] ; then
             {
@@ -1067,14 +1067,13 @@ if command -v "${DEFAULTSEEKER}" >/dev/null 2>&1; then
                 SEEKER="${SEEKER} --color=never ";
             }
             fi
-            IGNORE_DIR="exclude-dir";
-            IGNORE_FILE="exclude";
-            FILESCOMMAND=".";
-            # PRINTCOMMAND="-l --print0";
-            PRINTCOMMAND="-l --null";
-        }
-        fi
-
+    IGNORE_DIR="exclude-dir";
+    IGNORE_FILE="exclude";
+    FILESCOMMAND=".";
+    # PRINTCOMMAND="-l --print0";
+    PRINTCOMMAND="-l --null";
+  }
+  fi
 }
 else
 {

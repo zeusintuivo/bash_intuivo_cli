@@ -715,7 +715,22 @@ echo "${yellow} ...";
 
 
 
+######      #######     ######      #              #         #####      #######
+######      #######     ######      #              #         #####      #######
+#     #     #           #     #     #             # #       #     #     #
+#     #     #           #     #     #             # #       #     #     #
+#     #     #           #     #     #            #   #      #           #
+#     #     #           #     #     #            #   #      #           #
+######      #####       ######      #           #     #     #           #####
+######      #####       ######      #           #     #     #           #####
+#   #       #           #           #           #######     #           #
+#   #       #           #           #           #######     #           #
+#    #      #           #           #           #     #     #     #     #
+#    #      #           #           #           #     #     #     #     #
+#     #     #######     #           #######     #     #      #####      #######
+#     #     #######     #           #######     #     #      #####      #######
 # R E P L A C E    P A R T
+
 
 
 # echo $0=./replace
@@ -785,11 +800,20 @@ function escape_quotes() {
 function escape_single_quotes() {
     sed "s/'/\\'/g"
 } # end escape_single_quotes
-function escape_squared_bracket() {
-    sed "s/\[/\\[/g"
+function escape_squared_bracket_start() {
+    sed "s/\[/\\\[/g"
 }
-function escape_squared_bracket() {
-    sed "s/\]/\\]/g"
+function escape_squared_bracket_end() {
+    sed "s/\]/\\\]/g"
+}
+function escape_curly_bracket_start() {
+    sed "s/[{]/\\\{/g"
+}
+function escape_curly_bracket_end() {
+    sed "s/[}]/\\\}/g"
+}
+function escape_ampersands() {
+    sed "s/[&]/\\\&/g"
 }
 
 function change_line() {
@@ -808,7 +832,7 @@ function change_line() {
 # OLD_LINE_PATTERN=$SEEKING;
 # NEW_LINE=$2;
 # FILE=$3
-IMPLACING=$(echo -n "${NEW}"  | escape_slashes | escape_quotes| escape_single_quotes)
+IMPLACING=$(echo -n "${NEW}"  | escape_slashes | escape_quotes| escape_single_quotes | escape_ampersands | escape_curly_bracket_end | escape_curly_bracket_start| escape_squared_bracket_end | escape_squared_bracket_start )
 TESTENTERIMPLACING=$(echo -n "${IMPLACING}" | enter_escape_for_sed)
 
 if [[ "${IMPLACING}" == "${TESTENTERIMPLACING}" ]] ; then
@@ -817,8 +841,13 @@ if [[ "${IMPLACING}" == "${TESTENTERIMPLACING}" ]] ; then
 }
 else
 {
-  APPLIED_ENTER=1
-  IMPLACING=$TESTENTERIMPLACING
+  APPLIED_ENTER=0
+  if [[ -n "${TESTENTERIMPLACING}" ]] ; then
+  {
+    APPLIED_ENTER=1
+    IMPLACING=$TESTENTERIMPLACING
+  }
+  fi
 }
 fi
 

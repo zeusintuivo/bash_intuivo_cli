@@ -492,6 +492,78 @@ fi
 SEEKING="$1";
 IGNORELIST="--${IGNORE_FILE}=composer.phar --${IGNORE_FILE}=bootstrap.php.cache  --${IGNORE_FILE}=model --${IGNORE_FILE}=load_insert --${IGNORE_FILE}=generateparams --${IGNORE_FILE}=generatelocations --${IGNORE_FILE}=generateinserts --${IGNORE_FILE}=countalltables --${IGNORE_FILE}=conflicts --${IGNORE_DIR}=AbsoluteUrlBundle --${IGNORE_DIR}=.idea --${IGNORE_DIR}=cache --${IGNORE_DIR}=vendor --${IGNORE_DIR}=bower_components  --${IGNORE_DIR}=node_modules --${IGNORE_DIR}=storage/debugbar  --${IGNORE_DIR}=.idea  --${IGNORE_DIR}=.git --${IGNORE_DIR}=storage/logs  --${IGNORE_DIR}=app/Stubs "
 
+### APPLIED SEEK CHANGE --- START
+### APPLIED SEEK CHANGE --- START
+### APPLIED SEEK CHANGE --- START
+### APPLIED SEEK CHANGE --- START
+APPLIED_CHANGE=0
+function enter_escape_for_sed() {
+  #sed ':a;N;$!ba;s/\n/0N33NT3R/g'  # GNU sed
+  sed -e ':a' -e 'N' -e '$!ba' -e 's/\n/\\n/g'  #  cross-platform compatible synta>
+  APPLIED_CHANGE=$?
+} # end enter_escape_for_sed
+function enter_decode() {
+  sed 's/\\n/\n/g'
+} # end enter_decode
+function escape_slashes() {
+    sed 's=/=\\/=g'
+} # end escape_slashes
+function escape_backslashes_for_sed() {
+    sed 's/\\/\\\\/g'
+} # end escape_backslashes_for_sed
+function escape_quotes() {
+    sed 's/\"/\\\"/g'
+} # end escape_quotes
+function escape_single_quotes() {
+    sed "s/'/\\'/g"
+} # end escape_single_quotes
+function escape_squared_open_brackets() {
+    sed "s/\[/\\[/g"
+} # end escape_squared_open_brackets
+function escape_squared_close_brackets() {
+    sed "s/\]/\\]/g"
+} # end escape_squared_close_brackets
+
+
+# echo  "2 IMPLACING:${IMPLACING}"
+# escape_slashes has to be the last or it will fail on other replacements after
+INSEEKING=$(echo -n "${SEEKING}"|escape_backslashes_for_sed|escape_squared_open_brackets|escape_squared_close_brackets  | escape_quotes| escape_single_quotes | escape_slashes)
+TESTERINSEEKING=$(echo -n "${INSEEKING}" | enter_escape_for_sed )
+# DEBUG
+# DEBUG echo "$0 INSEEKING:$INSEEKING"
+# DEBUG echo "$0 TESTERINSEEKING:$TESTERINSEEKING"
+
+
+if [[ "${INSEEKING}" == "${TESTERINSEEKING}" ]] ; then
+{
+  # DEBUG echo 1
+  APPLIED_CHANGE=0
+}
+else
+{
+  # DEBUG echo 2
+  APPLIED_CHANGE=0
+  if [[ -n "${TESTERINSEEKING}" ]] ; then
+  {
+  	# DEBUG echo 3
+    APPLIED_CHANGE=1
+    SEEKING="${TESTERINSEEKING}"
+  }
+  elif [[ -n "${INSEEKING}" ]] ; then
+  {
+  	# DEBUG echo 4
+    APPLIED_CHANGE=1
+    SEEKING="${INSEEKING}"
+  }
+  fi
+}
+fi
+# DEBUG echo "$0 SEEKING:$SEEKING"
+### APPLIED SEEK CHANGE --- END
+### APPLIED SEEK CHANGE --- END
+### APPLIED SEEK CHANGE --- END
+### APPLIED SEEK CHANGE --- END
+
 #If NOT verbose  and # not PIPED
 if [ $VERBOSE -eq 0 ] && [ -z "$PIPED" ] ; then
 	{
