@@ -448,6 +448,8 @@ if [[ $VALIDREPLACER == "GNU" ]] ; then
   REPLACERGNU="YES"
 fi
 
+
+XARGSCOMMAD=""
 # Test
 # echo "REPLACERGNU: $REPLACERGNU"
 # echo "VALIDREPLACER: $VALIDREPLACER"
@@ -552,6 +554,7 @@ if command -v pt >/dev/null 2>&1; then
   IGNORE_DIR="ignore";
   IGNORE_FILE="ignore";
   PRINTCOMMAND="-l --null";
+  XARGSCOMMAD="-0"; 
 }
 else # // sift not installed
 {
@@ -1484,8 +1487,8 @@ if [[ $SEEKING == *"/"* || $IMPLACING == *"/"* ]]; then
             # done <<< "$FILES"
 
 
-            echo "${cyan}   ${SEEKER} \"${SEEKING}\" ${FILESCOMMAND} ${PRINTCOMMAND} ${IGNORELIST}   | xargs -I {} sed -i  -e s\"${SEEKING}\"\"${IMPLACING}\"g {}"
-                            ${SEEKER} "$SEEKING"     ${FILESCOMMAND} ${PRINTCOMMAND} ${IGNORELIST}   | xargs -I {} sed -i  -e s"$SEEKING""$IMPLACING"g {} | ${SEEKER} "$SEEKING" ${FILESCOMMAND}  &>/dev/null
+            echo "${cyan}   ${SEEKER} \"${SEEKING}\" ${FILESCOMMAND} ${PRINTCOMMAND} ${IGNORELIST}   | xargs $XARGSCOMMAD -I {} sed -i  -e s\"${SEEKING}\"\"${IMPLACING}\"g {}"
+                            ${SEEKER} "$SEEKING"     ${FILESCOMMAND} ${PRINTCOMMAND} ${IGNORELIST}   | xargs $XARGSCOMMAD -I {} sed -i  -e s"$SEEKING""$IMPLACING"g {} | ${SEEKER} "$SEEKING" ${FILESCOMMAND}  &>/dev/null
                      err_buff=$?
     }
     else
@@ -1495,9 +1498,9 @@ if [[ $SEEKING == *"/"* || $IMPLACING == *"/"* ]]; then
             echo "${yellow} sed MAC ";
             # Sample use: ${THISSCRIPTNAME} /usr/bin/env\ bash  /bin/bash
             # echo "${cyan}   ${SEEKER} \"${SEEKING}\" ${FILESCOMMAND} ${PRINTCOMMAND} ${IGNORELIST}   | xargs -0 sed -i'.sedbak'  -e s\"${SEEKING}\"\"${IMPLACING}\"g"
-            echo "${cyan}   ${SEEKER} \"${SEEKING}\" ${FILESCOMMAND} ${PRINTCOMMAND} ${IGNORELIST}   | xargs -I {} sed -i'.sedbak'  -e s\"${SEEKING}\"\"${IMPLACING}\"g {}"
+            echo "${cyan}   ${SEEKER} \"${SEEKING}\" ${FILESCOMMAND} ${PRINTCOMMAND} ${IGNORELIST}   | xargs $XARGSCOMMAD -I {} sed -i'.sedbak'  -e s\"${SEEKING}\"\"${IMPLACING}\"g {}"
             #                ${SEEKER} "$SEEKING"     ${FILESCOMMAND} ${PRINTCOMMAND} ${IGNORELIST}   | xargs -0 sed -i'.sedbak'  -e s"$SEEKING""$IMPLACING"g | ${SEEKER} "$SEEKING" ${FILESCOMMAND}  &>/dev/null
-                            ${SEEKER} "$SEEKING"     ${FILESCOMMAND} ${PRINTCOMMAND} ${IGNORELIST}   | xargs -I {} sed -i'.sedbak'  -e s"$SEEKING""$IMPLACING"g {} | ${SEEKER} "$SEEKING" ${FILESCOMMAND}  &>/dev/null
+                            ${SEEKER} "$SEEKING"     ${FILESCOMMAND} ${PRINTCOMMAND} ${IGNORELIST}   | xargs $XARGSCOMMAD -I {} sed -i'.sedbak'  -e s"$SEEKING""$IMPLACING"g {} | ${SEEKER} "$SEEKING" ${FILESCOMMAND}  &>/dev/null
                                err_buff=$?
     }
     fi
@@ -1506,8 +1509,8 @@ if [[ $SEEKING == *"/"* || $IMPLACING == *"/"* ]]; then
   # ex
   # REF: http://askubuntu.com/questions/20414/find-and-replace-text-within-a-file-using-commands
   {
-        echo "${cyan}   ${SEEKER} \"${SEEKING}\" ${FILESCOMMAND} ${PRINTCOMMAND} ${IGNORELIST}   | xargs -I {}  ex +s\"$SEEKING\"\"$IMPLACING\" -cwq {} "
-                        ${SEEKER} "$SEEKING"     ${FILESCOMMAND} ${PRINTCOMMAND} ${IGNORELIST}   | xargs -I {}  ex +s"$SEEKING""$IMPLACING" -cwq {}
+        echo "${cyan}   ${SEEKER} \"${SEEKING}\" ${FILESCOMMAND} ${PRINTCOMMAND} ${IGNORELIST}   | xargs $XARGSCOMMAD -I {}  ex +s\"$SEEKING\"\"$IMPLACING\" -cwq {} "
+                        ${SEEKER} "$SEEKING"     ${FILESCOMMAND} ${PRINTCOMMAND} ${IGNORELIST}   | xargs $XARGSCOMMAD -I {}  ex +s"$SEEKING""$IMPLACING" -cwq {}
                     err_buff=$?
       }
     fi
@@ -1557,8 +1560,8 @@ if [[ $SEEKING == *"/"* || $IMPLACING == *"/"* ]]; then
             #  }
             # done <<< "$FILES"
 
-            echo "${cyan}   ${SEEKER} \"${SEEKING}\" ${FILESCOMMAND} ${PRINTCOMMAND} ${IGNORELIST}   | xargs -I {} sed -i -e s/\"${SEEKING}\"/\"${IMPLACING}\"/g {}"
-                            ${SEEKER} "$SEEKING"     ${FILESCOMMAND} ${PRINTCOMMAND} ${IGNORELIST}   | xargs -I {} sed -i -e s/"$SEEKING"/"$IMPLACING"/g {} | ${SEEKER} "$SEEKING" ${FILESCOMMAND}  &>/dev/null
+            echo "${cyan}   ${SEEKER} \"${SEEKING}\" ${FILESCOMMAND} ${PRINTCOMMAND} ${IGNORELIST}   | xargs $XARGSCOMMAD -I {} sed -i -e s/\"${SEEKING}\"/\"${IMPLACING}\"/g {}"
+                            ${SEEKER} "$SEEKING"     ${FILESCOMMAND} ${PRINTCOMMAND} ${IGNORELIST}   | xargs $XARGSCOMMAD -I {} sed -i -e s/"$SEEKING"/"$IMPLACING"/g {} | ${SEEKER} "$SEEKING" ${FILESCOMMAND}  &>/dev/null
                            err_buff=$?
           }
         else
@@ -1566,9 +1569,9 @@ if [[ $SEEKING == *"/"* || $IMPLACING == *"/"* ]]; then
           # MAC REPLACER Has to HAVE A FILENAME.EXTENSION provided for the -i (inplace) option
           {
             echo "${yellow} sed MAC ";
-            echo "${cyan}   ${SEEKER} \"${SEEKING}\" ${FILESCOMMAND} ${PRINTCOMMAND} ${IGNORELIST}   | xargs -I {} sed -i'.sedbak'  -e s/\"${SEEKING}\"/\"${IMPLACING}\"/g {}"
+            echo "${cyan}   ${SEEKER} \"${SEEKING}\" ${FILESCOMMAND} ${PRINTCOMMAND} ${IGNORELIST}   | xargs $XARGSCOMMAD -I {} sed -i'.sedbak'  -e s/\"${SEEKING}\"/\"${IMPLACING}\"/g {}"
 
-                            ${SEEKER} "$SEEKING"     ${FILESCOMMAND} ${PRINTCOMMAND} ${IGNORELIST}   | xargs -I {} sed -i'.sedbak'  -e s/"$SEEKING"/"$IMPLACING"/g {} | ${SEEKER} "$SEEKING" ${FILESCOMMAND} &>/dev/null
+                            ${SEEKER} "$SEEKING"     ${FILESCOMMAND} ${PRINTCOMMAND} ${IGNORELIST}   | xargs $XARGSCOMMAD -I {} sed -i'.sedbak'  -e s/"$SEEKING"/"$IMPLACING"/g {} | ${SEEKER} "$SEEKING" ${FILESCOMMAND} &>/dev/null
                            err_buff=$?
           }
         fi
@@ -1577,8 +1580,8 @@ if [[ $SEEKING == *"/"* || $IMPLACING == *"/"* ]]; then
       # ex
       {
         # VIM ex To find and replace all occurrences of case insensitive 'eth1' with 'br1', enter:
-        echo "${cyan}   ${SEEKER} \"${SEEKING}\" ${FILESCOMMAND} ${PRINTCOMMAND} ${IGNORELIST}   | xargs -I {}  ex +%s/\"$SEEKING\"/\"$IMPLACING\"/gi -cwq {} "
-                        ${SEEKER} "$SEEKING"     ${FILESCOMMAND} ${PRINTCOMMAND} ${IGNORELIST}   | xargs -I {}  ex +%s/"$SEEKING"/"$IMPLACING"/gi -cwq {}
+        echo "${cyan}   ${SEEKER} \"${SEEKING}\" ${FILESCOMMAND} ${PRINTCOMMAND} ${IGNORELIST}   | xargs $XARGSCOMMAD -I {}  ex +%s/\"$SEEKING\"/\"$IMPLACING\"/gi -cwq {} "
+                        ${SEEKER} "$SEEKING"     ${FILESCOMMAND} ${PRINTCOMMAND} ${IGNORELIST}   | xargs $XARGSCOMMAD -I {}  ex +%s/"$SEEKING"/"$IMPLACING"/gi -cwq {}
                         err_buff=$?
       }
     fi
