@@ -8,13 +8,108 @@
 #
 THISSCRIPTNAME=`basename "$0"`
 # bash shell script check input argument
+
+
+# Bash: Detect pipe/file input in a shell script
+# REF: https://gist.github.com/davejamesmiller/1966557
+
+# How to detect whether input is from keyboard, a file, or another process.
+# Useful for writing a script that can read from standard input, or prompt the
+# user for input if there is none.
+
+# Source: http://www.linuxquestions.org/questions/linux-software-2/bash-scripting-pipe-input-to-script-vs.-1-570945/
+PIPED="";
+COLORED="";
+COUNTER=0;
+# ag -i filefoo /bar/
+# ag [FILE-TYPE] [OPTIONS] PATTERN [PATH]
+# ack [OPTION]... PATTERN [FILES OR DIRECTORIES]
+# sift [OPTIONS] PATTERN [FILE|PATH|tcp://HOST:PORT]...
+#  sift [OPTIONS] [-e PATTERN | -f FILE] [FILE|PATH|tcp://HOST:PORT]...
+#  sift [OPTIONS] --targets [FILE|PATH]...
+#      grep [-abcdDEFGHhIiJLlmnOopqRSsUVvwxZ] [-A num] [-B num] [-C[num]] [-e pattern] [-f file]
+#          [--binary-files=value] [--color[=when]] [--colour[=when]] [--context[=num]]
+#          [--label] [--line-buffered] [--null] [pattern] [file ...]
+# In Bash you can also use test -t to check for a terminal:
+
+if [ -t 0 ]; then
+    # Terminal input (keyboard) - interactive
+    PIPED=""
+else
+    # File or pipe input - non-interactive
+    PIPED="YES"
+    # REF: http://stackoverflow.com/questions/2746553/bash-script-read-values-from-stdin-pipe
+    # read PIPED #TOOD Works on mac osx, pending to test in linux and windows
+    PIPED=''
+    # REF: https://stackoverflow.com/questions/7314044/use-bash-to-read-line-by-line-and-keep-space
+    # REF: http://www.unix.com/shell-programming-and-scripting/58611-resetting-ifs-variable.html
+    OLDIFS=$IFS            # resetting IFS variable
+    IFS=''                 # to read line by line and keep space
+    IFS= read -r ONEPIPE   # to avoid interpretation of backslashes.
+    PIPED="${ONEPIPE}"
+    [[ -n "$PIPED" ]] && COUNTER=$((COUNTER+1))
+
+    while read ONEPIPE
+    do
+
+         PIPED="${PIPED}
+${ONEPIPE}"
+         COUNTER=$((COUNTER+1))
+    done
+        if [ $COUNTER -eq 0 ]; then
+          IFS=$OLDIFS
+          exit
+        fi
+
+    # action="${ONEPIPE/ /⃝}"  # replace value inside string substitution expresion bash
+    # TEST: echo "COUNTER: ${COUNTER}";echo "PIDED: ${PIPED}"; exit 0;
+    IFS=$OLDIFS
+fi
+
+# Piped Input
+# if [[ -n "$PIPED" ]]
+# then
+# echo "this is pipe..die "
+# exit 0;
+#fi
+# NOT Piped Input
+#if [ -z "$PIPED" ]
+# then
+# echo "this NOT pipe..die "
+# exit 0;
+#fi
+#echo "PIPED:$PIPED";
+#exit;
+
+# ALTERNATIVE:
+#if readlink /proc/$$/fd/0 | grep -q "^pipe:"; then
+    # Pipe input (echo abc | myscript)
+#    PIPED="YES"
+#elif file $( readlink /proc/$$/fd/0 ) | grep -q "character special"; then
+    # Terminal input (keyboard)
+#    PIPED=""
+#else
+    # File input (myscript < file.txt)
+#    PIPED=""
+
+#fi
+
+
+# CURRENT SCRIPT EXECUTING
+THISSCRIPTNAME=`basename "$0"`
+# bash shell script check input argument
 FAIL=0;
 echo "   ";
-if [ -z "$1" ]
-  then
+if [ -z "$1" ] && [ -z "$PIPED" ] ; then
+{
     echo "Missing 1st argument "
     FAIL=1;
+}
 fi
+VERBOSE=0;
+DEFAULTSEEKER="pt"
+FILENAMESONLY=0
+SEEKING="$1";
 
 if [ -z "$2" ]
   then
@@ -33,29 +128,151 @@ if [ $FAIL -eq 1 ]
 fi
 
 
-if [[ "$1" == "-h" ]] ; then
-    {
+if [[ "$1" == "-h" ]] && [[ -z "$PIPED" ]] ; then
+{
 
-        echo "${THISSCRIPTNAME} - Means replace in German"
-      echo " "
-        echo "Can be used:    - with three arguments "
-        echo " "
-        echo "    ${THISSCRIPTNAME} seek_this replaced_it_with   [ack, sift, grep, ag]"
-        echo "    ";
-        echo "    assuming order or use ag -> ack -> grep -> local ./ack"
-        echo "    ";
-    }
-    exit 0;
+  echo "${THISSCRIPTNAME} - Means replace in German"
+  echo " "
+  echo "Can be used:    - with three arguments "
+  echo " "
+  echo "    ${THISSCRIPTNAME} seek_this replaced_it_with   [ack, sift, grep, ag]"
+  echo "    ";
+  echo "    assuming order or use ag -> ack -> grep -> local ./ack"
+  echo "    ";
+  exit 0;
+}
 fi
 VERBOSE=0;
-DEFAULTSEEKER="sift"
-if [ ! -z "$3" ] # Third argument not zempty
-  then
-    {
-        DEFAULTSEEKER="$3"
-    }
-
+DEFAULTSEEKER="pt"
+if [ ! -z "$3" ] ; then # Third argument not zempty
+  # Second Argument provided is -v and is not PIPED or PIDEd is empty
+  if [[ "$3" == "-v" ]] && [ -z "$PIPED" ] ; then
+  {
+    echo "Verbose on";
+    VERBOSE=1;
+  }
+  fi
+  if [[ "$3" == "sift" || "$3" == "pt" || "$3" == "ack" || "$3" == "grep" || "$3" == "ag" || "$3" == "./ag" || "$3" == "./ack" || "$3" == "./sift" ]] ; then
+  {
+    DEFAULTSEEKER="$3"
+  }
+  fi
+  if [[ "$3" == "--nocolor"  ]] ; then
+  {
+    COLORED="";
+  }
+  fi
+  if [[ "$3" == "-f" ]] && [ -z "$PIPED" ] ; then
+  {
+      if [ $VERBOSE -eq 1 ] ; then
+      {
+        echo "Files on";
+      }
+      fi
+      FILENAMESONLY=1;
+  }
+  fi
 fi
+if [ ! -z "$4" ] ; then # Third argument not zempty
+  # Second Argument provided is -v and is not PIPED or PIDEd is empty
+  if [[ "$4" == "-v" ]] && [ -z "$PIPED" ] ; then
+  {
+    echo "Verbose on";
+    VERBOSE=1;
+  }
+  fi
+  if [[ "$4" == "sift" || "$4" == "pt" || "$4" == "ack" || "$4" == "grep" || "$4" == "ag" || "$4" == "./ag" || "$4" == "./ack" || "$4" == "./sift" ]] ; then
+  {
+    DEFAULTSEEKER="$4"
+  }
+  fi
+  if [[ "$4" == "--nocolor"  ]] ; then
+  {
+    COLORED=""; # "" is no "YES" is yes
+  }
+  fi
+  if [[ "$4" == "-f" ]] && [ -z "$PIPED" ] ; then
+  {
+      if [ $VERBOSE -eq 1 ] ; then
+      {
+        echo "Files on";
+      }
+      fi
+      FILENAMESONLY=1;
+  }
+  fi
+fi
+# TEST COLORED AND PIPED
+# echo "$SEEKING"
+#              #  NOT Colored
+#             if [[ -n "$COLORED" ]] ; then
+#             {
+#               echo "NOT COLORED"
+#             }
+#             else
+#             {
+#               echo "[38;5;28mCOL[38;5;9mORED[0m"
+#             }
+#             fi
+#               #  NOT Piped
+#               if [ -z "$PIPED" ] ; then
+#               {
+#                 echo "NOT PIPED"
+#               }
+#               else
+#               {
+#                 echo "[38;5;28mPI[38;5;9mPED[0m"
+#                 if [[ "$SEEKING" == *""* ]] ; then
+#                 {
+#                   echo "$SEEKING"
+#                   echo "BUT PASSED CHARS HAVE COLOR"
+#                 }
+#                 else
+#                 {
+#                   echo "$SEEKING"
+#                   echo "NO COLOR FROM BEHIND"
+#                 }
+#                 fi
+#               }
+#               fi
+#               exit
+
+              # Override colored off when piped with not color
+              #  Piped
+              if [ -n "$PIPED" ] ; then
+                {
+
+                  WHAT=$(echo "$PIPED" | grep -E "\[")
+                  #echo "$WHAT";
+                  if [ -z "$WHAT" ] ; then
+                    {
+                      #  Colored
+                      COLORED="YES";  # "" is no "YES" is yes
+                      #echo "z"
+                    }
+                  else
+                    {
+                      # NOT Colored
+                      COLORED="";   # "" is no "YES" is yes
+                      #echo "!z"
+                    }
+                  fi
+                  #}
+                  #| sed 's@\@ESC@'
+                  #exit
+                }
+              fi
+               #  NOT Colored
+#             if [ -n "$COLORED" ] ; then
+#                {
+#                  echo "NOT COLORED"
+#                }
+#              else
+#                {
+#                  echo "[38;5;28mCOL[38;5;9mORED[0m"
+#                }
+#              fi
+# #             exit
 
  ####        ####       #            ####       #####        ####
  ####        ####       #            ####       #####        ####
@@ -74,15 +291,24 @@ fi
 # COLORS - Ouput - Start
 #
 
+[[ -z "${RED}" ]] && RED="\\033[38;5;1m"
 red=`tput setaf 1`
+[[ -z "${CYAN}" ]] && CYAN="\\033[38;5;123m"
 cyan=`tput setaf 6`
+[[ -z "${GREEN}" ]] && GREEN="\\033[38;5;22m"
 green=`tput setaf 2`
+[[ -z "${RESET}" ]] && RESET="\\033[0m"
+[[ -z "${RESET_PROMPT}" ]] && RESET_PROMPT="[0m"
 reset=`tput sgr0`
+[[ -z "${BLACK}" ]] && BLACK="\\033[38;5;16m"
 black=$(tput setaf 0)
+[[ -z "${YELLOW226}" ]] && YELLOW226="\\033[38;5;226m"
+[[ -z "${YELLOW}" ]] && YELLOW="\\033[01;33m"
 yellow=$(tput setaf 3)
 LIME_YELLOW=$(tput setaf 190)
 POWDER_BLUE=$(tput setaf 153)
 BLUE=$(tput setaf 4)
+[[ -z "${PURPLE}" ]] && PURPLE="\\033[01;35m"
 MAGENTA=$(tput setaf 5)
 CYAN=$(tput setaf 6)
 WHITE=$(tput setaf 7)
@@ -93,13 +319,14 @@ REVERSE=$(tput smso)
 UNDERLINE=$(tput smul)
 
 #
-# COLORS - Ouput - end
+# COLORS - Output - end
 #
 
-SEEKER="./ack";
+
+SEEKER="pt";
 IGNORE_DIR="ignore";
 FILESCOMMAND="";
-PRINTCOMMAND="-l --print0";
+PRINTCOMMAND="-l -0";
 FOUND=0
 
 msg_red () {
@@ -109,7 +336,9 @@ msg_red () {
 msg_green () {
     printf "\n${bdg}%s ${off}%s\n" "${green} $@"
 }
-
+msg_echo () {
+    echo -e "${*}"
+}
 trap '{ msg_red " KEYBOARD INTERRUPT."; exit 130; }' INT
 
 #
