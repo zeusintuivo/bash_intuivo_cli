@@ -3,10 +3,10 @@
 # @author Zeus Intuivo <zeus@intuivo.com>
 #
 
-# check to see if I used a message, then it will behave as a put 
+# check to see if I used a message, then it will behave as a put
 #bash shell script check input argument
 
-# set working directory as the scripts location during the execution of script 
+# set working directory as the scripts location during the execution of script
 # cd "$(dirname "$0")"
 
 
@@ -30,16 +30,16 @@ if [ -t 0 ]; then
 else
     # File or pipe input - non-interactive
     PIPED="YES"
-    
+
 fi
 
-# Piped Input 
+# Piped Input
 #if [ ! -z "$PIPED" ]
 # then
 # echo "this is pipe..die "
 # exit 0;
 #fi
-# NOT Piped Input 
+# NOT Piped Input
 #if [ -z "$PIPED" ]
 # then
 # echo "this NOT pipe..die "
@@ -65,18 +65,18 @@ fi
 # CURRENT SCRIPT EXECUTING
 THISSCRIPTNAME=`basename "$0"`
 
-# echo "Called $1, $2, $3" 
-# exit 0 
+# echo "Called $1, $2, $3"
+# exit 0
 #bash shell script check input argument
 FAIL=0;
 # echo "   ";
 if [ -z "$1" ] && [ -z "$PIPED" ] ; then
-  { 
+  {
     echo "Missing 1st argument "
     FAIL=1;
   }
 fi
-if [ "$1" == "-h" ] && [ -z "$PIPED" ] ; then 
+if [ "$1" == "-h" ] && [ -z "$PIPED" ] ; then
   {
     echo "Help "
     echo "  "
@@ -118,7 +118,7 @@ fi
 fromext="$1"
 toext="$2"
 from="$3"
-# echo "Called $fromext, $toext, $from" 
-newname=$(echo "$from" | sed -e s@."$fromext"@."$toext"@g)
-# echo "Called $from  to $newname" 
+# echo "Called $fromext, $toext, $from"
+newname=$(echo "$from" | sed -e s@"$fromext"@"$toext"@g)
+# echo "Called $from  to $newname"
 renamescript  "$from" "$newname"

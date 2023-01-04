@@ -47,7 +47,7 @@ function _get_percentage_conversion(){
   }
   fi
   # REF: https://unix.stackexchange.com/questions/526653/control-screen-brightness-in-i3
-  # brightnessctl set 20%- down and brightnessctl set +20% up (position of the - and + matter) 
+  # brightnessctl set 20%- down and brightnessctl set +20% up (position of the - and + matter)
   echo ${res}
   return 0
 } # end _get_percentage_conversion
@@ -109,6 +109,10 @@ function _set_brightness(){
     {
       _bright_percentage=$(( _current_brightness_percentage + 1 ))
     }
+    elif [[ "${BRIGHTNESS}" == "+.05" ]] ; then
+    {
+      _bright_percentage=$(( _current_brightness_percentage + 5 ))
+    }
     else
     {
       _bright_percentage=$(( _current_brightness_percentage +  _bright_percentage ))
@@ -124,6 +128,10 @@ function _set_brightness(){
     if [[ "${BRIGHTNESS}" == "-.01" ]] ; then
     {
       _bright_percentage=$(( _current_brightness_percentage - 1 ))
+    }
+    elif [[ "${BRIGHTNESS}" == "-.05" ]] ; then
+    {
+      _bright_percentage=$(( _current_brightness_percentage - 5 ))
     }
     else
     {
