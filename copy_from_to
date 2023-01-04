@@ -243,8 +243,8 @@ function main_copy_loop() {
         set -o errtrace  # trace ERR through 'time command' and other functions
         set -o nounset   ## set -u : exit the script if you try to use an uninitialised variable
         set -o errexit   ## set -e : exit the script if any statement returns a non-true return value
-        local stderr_log="/dev/shm/stderr.log"
-        exec 2>"$stderr_log"
+        #local stderr_log="/dev/shm/stderr.log"
+        #exec 2>"$stderr_log"
         debug "DEBUG IS ON"
         DEBUG_VERB_READING_LOGIC=1
         echo "_from: ${_from}"
@@ -288,6 +288,13 @@ function main_copy_loop() {
             (( _debug )) && debug "one_item: <${one_item}>"
             filename=$(escape_filename <<< "${one_item}")
             (( _debug )) && debug "filename: ${filename}"
+             file "${filename}"
+            if [[ "$( file "${filename}" 2>&1)" == *": socket"* ]] ; then
+            {
+                comment "${filename}" is socket and will not copy a socket
+                continue
+            }
+            fi
             [ -d "${FROMPATH}/${filename}/" ] && mkdir -p "${TOPATH}/${filename}"
             comment "${filename}"
             just_file_name=$(echo $(basename "${filename}"))
@@ -300,8 +307,13 @@ function main_copy_loop() {
             (( _debug )) &&  debug "TOPATH ${TOPATH}"
             (( _debug )) &&  debug "TOPATH_corrected: ${TOPATH_corrected}"
             # (( _debug )) && return 0
-            copy_with_rsync "${COPY_FROM_corrected}" "${TOPATH_corrected}"
-
+            # copy_with_rsync "${COPY_FROM_corrected}" "${TOPATH_corrected}"
+            # copy_with_rsync "${COPY_FROM_corrected}" "${TOPATH}"
+            #copy_with_rsync "${filename}" "${TOPATH}"
+            comment  "rsync -avzP "${filename}" "${TOPATH}" & 2>&1 "
+            echo  "comment rsync -avzP \"${filename}\" \"${TOPATH}\" & 2>&1 " >> copy_from_MacintoshHD.bash
+            echo  "rsync -avzP \"${filename}\" \"${TOPATH}\" & 2>&1 " >> copy_from_MacintoshHD.bash
+            # rsync -avzP "${filename}"  "${TOPATH}" & 2>&1 
         }
         fi
     }
