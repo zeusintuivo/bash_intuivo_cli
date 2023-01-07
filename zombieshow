@@ -1,0 +1,118 @@
+#!/usr/bin/env bash
+#!/bin/bash
+# REF:https://www.howtogeek.com/701971/how-to-kill-zombie-processes-on-linux/
+
+# Steps
+# find all zombies
+# ps aux | egrep "Z|defunct"
+
+# find parent PIDs
+# ps -o ppid= -p 4192
+
+# find who the PID is
+# ps -e | grep 4016
+
+function _any_zombies() {
+  local -i _err=0
+  local _zombies
+  _zombies=$(ps aux | egrep "Z|defunct"  | grep -v "grep" | grep -v "%MEM" | cut -d\  -f8)
+  _err=$?
+  if [[ -z "${_zombies}" ]] || [ ${_err} -gt 0 ] ; then
+  {
+    return 1
+  }
+  fi
+  return 0
+} # end _any_zombies
+
+function _test_any_zombies() {
+  echo $0
+  if _any_zombies ; then
+  {
+    echo "Yes there are zombies"
+    return 0
+  }
+  fi
+  echo "No Zombies"
+  return 0
+} # end _test_any_zombies
+
+function _retrieve_all_zombies() {
+   ps aux | egrep "Z|defunct"  | grep -v "grep" | grep -v "%MEM" | cut -d\  -f8
+} # end
+
+function _find_all_zombies() {
+  local -i _err=0
+  local _zombies
+  _zombies=$(_retrieve_all_zombies)
+  _err=$?
+  if [[ -z "${_zombies}" ]] || [ ${_err} -gt 0 ] ; then
+  {
+    echo "${_zombies}"
+    return 1
+  }
+  fi
+  return 0
+} # end _find_all_zombies
+
+function _test_find_all_zombies() {
+  echo $0
+  local _zombies
+  if _any_zombies ; then
+  {
+    _zombies="$(_retrieve_all_zombies)"
+    echo "Yes there are zombies ${_zombies}"
+    return 0
+  }
+  fi
+  echo "No Zombies"
+  return 0
+} # end _test_find_all_zombies
+
+function find_parent_ids() {
+  echo "$0 nothing"
+} # end find_parent_ids
+
+function main() {
+  echo "$0 main"
+  if _any_zombies ; then
+  {
+    echo "Yes there are zombies"
+    return 0
+  }
+  fi
+  return 0
+} # end main
+
+function _running_tests() {
+  echo $0 $1 Running Tests
+  local _this_script_absolute_path="$(realpath $0)"
+  local _all_tests="$(echo "$(grep "^function\ _test" < "${_this_script_absolute_path}" )" | cut -d\  -f2 | cut -d"(" -f1)"
+  if [[ -z "${_all_tests}" ]] ; then
+  {
+    echo "ERROR No tests found"
+    return 1
+  }
+  fi
+  local _one_test
+  while read -r _one_test; do
+  {
+    ${_one_test}
+  }
+  done <<< "${_this_script_absolute_path}"
+} # end _tests
+
+if [[ "${*}" == "-t" ]] ; then
+{
+  _running_tests
+}
+elif [[ "${*}" == "-h" ]] ; then
+{
+  echo "$0      kill left over zombies "
+  echo "$0  -t  run tests"
+}
+else
+{
+  main
+}
+fi

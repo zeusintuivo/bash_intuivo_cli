@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+#!/bin/bash
+
+sudo dnf update -vy &
+flatpak update &
+# snap refresh
+brew unlink php
+composer global update
+brew update
+brew upgrade &
+
