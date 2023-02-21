@@ -2,10 +2,11 @@
 #!/bin/bash
 
 sudo dnf update -vy &
-flatpak update &
+flatpak update -y &
 # snap refresh
-brew unlink php
-composer global update
+brew unlink php &
+composer global update &
 brew update
+wait
 brew upgrade &
 
