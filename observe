@@ -1,7 +1,7 @@
 #!/usr/bin/env sh
 [ -z ${1} ] && echo "Expected at least one parameter for filename to observe!." && exit 1
 typeset cwd=$(pwd | sed 's@/@\\/@g')
-nodemon --watch "./" --ext py,bash,sh,php --exec "$(pwd)/${*}"  ${2-} 2>&1  \
+nodemon --watch "./" --ext py,bash,sh,kv,php,rb --exec "$(pwd)/${*}"  ${2-} 2>&1  \
 | sed --unbuffered 's/\ on\ line\ /:/g' \
 | sed --unbuffered 's/:\ line\ /:/g' \
 | sed --unbuffered 's/\ No\ such\ file\ or\ directory\ in\ /\ in\ \o033[38;5;213m/g' \
