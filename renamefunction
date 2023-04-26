@@ -121,66 +121,100 @@ if [ $FAIL -eq 1 ] ; then
 fi
 
 
-FROMNAME="$1"
-TONAME="$2"
 
-FILETORENAME=$(locate_silent "${FROMNAME}".*)
-# echo "FILETORENAME: ${FILETORENAME}"   # FILETORENAME: 
-# FILETORENAME=$(ö "${FROMNAME}".*)
+function _rename_function() {
+  local FROMNAME="$1"
+  local TONAME="$2"
 
-# BASH Parameter expansion REF: http://wiki.bash-hackers.org/syntax/pe
-filename=$(basename "$FILETORENAME")
-extension="${filename##*.}"
-filenamelong="${FILETORENAME##*./}"
-filenameonly="${FILETORENAME##*/}"
-pathonly="${filenamelong%/*}"
-NEWEXTENSION="${extension}"
-filename="${filename%.*}"
-if [ ! -z "$3" ] && [ "$1" != "-h" ] ;  then
+  # FILETORENAME=$(locate_silent "${FROMNAME}".*)
+  local FILETORENAME FILETORENAMES="$(gefund "${FROMNAME}".*)"
+
+  while read -r FILETORENAME ;  do 
   {
-    NEWEXTENSION="$3"
-  }
-fi
-# Testing
-# CALL rename compareFile filesNotEqual
-# echo $FILETORENAME   # ./libs-intuiload/compareFile.inc 
-# echo $filename;      # compareFile 
-# echo $extension;     # inc 
-# echo $NEWEXTENSION   # inc 
-# echo $filenamelong   # libs-intuiload/compareFile.inc 
-# echo $filenameonly   # compareFile.inc 
-# echo $pathonly;      # libs-intuiload 
-FROM="${pathonly}/${filename}.${extension}"
-TO="${pathonly}/${TONAME}.${NEWEXTENSION}"
+    [[ -z "${FILETORENAME}" ]] && continue
+    echo "FILETORENAME: ${FILETORENAME}"   # FILETORENAME: 
+      # FILETORENAME=$(ö "${FROMNAME}".*)
 
-# Testing
- echo "MV FROM: ${FROM}"   # MV FROM: libs-intuiload/compareFile.inc
- echo "MV   TO: ${TO}"     # MV   TO: libs-intuiload/filesNotEqual.inc
-
-# exit
-# check operation systems 
-(
-  if [[ "$(uname)" == "Darwin" ]] || [[ "$(expr substr $(uname -s) 1 5)" == "Linux" ]] ; then 
-    # Do something under Mac OS X platform    
-    mv "${FROM}" "${TO}"
-    if [ $? == 0 ]; then
+      # BASH Parameter expansion REF: http://wiki.bash-hackers.org/syntax/pe
+    local  filename=$(basename "$FILETORENAME")
+    local  extension="${filename##*.}"
+    local  filenamelong="${FILETORENAME##*./}"
+    local  filenameonly="${FILETORENAME##*/}"
+    local  pathonly="${filenamelong%/*}"
+    local  NEWEXTENSION="${extension}"
+    local  filename="${filename%.*}"
+      if [[ -n "$3" ]] && [[ "$1" != "-h" ]] ;  then
       {
-        ersetze "${FROMNAME}" "${TONAME}"
-        ö "${TONAME}"
+        NEWEXTENSION="$3"
       }
-    else
-      { 
-        echo "ERROR Moving File ${FROM}  to ${TO}";
-        exit 0;
+      fi
+      # Testing
+      # CALL rename compareFile filesNotEqual
+      # echo $FILETORENAME   # ./libs-intuiload/compareFile.inc 
+      # echo $filename;      # compareFile 
+      # echo $extension;     # inc 
+      # echo $NEWEXTENSION   # inc 
+      # echo $filenamelong   # libs-intuiload/compareFile.inc 
+      # echo $filenameonly   # compareFile.inc 
+      # echo $pathonly;      # libs-intuiload 
+      local FROM="${pathonly}/${filename}.${extension}"
+      local TO="${pathonly}/${TONAME}.${NEWEXTENSION}"
+
+
+
+      # Testing
+       echo "MV FROM: ${FROM}"   # MV FROM: libs-intuiload/compareFile.inc
+       echo "MV   TO: ${TO}"     # MV   TO: libs-intuiload/filesNotEqual.inc
+      function escape_spaces {
+          sed 's/\ /\\\ /g'
       }
-    fi
+      local FROMESCAPED="$(escape_spaces <<< "${FROM}" )"
+      local TOESCAPED="$(escape_spaces <<< "${TO}" )"
+      # exit
+      # check operation systems 
+      (
+        if [[ "$(uname)" == "Darwin" ]] || [[ "$(expr substr $(uname -s) 1 5)" == "Linux" ]] ; then 
+          # Do something under Mac OS X platform    
+          mv "${FROMESCAPED}" "${TOESCAPED}"
+          if [ $? == 0 ]; then
+            {
+              ersetze "${FROMNAME}" "${TONAME}"
+              ö "${TONAME}"
+            }
+          else
+            { 
+              echo "ERROR Moving File ${FROM}  to ${TO}";
+              exit 0;
+            }
+          fi
 
 
-  elif [[ "$(expr substr $(uname -s) 1 10)" == "MINGW32_NT" ]] ; then 
-    # Do something under Windows NT platform
-    ren "${FROM}" "${TO}"
-    ersetze "${FROMNAME}" "${TONAME}"
-    ö "${TONAME}"
+        elif [[ "$(expr substr $(uname -s) 1 10)" == "MINGW32_NT" ]] ; then 
+          # Do something under Windows NT platform
+          ren "${FROMESCAPED}" "${TOESCAPED}"
+          ersetze "${FROMNAME}" "${TONAME}"
+          ö "${TONAME}"
 
-  fi 
-)
+        elif [[ "$(expr substr $(uname -s) 1 10)" == "MINGW64_NT" ]] ; then 
+          # Do something under Windows NT platform
+          ren "${FROMESCAPED}" "${TOESCAPED}"
+          ersetze "${FROMNAME}" "${TONAME}"
+          ö "${TONAME}"
+
+        fi 
+      )
+
+
+  }
+  done <<<  "${FILETORENAMES}"
+  
+} # end 
+
+
+
+_rename_function "$1" "$2" "$3" 
+
+
+
+
+
