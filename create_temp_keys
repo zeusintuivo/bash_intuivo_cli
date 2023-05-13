@@ -319,3 +319,6 @@ EOF
   done <<< "${SAVEDTEMPKEYS}"
 }
 fi
+
+vim .temp_keys
+
