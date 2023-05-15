@@ -1148,7 +1148,7 @@ function escape_quotes() {
     sed 's/\"/\\\"/g'
 } # end escape_quotes
 function escape_single_quotes() {
-    sed "s/'/\\'/g"
+    sed "s/'/\\\'/g"
 } # end escape_single_quotes
 function escape_squared_open_brackets() {
     sed "s/\[/\\\[/g"
@@ -1313,7 +1313,7 @@ SEEKING_FOR_CONFIRM="$2";
 
 
 # echo "${reset} ${green} Replacing ${reset} $SEEKING ${green} for ${reset} $IMPLACING  ${green} with Sed."
-echo "${reset} ${green} Replacing ${reset} $SEEKING ${green} for ${reset} $IMPLACING  ${green} with  ${SEEKER}."
+echo -e "${reset} ${green} Replacing ${reset} $SEEKING ${green} for ${reset} $IMPLACING  ${green} with  ${SEEKER}."
 if [[ $REPLACER == "sed" ]] ; then
     {
     # check operation systems
@@ -1333,7 +1333,6 @@ if [[ $REPLACER == "sed" ]] ; then
     }
 fi
 echo "   ";
-
 
 
 echo "${yellow} REPLACING NOW !        . . . using ${REPLACER} command ";
@@ -1366,8 +1365,11 @@ function escape_slashes() {
 function escape_quotes() {
     sed 's/\"/\\\"/g'
 } # end escape_quotes
+function escape_double_quotes() {
+    sed 's/"/\\\"/g'
+} # end escape_double_quotes
 function escape_single_quotes() {
-    sed "s/'/\\'/g"
+    sed "s/'/\\\'/g"
 } # end escape_single_quotes
 function escape_squared_bracket_start() {
     sed "s/\[/\\\[/g"
@@ -1384,6 +1386,7 @@ function escape_curly_bracket_end() {
 function escape_ampersands() {
     sed "s/[&]/\\\&/g"
 }
+
 function change_line() {
     # So the sample usage to fix the problem posed:
     # change_line "TEXT_TO_BE_REPLACED" "This line is removed by the admin." yourFile
@@ -1403,9 +1406,9 @@ function change_line() {
 # DEBUG
 # DEBUG echo  "1 IMPLACING:${IMPLACING}"
 # escape_slashes has to be the last or it will fail on other replacements after
-IMPLACING=$(echo -n "${IMPLACING}"  | escape_quotes| escape_single_quotes | escape_ampersands | escape_curly_bracket_end | escape_curly_bracket_start| escape_squared_bracket_end | escape_squared_bracket_start  | escape_slashes)
+IMPLACING="$(echo -n "${IMPLACING}"  | escape_quotes| escape_single_quotes | escape_ampersands | escape_curly_bracket_end | escape_curly_bracket_start| escape_squared_bracket_end | escape_squared_bracket_start  | escape_slashes)"
 # echo  "2 IMPLACING:${IMPLACING}"
-TESTENTERIMPLACING=$(echo -n "${IMPLACING}" | enter_escape_for_sed)
+TESTENTERIMPLACING="$(echo -n "${IMPLACING}" | enter_escape_for_sed)"
 # echo  "3 IMPLACING:${IMPLACING}"
 
 if [[ "${IMPLACING}" == "${TESTENTERIMPLACING}" ]] ; then
@@ -1428,33 +1431,92 @@ else
   fi
 }
 fi
-# DEBUG
-# DEBUG echo  "4 IMPLACING:${IMPLACING}"
-# exit 0
-function escape_backslashes_for_sed() {
-    sed 's/\\/\\\\/g'
-} # end escape_backslashes_for_sed
+
+# TESTENTERIMPLACING="$(sed "s/'/\\\'/g" <<< "${IMPLACING}")"
 
 
-
-SEEKERNEW=$(echo -n "${SEEKING}"  | escape_backslashes_for_sed )
-TESTENTERSEEKING=$(echo -n "${SEEKERNEW}" )
-# APPLIED_ENTER_SEEK=0
-# if [[ "${SEEKING}" == "${TESTENTERSEEKING}" ]] ; then
+# if [[ "${IMPLACING}" == "${TESTENTERIMPLACING}" ]] ; then
 # {
-#   APPLIED_ENTER_SEEK=0
+#   APPLIED_ENTER=0
 # }
 # else
 # {
-#   APPLIED_ENTER_SEEK=0
-#   if [[ -n "${TESTENTERSEEKING}" ]] ; then
+#   APPLIED_ENTER=0
+#   if [[ -n "${TESTENTERIMPLACING}" ]] ; then
 #   {
-#     APPLIED_ENTER_SEEK=1
-    SEEKING=$TESTENTERSEEKING
+#     APPLIED_ENTER=1§
+#     IMPLACING=$TESTENTERIMPLACING
+#   }
+#   elif [[ -n "${IMPLACING}" ]] ; then
+#   {
+#     APPLIED_ENTER=1
+#     IMPLACING="${IMPLACING}"
 #   }
 #   fi
 # }
 # fi
+
+# DEBUG: 
+# 
+# DEBUG=1 ersetze "ALLOWED_HOSTS = [" "ALLOWED_HOSTS = ['0.0.0.0', 'localhost', '127.0.0.1',"
+# 
+(( DEBUG )) && echo  "4          IMPLACING:${IMPLACING}"
+(( DEBUG )) && echo  "4 TESTENTERIMPLACING:${TESTENTERIMPLACING}"
+
+function escape_backslashes_for_sed() {
+    sed 's/\\/\\\\/g'
+} # end escape_backslashes_for_sed
+
+(( DEBUG )) && echo -e  "5          SEEKING:$SEEKING"
+
+SEEKERNEW=$(echo -n "${SEEKING}"  | escape_backslashes_for_sed )
+TESTENTERSEEKING="$(echo -n "${SEEKERNEW}" )"
+APPLIED_ENTER_SEEK=0
+if [[ "${SEEKING}" == "${TESTENTERSEEKING}" ]] ; then
+{
+  APPLIED_ENTER_SEEK=0
+}
+else
+{
+  APPLIED_ENTER_SEEK=0
+  if [[ -n "${TESTENTERSEEKING}" ]] ; then
+  {
+    APPLIED_ENTER_SEEK=1
+    SEEKING=$TESTENTERSEEKING
+  }
+  fi
+}
+fi
+
+
+SEEKER_FOR_SED="${SEEKING}"
+TEST_SEEKER_FOR_SED="$(echo -n "${SEEKING}"  | escape_quotes| escape_single_quotes | escape_ampersands | escape_curly_bracket_end | escape_curly_bracket_start| escape_squared_bracket_end | escape_squared_bracket_start  | escape_slashes)"
+# TEST_SEEKER_FOR_SED=$(echo -n "${TEST_SEEKER_FOR_SED}"  | escape_backslashes_for_sed )
+
+APPLIED_ENTER_SEEK=0
+if [[ "${SEEKING}" == "${TEST_SEEKER_FOR_SED}" ]] ; then
+{
+  APPLIED_ENTER_SEEK=0
+}
+else
+{
+  APPLIED_ENTER_SEEK=0
+  if [[ -n "${TEST_SEEKER_FOR_SED}" ]] ; then
+  {
+    APPLIED_ENTER_SEEK=1
+    SEEKER_FOR_SED=$TEST_SEEKER_FOR_SED
+  }
+  fi
+}
+fi
+
+
+(( DEBUG )) && echo  "5      SEEKER_FOR_SED:${SEEKER_FOR_SED}"
+(( DEBUG )) && echo  "5 TEST_SEEKER_FOR_SED:${TEST_SEEKER_FOR_SED}"
+
+
+# (( DEBUG )) && exit 0
+
 ### APPLIED IMPLACING CHANGE --- END
 ### APPLIED IMPLACING CHANGE --- END
 ### APPLIED IMPLACING CHANGE --- END
@@ -1487,8 +1549,8 @@ if [[ $SEEKING == *"/"* || $IMPLACING == *"/"* ]]; then
             # done <<< "$FILES"
 
 
-            echo "${cyan}   ${SEEKER} \"${SEEKING}\" ${FILESCOMMAND} ${PRINTCOMMAND} ${IGNORELIST}   | xargs $XARGSCOMMAD -I {} sed -i  -e s\"${SEEKING}\"\"${IMPLACING}\"g {}"
-                            ${SEEKER} "$SEEKING"     ${FILESCOMMAND} ${PRINTCOMMAND} ${IGNORELIST}   | xargs $XARGSCOMMAD -I {} sed -i  -e s"$SEEKING""$IMPLACING"g {} | ${SEEKER} "$SEEKING" ${FILESCOMMAND}  &>/dev/null
+            echo "${cyan}   ${SEEKER} \"${SEEKING}\" ${FILESCOMMAND} ${PRINTCOMMAND} ${IGNORELIST}   | xargs $XARGSCOMMAD -I {} sed -i  -e s\"${SEEKER_FOR_SED}\"\"${IMPLACING}\"g {}"
+                            ${SEEKER} "$SEEKING"     ${FILESCOMMAND} ${PRINTCOMMAND} ${IGNORELIST}   | xargs $XARGSCOMMAD -I {} sed -i  -e s"$SEEKER_FOR_SED""$IMPLACING"g {} | ${SEEKER} "$SEEKER_FOR_SED" ${FILESCOMMAND}  &>/dev/null
                      err_buff=$?
     }
     else
@@ -1497,10 +1559,10 @@ if [[ $SEEKING == *"/"* || $IMPLACING == *"/"* ]]; then
     {
             echo "${yellow} sed MAC ";
             # Sample use: ${THISSCRIPTNAME} /usr/bin/env\ bash  /bin/bash
-            # echo "${cyan}   ${SEEKER} \"${SEEKING}\" ${FILESCOMMAND} ${PRINTCOMMAND} ${IGNORELIST}   | xargs -0 sed -i'.sedbak'  -e s\"${SEEKING}\"\"${IMPLACING}\"g"
-            echo "${cyan}   ${SEEKER} \"${SEEKING}\" ${FILESCOMMAND} ${PRINTCOMMAND} ${IGNORELIST}   | xargs $XARGSCOMMAD -I {} sed -i'.sedbak'  -e s\"${SEEKING}\"\"${IMPLACING}\"g {}"
-            #                ${SEEKER} "$SEEKING"     ${FILESCOMMAND} ${PRINTCOMMAND} ${IGNORELIST}   | xargs -0 sed -i'.sedbak'  -e s"$SEEKING""$IMPLACING"g | ${SEEKER} "$SEEKING" ${FILESCOMMAND}  &>/dev/null
-                            ${SEEKER} "$SEEKING"     ${FILESCOMMAND} ${PRINTCOMMAND} ${IGNORELIST}   | xargs $XARGSCOMMAD -I {} sed -i'.sedbak'  -e s"$SEEKING""$IMPLACING"g {} | ${SEEKER} "$SEEKING" ${FILESCOMMAND}  &>/dev/null
+            # echo "${cyan}   ${SEEKER} \"${SEEKING}\" ${FILESCOMMAND} ${PRINTCOMMAND} ${IGNORELIST}   | xargs -0 sed -i'.sedbak'  -e s\"${SEEKER_FOR_SED}\"\"${IMPLACING}\"g"
+            echo "${cyan}   ${SEEKER} \"${SEEKING}\" ${FILESCOMMAND} ${PRINTCOMMAND} ${IGNORELIST}   | xargs $XARGSCOMMAD -I {} sed -i'.sedbak'  -e s\"${SEEKER_FOR_SED}\"\"${IMPLACING}\"g {}"
+            #                ${SEEKER} "$SEEKING"     ${FILESCOMMAND} ${PRINTCOMMAND} ${IGNORELIST}   | xargs -0 sed -i'.sedbak'  -e s"$SEEKER_FOR_SED""$IMPLACING"g | ${SEEKER} "$SEEKER_FOR_SED" ${FILESCOMMAND}  &>/dev/null
+                            ${SEEKER} "$SEEKING"     ${FILESCOMMAND} ${PRINTCOMMAND} ${IGNORELIST}   | xargs $XARGSCOMMAD -I {} sed -i'.sedbak'  -e s"$SEEKER_FOR_SED""$IMPLACING"g {} | ${SEEKER} "$SEEKER_FOR_SED" ${FILESCOMMAND}  &>/dev/null
                                err_buff=$?
     }
     fi
@@ -1509,8 +1571,8 @@ if [[ $SEEKING == *"/"* || $IMPLACING == *"/"* ]]; then
   # ex
   # REF: http://askubuntu.com/questions/20414/find-and-replace-text-within-a-file-using-commands
   {
-        echo "${cyan}   ${SEEKER} \"${SEEKING}\" ${FILESCOMMAND} ${PRINTCOMMAND} ${IGNORELIST}   | xargs $XARGSCOMMAD -I {}  ex +s\"$SEEKING\"\"$IMPLACING\" -cwq {} "
-                        ${SEEKER} "$SEEKING"     ${FILESCOMMAND} ${PRINTCOMMAND} ${IGNORELIST}   | xargs $XARGSCOMMAD -I {}  ex +s"$SEEKING""$IMPLACING" -cwq {}
+        echo "${cyan}   ${SEEKER} \"${SEEKING}\" ${FILESCOMMAND} ${PRINTCOMMAND} ${IGNORELIST}   | xargs $XARGSCOMMAD -I {}  ex +s\"$SEEKER_FOR_SED\"\"$IMPLACING\" -cwq {} "
+                        ${SEEKER} "$SEEKING"     ${FILESCOMMAND} ${PRINTCOMMAND} ${IGNORELIST}   | xargs $XARGSCOMMAD -I {}  ex +s"$SEEKER_FOR_SED""$IMPLACING" -cwq {}
                     err_buff=$?
       }
     fi
@@ -1560,8 +1622,8 @@ if [[ $SEEKING == *"/"* || $IMPLACING == *"/"* ]]; then
             #  }
             # done <<< "$FILES"
 
-            echo "${cyan}   ${SEEKER} \"${SEEKING}\" ${FILESCOMMAND} ${PRINTCOMMAND} ${IGNORELIST}   | xargs $XARGSCOMMAD -I {} sed -i -e s/\"${SEEKING}\"/\"${IMPLACING}\"/g {}"
-                            ${SEEKER} "$SEEKING"     ${FILESCOMMAND} ${PRINTCOMMAND} ${IGNORELIST}   | xargs $XARGSCOMMAD -I {} sed -i -e s/"$SEEKING"/"$IMPLACING"/g {} | ${SEEKER} "$SEEKING" ${FILESCOMMAND}  &>/dev/null
+            echo "${cyan}   ${SEEKER} \"${SEEKING}\" ${FILESCOMMAND} ${PRINTCOMMAND} ${IGNORELIST}   | xargs $XARGSCOMMAD -I {} sed -i -e s/\"${SEEKER_FOR_SED}\"/\"${IMPLACING}\"/g {}"
+                            ${SEEKER} "$SEEKING"     ${FILESCOMMAND} ${PRINTCOMMAND} ${IGNORELIST}   | xargs $XARGSCOMMAD -I {} sed -i -e s/"$SEEKER_FOR_SED"/"$IMPLACING"/g {} | ${SEEKER} "$SEEKER_FOR_SED" ${FILESCOMMAND}  &>/dev/null
                            err_buff=$?
           }
         else
@@ -1569,9 +1631,9 @@ if [[ $SEEKING == *"/"* || $IMPLACING == *"/"* ]]; then
           # MAC REPLACER Has to HAVE A FILENAME.EXTENSION provided for the -i (inplace) option
           {
             echo "${yellow} sed MAC ";
-            echo "${cyan}   ${SEEKER} \"${SEEKING}\" ${FILESCOMMAND} ${PRINTCOMMAND} ${IGNORELIST}   | xargs $XARGSCOMMAD -I {} sed -i'.sedbak'  -e s/\"${SEEKING}\"/\"${IMPLACING}\"/g {}"
+            echo "${cyan}   ${SEEKER} \"${SEEKING}\" ${FILESCOMMAND} ${PRINTCOMMAND} ${IGNORELIST}   | xargs $XARGSCOMMAD -I {} sed -i'.sedbak'  -e s/\"${SEEKER_FOR_SED}\"/\"${IMPLACING}\"/g {}"
 
-                            ${SEEKER} "$SEEKING"     ${FILESCOMMAND} ${PRINTCOMMAND} ${IGNORELIST}   | xargs $XARGSCOMMAD -I {} sed -i'.sedbak'  -e s/"$SEEKING"/"$IMPLACING"/g {} | ${SEEKER} "$SEEKING" ${FILESCOMMAND} &>/dev/null
+                            ${SEEKER} "$SEEKING"     ${FILESCOMMAND} ${PRINTCOMMAND} ${IGNORELIST}   | xargs $XARGSCOMMAD -I {} sed -i'.sedbak'  -e s/"$SEEKER_FOR_SED"/"$IMPLACING"/g {} | ${SEEKER} "$SEEKER_FOR_SED" ${FILESCOMMAND} &>/dev/null
                            err_buff=$?
           }
         fi
@@ -1580,8 +1642,8 @@ if [[ $SEEKING == *"/"* || $IMPLACING == *"/"* ]]; then
       # ex
       {
         # VIM ex To find and replace all occurrences of case insensitive 'eth1' with 'br1', enter:
-        echo "${cyan}   ${SEEKER} \"${SEEKING}\" ${FILESCOMMAND} ${PRINTCOMMAND} ${IGNORELIST}   | xargs $XARGSCOMMAD -I {}  ex +%s/\"$SEEKING\"/\"$IMPLACING\"/gi -cwq {} "
-                        ${SEEKER} "$SEEKING"     ${FILESCOMMAND} ${PRINTCOMMAND} ${IGNORELIST}   | xargs $XARGSCOMMAD -I {}  ex +%s/"$SEEKING"/"$IMPLACING"/gi -cwq {}
+        echo "${cyan}   ${SEEKER} \"${SEEKING}\" ${FILESCOMMAND} ${PRINTCOMMAND} ${IGNORELIST}   | xargs $XARGSCOMMAD -I {}  ex +%s/\"$SEEKER_FOR_SED\"/\"$IMPLACING\"/gi -cwq {} "
+                        ${SEEKER} "$SEEKING"     ${FILESCOMMAND} ${PRINTCOMMAND} ${IGNORELIST}   | xargs $XARGSCOMMAD -I {}  ex +%s/"$SEEKER_FOR_SED"/"$IMPLACING"/gi -cwq {}
                         err_buff=$?
       }
     fi
@@ -1607,17 +1669,54 @@ fi
 # If  | egrep "$SEEKING" &>/dev/null | returned an error....so it was... it was found/not found say it and stop execution for not found
 #if [ $? == 0 ]; then
 #if (( $? != 0 )) ;  then  #Inverse respose It will be EMPTY $? when replacements where made!
+(( DEBUG )) && echo -e "       err_buff:$err_buff"
+(( DEBUG )) && echo -e "PROCESSOR_ERROR:$PROCESSOR_ERROR"
+(( DEBUG )) && echo -e "    REPLACERGNU:$REPLACERGNU"
+(( DEBUG )) && echo -e "       REPLACER:$REPLACER"
+
 if [[ "${PROCESSOR_ERROR}" == *"INTEL"* ]] && (( err_buff != 0 )); then
-    {
+    { 
     msg_green "${green} REPLACED !"
     echo "    ";
     FOUND=1
     }
-elif [[ "${PROCESSOR_ERROR}" == *"MAC"* ]] && [ $err_buff != 0 ]; then
-    {
-    msg_green "${green} REPLACED !"
-    echo "    ";
-    FOUND=1
+elif [[ "${PROCESSOR_ERROR}" == *"MAC"* ]] ; then
+    { 
+    if [[ "${REPLACER}" == "sed" &&  "${REPLACERGNU}" == "NO" ]] ; then
+        {
+        if [ $err_buff == 0 ] ; then
+            {
+            msg_green "${green} REPLACED !"
+            echo "    ";
+            FOUND=1    
+            }
+        else 
+            {
+            msg_red "${red} SORRY NO REPLACEMENTS MADE !"
+            echo "    ";
+            exit 0;
+            FOUND=0
+            }
+        fi
+        }
+    else 
+        {
+        if [ $err_buff == 0 ] ; then
+            {
+            msg_green "${green} REPLACED !"
+            echo "    ";
+            FOUND=1    
+            }
+        else 
+            {
+            msg_red "${red} SORRY NO REPLACEMENTS MADE !"
+            echo "    ";
+            exit 0;
+            FOUND=0
+            }
+        fi
+        }
+    fi
     }
 else
     {
