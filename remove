@@ -35,9 +35,10 @@ function escape_doublequotes {
 
 
 continue_y_n() {
-   read -p "CONTINUE Y/[N]: CONTROL C to STOP " reply
-   reply=${reply:-N}
-   echo $reply
+  echo "You are pointing to this folder $(pwd)"
+  read -p "CONTINUE Y/[N]: CONTROL C to STOP " reply
+  reply=${reply:-N}
+  echo $reply
 } # end continue_y_n
 echo "remove all files called *${SEEKING}* in subfolders recursively !!!?  "
 THE_ANSWER=$(continue_y_n)
