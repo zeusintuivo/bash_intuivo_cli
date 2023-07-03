@@ -36,5 +36,9 @@ _darwin__64(){
 _darwin__32(){
   ag_mac_32 "$@"
 }
+_darwin__amr64(){
+  ag_mac_arm64 "$@"
+}
+
 
 determine_os_and_fire_action """${*}"""

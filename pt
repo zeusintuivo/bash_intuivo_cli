@@ -1,0 +1,39 @@
+#!/bin/bash
+#
+# @author Zeus Intuivo <zeus@intuivo.com>
+#
+#
+
+# check operation systems
+(
+  if [[ "$(uname)" == "Darwin" ]] ; then
+    UNAMEM="$(uname -m)"
+    # Do something under Mac OS X platform    
+    case "${UNAMEM}" in 
+        # echo "err_buff1=$?"
+        (x86_64*)  pt_mac_64 "$@" ;;
+        # echo "err_buff2=$?"
+        (i686*)  pt_mac_32 "$@" ;;
+        (arm64*) pt_mac_arm64 "$@" ;;
+        (*) echo "bash_intuivo_cli/pt Platform $(uname) ${UNAMEM} not yet implemented"
+        return 1 ;;
+    esac
+  elif [[ "$(expr substr $(uname -s) 1 5)" == "Linux" ]] ; then
+    # Do something under GNU/Linux platform
+    # ubuntu lsb_release -i | sed 's/Distributor\ ID://g' = \tUbuntu\n
+      if [[ "$(uname -i)" == "x86_64" ]] ; then
+        pt_linux_64 "$@"
+      elif [[ "$(uname -i)" == "i686"   ]] ; then
+        pt_linux_32 "$@"
+      fi
+  elif [[ "$(expr substr $(uname -s) 1 10)" == "MINGW32_NT" ]] ; then
+    # Do something under Windows NT platform
+    pt_win_32 "$*"
+    # nothing here
+  elif [[ "$(expr substr $(uname -s) 1 10)" == "MINGW64_NT" ]] ; then
+    # Do something under Windows NT platform
+    pt_win_64 "$*"
+    # nothing here
+  fi
+)
+
