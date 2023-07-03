@@ -282,7 +282,7 @@ ${one_result}"
     show_files_linux
     # ls -Rds1 $PWD/**/* |  sort  | sed "/^total/d"
 
-  elif [[ "$(expr substr $(uname -s) 1 10)" == "MINGW32_NT" ]] ; then
+  elif [[ "$(expr substr $(uname -s) 1 10)" == "MINGW32_NT" ]]  || [[ "$(expr substr $(uname -s) 1 10)" == "MINGW64_NT" ]] ; then
     # Do something under Windows NT platform
      echo "WINDOWS NEEDS TO LEARN"
 

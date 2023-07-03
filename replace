@@ -1324,7 +1324,7 @@ if [[ $REPLACER == "sed" ]] ; then
       elif [[ "$(expr substr $(uname -s) 1 5)" == "Linux" ]] ; then
         # Do something under GNU/Linux platform
         echo " "
-      elif [[ "$(expr substr $(uname -s) 1 10)" == "MINGW32_NT" ]] ; then
+      elif [[ "$(expr substr $(uname -s) 1 10)" == "MINGW32_NT" ]] || [[ "$(expr substr $(uname -s) 1 10)" == "MINGW64_NT" ]] ; then
         # Do something under Windows NT platform
         msg_red "${green} ${red} WARNING INSIDE WINDOWS Sed locks you out of your file, and the solution is that you have to recreate the file again."
         # nothing here

@@ -205,7 +205,7 @@ fi
       fi
     done <<< "${FILENAME}"
 
-  elif [[ "$(expr substr $(uname -s) 1 10)" == "MINGW32_NT" ]] ; then
+  elif [[ "$(expr substr $(uname -s) 1 10)" == "MINGW32_NT" ]] || [[ "$(expr substr $(uname -s) 1 10)" == "MINGW64_NT" ]] ; then
     # Do something under Windows NT platform
      echo "Not learned yet. nothing"
     # nothing here
