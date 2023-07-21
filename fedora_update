@@ -10,3 +10,11 @@ brew update
 wait
 brew upgrade &
 
+mix archive.install hex phx_new &
+gem update &
+
+flutter upgrade &
+rustup upgrade &
+ 
+cd $HOME/_/clis/ && pull_all_subdirectories
+
