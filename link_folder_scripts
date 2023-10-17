@@ -196,7 +196,15 @@ patch_utf_names(){
 
 
 } # end patch_utf_names
-[[ "${PWD}" == *"bash_intuivo_cli"* ]] && [ -d "${PWD}/"  ] && patch_utf_names "${USER}" "/_/clis/bash_intuivo_cli"
+if [[ "${PWD}" == *"bash_intuivo_cli"* ]] ; then
+{  
+  if [ -d "${PWD}/"  ] ; then 
+  { 
+    patch_utf_names "${USER}" "/_/clis/bash_intuivo_cli"
+  }
+  fi 
+} 
+fi
 
 
 
