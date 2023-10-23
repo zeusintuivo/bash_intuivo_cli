@@ -35,12 +35,12 @@ function escape_doublequotes {
 
 
 continue_y_n() {
-  echo "You are pointing to this folder $(pwd)"
   read -p "CONTINUE Y/[N]: CONTROL C to STOP " reply
   reply=${reply:-N}
   echo $reply
 } # end continue_y_n
 echo "remove all files called *${SEEKING}* in subfolders recursively !!!?  "
+  echo "You are pointing to this folder $(pwd)"
 THE_ANSWER=$(continue_y_n)
 echo THE_ANSWER:${THE_ANSWER}
 if [[ "${THE_ANSWER}" == "y" ||  "${THE_ANSWER}" == "Y" ]]  ; then
