@@ -1,7 +1,60 @@
 #!/usr/bin/env sh
-[ -z ${1} ] && echo "Expected at least one parameter for filename to observe!." && exit 1
+[ -z ${1-} ] && echo "Expected at least one parameter for filename to observe!." && exit 1
 typeset cwd=$(pwd | sed 's@/@\\/@g')
-nodemon --watch "./" --ext py,bash,sh,kv,php,rb --exec "$(pwd)/${*}"  ${2-} 2>&1  \
+function file_extension() {
+  #
+  # Outputs the file extension given a file name
+  #
+  # $1 = Filename.ext:linenummer
+  #
+  # Usage: extension=$(file_extension "foo/bar.baz")
+  #   Result: $extension ==> "baz"
+  #
+  #
+  local test_value=$(echo "${1##*.}")
+  if [[ "${test_value}" == *":"* ]] ; then
+  {
+    echo "${test_value}" | cut -d":" -f1
+  }
+  else
+  {
+    echo "${test_value}"
+  }
+  fi
+} # end file_extension
+
+function _trap_on_INT(){
+  local -ir __trapped_INT_num="${2:-0}"
+  echo -e "\\n \033[01;7m*** 7 INT TRAP $THISSCRIPTNAME \\n${BASH_SOURCE}:${BASH_LINENO[-0]} ${FUNCNAME[1]}() \\n$0:${BASH_LINENO[1]} ${FUNCNAME[2]}()  \\n$0:${BASH_LINENO[2]} ${FUNCNAME[3]}() \\n INT ...\033[0m  \n \n "
+  echo ". ${1}"
+  echo ". INT  ${__trapped_INT_num}  "
+  echo ". caller $(caller) "
+  echo ". ${BASH_COMMAND}"
+  local -r __caller=$(caller)
+  local -ir __caller_line=$(echo "${__caller}" | cut -d' ' -f1)
+  local -r __caller_script_name=$(echo "${__caller}" | cut -d' ' -f2)
+  awk 'NR>L-10 && NR<L+10 { printf "%-10d%10s%s\n",NR,(NR==L?"☠ » » » > ":""),$0 }' L="${__caller_line}" "${__caller_script_name}"
+
+  # $(eval ${BASH_COMMAND}  2>&1; )
+  # echo -e " ☠ ${LIGHTPINK} Offending message:  ${__bash_error} ${RESET}"  >&2
+  exit ${__trapped_INT_num}
+}
+# trap  '_trap_on_INT $0 "${?}" LINENO BASH_LINENO FUNCNAME BASH_COMMAND $FUNCNAME $BASH_LINENO $LINENO   $BASH_COMMAND'  INT ERR
+
+
+
+extension_to_observe=$(file_extension "${1-}")
+prefix_to_observe=""
+if [[ "${extension_to_observe-}" == "go" ]] || [[ "${extension_to_observe-}" == "GO" ]] ; then
+{
+	# ps aux | grep "${1-}" | head -1 |xargs
+	prefix_to_observe="[[ -n \\\"\$(ps aux | grep \\\"${1-}\\\" | grep -v 'grep'  | head -1 | xargs)\\\"  ]] || kill \\\"\$(ps aux | grep \\\"${1-}\\\" | grep -v 'grep'  | head -1 | xargs | cut -d' ' -f2 )\\\" || go run \\\"$(pwd)/${*}\\\" && go run "
+}
+fi
+echo "extension_to_observe:${extension_to_observe-}"
+echo "   prefix_to_observe:${prefix_to_observe-}"
+echo "nodemon --watch \"./\" --ext py,go,bash,sh,kv,php,rb --exec \"${prefix_to_observe-}$(pwd)/${*}\"  ${2-}"
+nodemon --watch "./" --ext py,go,bash,sh,kv,php,rb --spawn --exec "${prefix_to_observe-}$(pwd)/${*}"  ${2-} 2>&1  \
 | sed --unbuffered 's/\ on\ line\ /:/g' \
 | sed --unbuffered 's/:\ line\ /:/g' \
 | sed --unbuffered 's/\ No\ such\ file\ or\ directory\ in\ /\ in\ \o033[38;5;213m/g' \
