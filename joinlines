@@ -21,6 +21,11 @@ if [ ${#} -lt 1 ] ; then
 
 
   joinlines 2 filename.txt  <- this will output line 2 plus line 3 in file filename.tx
+  gsb | grep "M " | cut -c4-    <- see which files you want to change
+  git status -b | grep "M " | cut -c4-    <- see which files you want to change
+
+  gsb | grep "M " | cut -c4- | xargs -I {} joinlines 3 {}  <-- do the change
+  git status -b  | grep "M " | cut -c4- | xargs -I {} joinlines 3 {}  <-- do the change
 
   "
   exit 1
