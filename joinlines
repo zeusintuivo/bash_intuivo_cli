@@ -17,7 +17,7 @@ if [ ${#} -lt 1 ] ; then
 
 
   echo 'hola
-  hello' | joinlines 1      <- this will output line 1 plus line 2 = holahello
+  hello' | joinlines 1      <- this will output line 1 plus line 2 = 'hola  hello'
 
 
   joinlines 2 filename.txt  <- this will output line 2 plus line 3 in file filename.tx
@@ -27,7 +27,7 @@ if [ ${#} -lt 1 ] ; then
 }
 fi
 
-if [[ -z "${2}" ]] ; then
+if [[ -n "${2}" ]] ; then
 {
   sed -i -e "${1}{N; s/\n//;}" "${2}"
   rm "${2}-e"
@@ -35,7 +35,7 @@ if [[ -z "${2}" ]] ; then
 else
 {
   #PIPING expexted
-  sed -e "${1}{N; s/\n//;}"
+  sed  "${1}{N; s/\n//;}"
 }
 fi
 
