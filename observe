@@ -201,9 +201,9 @@ if [[ $REPLACERGNU == "YES" ]] ; then
 {  
   if [[ -n "${extra_args_to_run}" ]] ; then 
   {
-    echo "nodemon --watch \"./\" --ext ${file_to_observe} --exec \"${extra_args_to_run}\"  ${2-}"
+    echo "nodemon --watch \"${file_to_observe}\" --ext ${extension_to_observe} --exec \"${extra_args_to_run} ${file_to_observe}\"  "
 
-    nodemon --watch "./" --ext ${file_to_observe} --spawn --exec "${extra_args_to_run}" 2>&1  \
+    nodemon --watch "${file_to_observe}" --ext ${extension_to_observe} --spawn --exec "${extra_args_to_run} ${file_to_observe}" 2>&1  \
     | ${REPLACER} --unbuffered 's/\ on\ line\ /:/g' \
     | ${REPLACER} --unbuffered 's/:\ line\ /:/g' \
     | ${REPLACER} --unbuffered 's/\ No\ such\ file\ or\ directory\ in\ /\ in\ \o033[38;5;213m/g' \
@@ -223,9 +223,9 @@ if [[ $REPLACERGNU == "YES" ]] ; then
   }
   else
   {
-    echo "nodemon --watch \"./\" --ext py,go,bash,sh,kv,php,rb --exec \"${prefix_to_observe-}$(pwd)/${*}\"  ${2-}"
+    echo "nodemon --watch \"./\" --ext py,go,bash,sh,kv,php,rb --exec \"${prefix_to_observe-}$(pwd)/${*}\"  "
 
-    nodemon --watch "./" --ext py,go,bash,sh,kv,php,rb --spawn --exec "${prefix_to_observe-}$(pwd)/${*}"  ${2-} 2>&1  \
+    nodemon --watch "./" --ext py,go,bash,sh,kv,php,rb --spawn --exec "${prefix_to_observe-}$(pwd)/${*}"  2>&1  \
     | ${REPLACER} --unbuffered 's/\ on\ line\ /:/g' \
     | ${REPLACER} --unbuffered 's/:\ line\ /:/g' \
     | ${REPLACER} --unbuffered 's/\ No\ such\ file\ or\ directory\ in\ /\ in\ \o033[38;5;213m/g' \
