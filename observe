@@ -185,23 +185,55 @@ function _trap_on_INT(){
 file_to_observe="${1-}"
 extension_to_observe=$(file_extension "${1-}")
 extra_args_to_run="${*:2}"
-prefix_to_observe=""
-if [[ "${extension_to_observe-}" == "go" ]] || [[ "${extension_to_observe-}" == "GO" ]] ; then
+prefix_to_run=""
+file_to_watch="\"./\""
+
+if [[ "${extension_to_observe-}" == "go"  ]] ; then
 {
+  # GO
 	# ps aux | grep "${1-}" | head -1 |xargs
-	prefix_to_observe="[[ -n \\\"\$(ps aux | grep \\\"${1-}\\\" | grep -v 'grep'  | head -1 | xargs)\\\"  ]] || kill \\\"\$(ps aux | grep \\\"${1-}\\\" | grep -v 'grep'  | head -1 | xargs | cut -d' ' -f2 )\\\" || go run \\\"$(pwd)/${*}\\\" && go run "
+	prefix_to_run="[[ -n \\\"\$(ps aux | grep \\\"${1-}\\\" | grep -v 'grep'  | head -1 | xargs)\\\"  ]] || kill \\\"\$(ps aux | grep \\\"${1-}\\\" | grep -v 'grep'  | head -1 | xargs | cut -d' ' -f2 )\\\" || go run \\\"$(pwd)/${*}\\\" && go run "
+  file_to_watch="$(pwd)/"
+  extension_to_observe="go"
+}
+elif [[ "${extension_to_observe-}" == "toml" ]] && [[ "${file_to_observe-}" == "Cargo.toml" ]] ; then
+{
+  # Rust TOML
+  # cargo run --package progress --bin project_name
+
+  # ps aux | grep "${1-}" | head -1 |xargs
+  # nodemon --watch "$(pwd)/src" --ext rs  --exec "cargo run -q $(pwd)/Cargo.toml"
+  # ps aux | grep "Cargo.toml" | grep -v 'grep' | grep -v 'nodemon'
+  prefix_to_run="[[ -n \\\"\$(ps aux | grep '${file_to_observe-}' | grep -v 'grep' | grep -v 'nodemon'  | head -1 | xargs)\\\"  ]] && kill \\\"\$(ps aux | grep '${file_to_observe-}' | grep -v 'grep' | grep -v 'nodemon'  | head -1 | xargs | cut -d' ' -f2 )\\\" || cargo run -q \\\"$(pwd)/${file_to_observe-}\\\" && cargo run -q "
+  file_to_watch="$(pwd)/src"
+  extension_to_observe="rs"
+}
+elif [[ "${extension_to_observe-}" == "py"  ]] ; then
+{
+  # python
+  # python  project_file
+  # ps aux | grep "${1-}" | head -1 |xargs
+  prefix_to_run="[[ -n \\\"\$(ps aux | grep '${file_to_observe-}' | grep -v 'grep'  | head -1 | xargs)\\\"  ]] || kill \\\"\$(ps aux | grep '${file_to_observe-}' | grep -v 'grep'  | head -1 | xargs | cut -d' ' -f2 )\\\" || python \\\"$(pwd)/${file_to_observe-}\\\" && python "
+  file_to_watch="$(pwd)/src"
+  extension_to_observe="py"
+}
+else
+{
+  extension_to_observe="rs,py,go,bash,sh,kv,php,rb"
 }
 fi
 echo "extension_to_observe:${extension_to_observe-}"
-echo "   prefix_to_observe:${prefix_to_observe-}"
+echo "       prefix_to_run:${prefix_to_run-}"
 echo "     file_to_observe:${file_to_observe-}"
+echo "       file_to_watch:${file_to_watch-}"
 echo "   extra_args_to_run:${extra_args_to_run-}"
 
 if [[ $REPLACERGNU == "YES" ]] ; then
 {  
   if [[ -n "${extra_args_to_run}" ]] ; then 
   {
-    echo "nodemon --watch \"${file_to_observe}\" --ext ${extension_to_observe} --exec \"${extra_args_to_run} ${file_to_observe}\"  "
+    # ruby rspec observe spec/concern_spec.rb
+    echo "nodemon --watch \"${file_to_watch-}\" --ext ${extension_to_observe} --exec \"${extra_args_to_run} ${file_to_observe}\"  "
 
     nodemon --watch "${file_to_observe}" --ext ${extension_to_observe} --spawn --exec "${extra_args_to_run} ${file_to_observe}" 2>&1  \
     | ${REPLACER} --unbuffered 's/\ on\ line\ /:/g' \
@@ -223,9 +255,11 @@ if [[ $REPLACERGNU == "YES" ]] ; then
   }
   else
   {
-    echo "nodemon --watch \"./\" --ext py,go,bash,sh,kv,php,rb --exec \"${prefix_to_observe-}$(pwd)/${*}\"  "
+    # go observe homework.go
+    # rust observe Cargo.toml
+    echo "nodemon --watch \"${file_to_watch-}\"  --ext ${extension_to_observe} --exec \"${prefix_to_run-}$(pwd)/${*}\"  "
 
-    nodemon --watch "./" --ext py,go,bash,sh,kv,php,rb --spawn --exec "${prefix_to_observe-}$(pwd)/${*}"  2>&1  \
+    nodemon --watch "./" --ext py,go,bash,sh,kv,php,rb --spawn --exec "${prefix_to_run-}$(pwd)/${*}"  2>&1  \
     | ${REPLACER} --unbuffered 's/\ on\ line\ /:/g' \
     | ${REPLACER} --unbuffered 's/:\ line\ /:/g' \
     | ${REPLACER} --unbuffered 's/\ No\ such\ file\ or\ directory\ in\ /\ in\ \o033[38;5;213m/g' \
