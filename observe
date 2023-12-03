@@ -399,6 +399,12 @@ watchexec --watch "${file_to_watch}" --exts ${extension_to_observe} --restart "$
       | ${REPLACER} --unbuffered 's/\,\ no\ offenses\ /\,\ \o033[01;32m no\ offenses\ \o033[0m/g' \
       | ${REPLACER} --unbuffered 's/\ examples\,\ 0\ failures/\o033[01;32m\ examples\,\ 0\ failures \o033[0m/g' \
       | ${REPLACER} --unbuffered 's/\ returns\ /\o033[01;32m\ returns\ /g' \
+      | ${REPLACER} --unbuffered 's/\ Do\ not\ use\ /\o033[48;5;235m\o033[38;5;196m\ Do\ not\ use\ /g' \
+      | ${REPLACER} --unbuffered 's/..Failure.Error:/\o033[48;5;235m\o033[38;5;196m..Failure.Error:/g' \
+      | ${REPLACER} --unbuffered 's/.FAILED\ /\o033[48;5;235m\o033[38;5;196m...FAILED\ \o033[0m/g' \
+      | ${REPLACER} --unbuffered 's/.failures:/\o033[48;5;235m\o033[38;5;196m.failures\o033[0m:/g' \
+      | ${REPLACER} --unbuffered 's/\ in\ tests\./\ in\ tests\.\o033[0m/g' \
+      | ${REPLACER} --unbuffered 's/expected\ the\ /\o033[0mexpected\ the\ /g' \
       | ${REPLACER} --unbuffered 's/\[Command\ was\ successful\]/\o033[01;32m\[Command\ was\ successful\]/g' \
       | ${REPLACER} --unbuffered 's/\ GET\ /\o033[01;35m\ GET\ /g' \
       | ${REPLACER} --unbuffered 's/Top\ /\o033[38;5;100mTop\ /g' \
