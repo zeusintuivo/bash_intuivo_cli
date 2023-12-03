@@ -188,6 +188,8 @@ extension_to_observe=$(file_extension "${1-}")
 extra_args_to_run="${*:2}"
 prefix_to_run=""
 file_to_watch="\"./\""
+    local _filename=${file_to_observe##*/}          # get only last filename
+    local _script_name=".${_filename}.watch.test.bash"
 
 if [[ "${extension_to_observe-}" == "go"  ]] ; then
 {
@@ -225,7 +227,7 @@ elif [[ "${extension_to_observe-}" == "rb"  ]] ; then
   if ( echo "${file_to_observe-}" | grep -q "_spec.rb[[:space:]]*$" ) ; then
   {
     # rspec yes ?
-    extra_args_to_run="clear && bundle exec rubocop -A  \"$(pwd)/${file_to_observe-}\" &&  bundle exec rspec -fd  \"$(pwd)/${file_to_observe-}\" "
+    extra_args_to_run="clear && bundle exec rubocop -A  \\\"$(pwd)/${file_to_observe-}\\\" &&  bundle exec rspec --tty --color --format documentation \\\"$(pwd)/${file_to_observe-}\\\" "
     file_to_watch="$(pwd)/${file_to_observe-}"
 
     # try to find related classed from described yes ?
@@ -251,7 +253,7 @@ echo "_possible_related_classes:${_possible_related_classes-}"
           while read -r one ; do
           {
             [[ -z "${one-}" ]] && continue
-            file_to_watch="${file_to_watch} --watch $(pwd)/${one}"
+            file_to_watch="${file_to_watch}\" --watch \"$(pwd)/${one}"
           }
           done <<< "${_possible_related_classes}"
         }
@@ -281,6 +283,8 @@ else
 }
 fi
 echo "     extension_to_observe:${extension_to_observe-}"
+echo "                _filename:${_filename-}"
+echo "            _script_name:${_script_name-}"
 echo "            prefix_to_run:${prefix_to_run-}"
 echo "          file_to_observe:${file_to_observe-}"
 echo "            file_to_watch:${file_to_watch-}"
@@ -291,51 +295,264 @@ if [[ $REPLACERGNU == "YES" ]] ; then
   echo '-----'
   if [[ -n "${extra_args_to_run}" ]] ; then 
   {
-    # ruby rspec observe spec/concern_spec.rb
-    echo "nodemon --watch \"${file_to_watch-}\" --ext ${extension_to_observe} --spawn --exec \"${extra_args_to_run} ${file_to_observe}\"  "
+    if ( command -v watchexec >/dev/null 2>&1; )  ; then
+    {
+      # ruby rspec observe spec/concern_spec.rb
+      echo "watchexec --watch \"${file_to_watch-}\" --exts ${extension_to_observe} --restart \"${extra_args_to_run} ${file_to_observe}\"  "
 
-    # nodemon --watch "${file_to_observe}" --ext ${extension_to_observe} --spawn --exec "${extra_args_to_run} ${file_to_observe}" 2>&1  \
-    nodemon --watch "${file_to_watch}" --ext ${extension_to_observe} --spawn --exec "${extra_args_to_run} ${file_to_observe}" 2>&1  \
-    | ${REPLACER} --unbuffered 's/\ on\ line\ /:/g' \
-    | ${REPLACER} --unbuffered 's/:\ line\ /:/g' \
-    | ${REPLACER} --unbuffered 's/\ No\ such\ file\ or\ directory\ in\ /\ in\ \o033[38;5;213m/g' \
-    | ${REPLACER} --unbuffered 's/ErrorException:\ /\o033[38;5;196mErrorException:\ \o033[38;5;213m/g' \
-     | ${REPLACER} --unbuffered "s/\ require_once(.\/wp-content/\ require_once(\n$cwd\/wp-content/g" \
-     | ${REPLACER} --unbuffered "s/\ require(.\/wp-content/\ require(\n$cwd\/wp-content/g" \
-     | ${REPLACER} --unbuffered "s/\ require\ .\/wp-content/\ require\ \n$cwd\/wp-content/g" \
-     | ${REPLACER} --unbuffered "s/\ include\ .\/wp-content/\ include\ \n$cwd\/wp-content/g" \
-     | ${REPLACER} --unbuffered "s/\ include_once(.\/wp-content/\ include_once(\n$cwd\/wp-content/g" \
-     | ${REPLACER} --unbuffered "s/\ in\ \//\ in\ \n\//g" \
-    | ${REPLACER} --unbuffered 's/Stack\ trace:/\o033[38;0mStack\ trace:/g' \
-    | ${REPLACER} --unbuffered 's/Call\ Stack:/\o033[38;0mCall\ Stack:/g' \
-    | ${REPLACER} --unbuffered 's/#. //g' \
+      # watchexec --watch "${file_to_observe}" --exts ${extension_to_observe} --restart "${extra_args_to_run} ${file_to_observe}" 2>&1  \
+      cat <<-EOF > ".${_filename}.watch.test.bash"
+#!/usr/bin/env bash
 
-    # | ${REPLACER} --unbuffered 's@/./@/@g' \
+pathpat="(/[^/]*)+:[0-9]+"
+ccred=\$(echo -e "\033[0;31m")
+ccyellow=\$(echo -e "\033[0;33m")
+ccend=\$(echo -e "\033[0m")
+# sed -E 
+# -e "/[Ee]rror[: ]/ s%$pathpat%$ccred&$ccend%g" 
+# -e "/[Ww]arning[: ]/ s%$pathpat%$ccyellow&$ccend%g"
 
+watchexec --watch "${file_to_watch}" --exts ${extension_to_observe} --restart "${extra_args_to_run} ${file_to_observe}" 2>&1  \
+        | ${REPLACER} --unbuffered '/\ process\ jobs\ in\ this\ environment/d' \
+        | ${REPLACER} --unbuffered '/Top\ level\ /d' \
+        | ${REPLACER} --unbuffered '/\ warning:\ already\ initialized\ constant/d' \
+        | ${REPLACER} --unbuffered '/\ was\ here/d' \
+      | ${REPLACER} --unbuffered 's/\ on\ line\ /:/g' \
+      | ${REPLACER} --unbuffered 's/:\ line\ /:/g' \
+      | ${REPLACER} --unbuffered 's/\ No\ such\ file\ or\ directory\ in\ /\ in\ \o033[38;5;213m/g' \
+      | ${REPLACER} --unbuffered 's/\,\ no\ offenses\ /\,\ \o033[01;32m no\ offenses\ \o033[0m/g' \
+      | ${REPLACER} --unbuffered 's/\ examples\,\ 0\ failures/\o033[01;32m\ examples\,\ 0\ failures \o033[0m/g' \
+      | ${REPLACER} --unbuffered 's/\ returns\ /\o033[01;32m\ returns\ /g' \
+      | ${REPLACER} --unbuffered 's/\[Command\ was\ successful\]/\o033[01;32m\[Command\ was\ successful\]/g' \
+      | ${REPLACER} --unbuffered 's/\ GET\ /\o033[01;35m\ GET\ /g' \
+      | ${REPLACER} --unbuffered 's/Top\ /\o033[38;5;100mTop\ /g' \
+      | ${REPLACER} --unbuffered 's/\ seconds\ /\o033[38;5;231m\ seconds\ /g' \
+      | ${REPLACER} --unbuffered 's/\ behaves\ like\ /\o033[01;36m\ behaves\ like\ /g' \
+      | ${REPLACER} --unbuffered 's/\ when\ /\o033[38;5;225m\ when\ /g' \
+      | ${REPLACER} --unbuffered 's/ErrorException:\ /\o033[38;5;196mErrorException:\ \o033[38;5;213m/g' \
+       | ${REPLACER} --unbuffered "s/\ require_once(.\/wp-content/\ require_once(\n$cwd\/wp-content/g" \
+       | ${REPLACER} --unbuffered "s/\ require(.\/wp-content/\ require(\n$cwd\/wp-content/g" \
+       | ${REPLACER} --unbuffered "s/\ require\ .\/wp-content/\ require\ \n$cwd\/wp-content/g" \
+       | ${REPLACER} --unbuffered "s/\ include\ .\/wp-content/\ include\ \n$cwd\/wp-content/g" \
+       | ${REPLACER} --unbuffered "s/\ include_once(.\/wp-content/\ include_once(\n$cwd\/wp-content/g" \
+       | ${REPLACER} --unbuffered "s/\ in\ \//\ in\ \n\//g" \
+      | ${REPLACER} --unbuffered 's/Stack\ trace:/\o033[38;0mStack\ trace:/g' \
+      | ${REPLACER} --unbuffered 's/Call\ Stack:/\o033[38;0mCall\ Stack:/g' \
+      | ${REPLACER} --unbuffered 's/#. //g' \
+      | ${REPLACER} --unbuffered -E "/[Ee]rror[: ]/ s%$pathpat%$ccred&$ccend%g" \
+      | ${REPLACER} --unbuffered -E "/[Ww]arning[: ]/ s%$pathpat%$ccyellow&$ccend%g" \
+      | ${REPLACER} --unbuffered 's/"${_maybe_name-}"/\o033[38;5;178m"${_maybe_name-}"\o033[0m/g' \
+      | ${REPLACER} --unbuffered 's/\.\/spec\//\o033[0m\.\/spec\//g' \
+      | ${REPLACER} --unbuffered 's/"${_maybe_name-}"/\o033[38;5;178m"${_maybe_name-}"\o033[0m/g' \
+ 
+      # | ${REPLACER} --unbuffered 's@/./@/@g' \
+
+EOF
+      # | ${REPLACER} --unbuffered 's@/./@/@g' \
+      chmod a+x  ".${_filename}.watch.test.bash"
+      ./".${_filename}.watch.test.bash"
+
+    }
+    elif ( command -v nodemon >/dev/null 2>&1; )  ; then
+    {
+      # ruby rspec observe spec/concern_spec.rb
+      echo "nodemon --watch \"${file_to_watch-}\" --ext ${extension_to_observe} --spawn --exec \"${extra_args_to_run} ${file_to_observe}\"  "
+
+      # nodemon --watch "${file_to_observe}" --ext ${extension_to_observe} --spawn --exec "${extra_args_to_run} ${file_to_observe}" 2>&1  \
+      cat <<-EOF > ".${_filename}.watch.test.bash"
+#!/usr/bin/env bash
+
+pathpat="(/[^/]*)+:[0-9]+"
+ccred=\$(echo -e "\033[0;31m")
+ccyellow=\$(echo -e "\033[0;33m")
+ccend=\$(echo -e "\033[0m")
+# sed -E 
+# -e "/[Ee]rror[: ]/ s%$pathpat%$ccred&$ccend%g" 
+# -e "/[Ww]arning[: ]/ s%$pathpat%$ccyellow&$ccend%g"
+
+nodemon --watch "${file_to_watch}" --ext ${extension_to_observe} --spawn --exec "${extra_args_to_run} ${file_to_observe}" 2>&1  \
+        | ${REPLACER} --unbuffered '/\ process\ jobs\ in\ this\ environment/d' \
+        | ${REPLACER} --unbuffered '/Top\ level\ /d' \
+        | ${REPLACER} --unbuffered '/\ warning:\ already\ initialized\ constant/d' \
+        | ${REPLACER} --unbuffered '/\ was\ here/d' \
+      | ${REPLACER} --unbuffered 's/\ on\ line\ /:/g' \
+      | ${REPLACER} --unbuffered 's/:\ line\ /:/g' \
+      | ${REPLACER} --unbuffered 's/\ No\ such\ file\ or\ directory\ in\ /\ in\ \o033[38;5;213m/g' \
+      | ${REPLACER} --unbuffered 's/\,\ no\ offenses\ /\,\ \o033[01;32m no\ offenses\ \o033[0m/g' \
+      | ${REPLACER} --unbuffered 's/\ examples\,\ 0\ failures/\o033[01;32m\ examples\,\ 0\ failures \o033[0m/g' \
+      | ${REPLACER} --unbuffered 's/\ returns\ /\o033[01;32m\ returns\ /g' \
+      | ${REPLACER} --unbuffered 's/\[Command\ was\ successful\]/\o033[01;32m\[Command\ was\ successful\]/g' \
+      | ${REPLACER} --unbuffered 's/\ GET\ /\o033[01;35m\ GET\ /g' \
+      | ${REPLACER} --unbuffered 's/Top\ /\o033[38;5;100mTop\ /g' \
+      | ${REPLACER} --unbuffered 's/\ seconds\ /\o033[38;5;231m\ seconds\ /g' \
+      | ${REPLACER} --unbuffered 's/\ behaves\ like\ /\o033[01;36m\ behaves\ like\ /g' \
+      | ${REPLACER} --unbuffered 's/\ when\ /\o033[38;5;225m\ when\ /g' \
+      | ${REPLACER} --unbuffered 's/ErrorException:\ /\o033[38;5;196mErrorException:\ \o033[38;5;213m/g' \
+       | ${REPLACER} --unbuffered "s/\ require_once(.\/wp-content/\ require_once(\n$cwd\/wp-content/g" \
+       | ${REPLACER} --unbuffered "s/\ require(.\/wp-content/\ require(\n$cwd\/wp-content/g" \
+       | ${REPLACER} --unbuffered "s/\ require\ .\/wp-content/\ require\ \n$cwd\/wp-content/g" \
+       | ${REPLACER} --unbuffered "s/\ include\ .\/wp-content/\ include\ \n$cwd\/wp-content/g" \
+       | ${REPLACER} --unbuffered "s/\ include_once(.\/wp-content/\ include_once(\n$cwd\/wp-content/g" \
+       | ${REPLACER} --unbuffered "s/\ in\ \//\ in\ \n\//g" \
+      | ${REPLACER} --unbuffered 's/Stack\ trace:/\o033[38;0mStack\ trace:/g' \
+      | ${REPLACER} --unbuffered 's/Call\ Stack:/\o033[38;0mCall\ Stack:/g' \
+      | ${REPLACER} --unbuffered 's/#. //g' \
+      | ${REPLACER} --unbuffered -E "/[Ee]rror[: ]/ s%$pathpat%$ccred&$ccend%g" \
+      | ${REPLACER} --unbuffered -E "/[Ww]arning[: ]/ s%$pathpat%$ccyellow&$ccend%g" \
+      | ${REPLACER} --unbuffered 's/"${_maybe_name-}"/\o033[38;5;178m"${_maybe_name-}"\o033[0m/g' \
+      | ${REPLACER} --unbuffered 's/\.\/spec\//\o033[0m\.\/spec\//g' \
+      | ${REPLACER} --unbuffered 's/"${_maybe_name-}"/\o033[38;5;178m"${_maybe_name-}"\o033[0m/g' \
+ 
+      # | ${REPLACER} --unbuffered 's@/./@/@g' \
+
+EOF
+      # | ${REPLACER} --unbuffered 's@/./@/@g' \
+      chmod a+x  ".${_filename}.watch.test.bash"
+      ./".${_filename}.watch.test.bash"
+    }
+    else 
+    {
+      echo "ERROR could not find watchexec or nodemon to start 
+      Please install either:
+        
+        faster   https://github.com/watchexec/watchexec   <-- keeps colors stdout
+        classic  https://www.npmjs.com/package/nodemon    <-- removes all colors stdout
+
+      "
+      exit 1
+    }
+    fi
   }
   else
   {
-    # go observe homework.go
-    # rust observe Cargo.toml
-    # echo "nodemon --watch \"${file_to_watch-}\"  --ext ${extension_to_observe} --exec \"${prefix_to_run-}$(pwd)/${*}\"  "
-    echo "nodemon --watch \"./\" --ext py,go,bash,sh,kv,php,rb --spawn --exec \"${prefix_to_run-}$(pwd)/${*}\" "
+    if ( command -v watchexec >/dev/null 2>&1; )  ; then
+    {
+      # go observe homework.go
+      # rust observe Cargo.toml
+      # echo "nodemon --watch \"${file_to_watch-}\"  --exts ${extension_to_observe} --restart \"${prefix_to_run-}$(pwd)/${*}\"  "
+      echo "watchexec --watch \"./\" --exts py,go,bash,sh,kv,php,rb --restart \"${prefix_to_run-}$(pwd)/${*}\" "
 
-    nodemon --watch "./" --ext py,go,bash,sh,kv,php,rb --spawn --exec "${prefix_to_run-}$(pwd)/${*}"  2>&1  \
-    | ${REPLACER} --unbuffered 's/\ on\ line\ /:/g' \
-    | ${REPLACER} --unbuffered 's/:\ line\ /:/g' \
-    | ${REPLACER} --unbuffered 's/\ No\ such\ file\ or\ directory\ in\ /\ in\ \o033[38;5;213m/g' \
-    | ${REPLACER} --unbuffered 's/ErrorException:\ /\o033[38;5;196mErrorException:\ \o033[38;5;213m/g' \
-     | ${REPLACER} --unbuffered "s/\ require_once(.\/wp-content/\ require_once(\n$cwd\/wp-content/g" \
-     | ${REPLACER} --unbuffered "s/\ require(.\/wp-content/\ require(\n$cwd\/wp-content/g" \
-     | ${REPLACER} --unbuffered "s/\ require\ .\/wp-content/\ require\ \n$cwd\/wp-content/g" \
-     | ${REPLACER} --unbuffered "s/\ include\ .\/wp-content/\ include\ \n$cwd\/wp-content/g" \
-     | ${REPLACER} --unbuffered "s/\ include_once(.\/wp-content/\ include_once(\n$cwd\/wp-content/g" \
-     | ${REPLACER} --unbuffered "s/\ in\ \//\ in\ \n\//g" \
-    | ${REPLACER} --unbuffered 's/Stack\ trace:/\o033[38;0mStack\ trace:/g' \
-    | ${REPLACER} --unbuffered 's/Call\ Stack:/\o033[38;0mCall\ Stack:/g' \
-    | ${REPLACER} --unbuffered 's/#. //g' \
+      # watchexec --watch "${file_to_observe}" --exts ${extension_to_observe} --restart "${extra_args_to_run} ${file_to_observe}" 2>&1  \
+      cat <<-EOF > ".${_filename}.watch.test.bash"
+#!/usr/bin/env bash
 
-    # | ${REPLACER} --unbuffered 's@/./@/@g' \
+pathpat="(/[^/]*)+:[0-9]+"
+ccred=\$(echo -e "\033[0;31m")
+ccyellow=\$(echo -e "\033[0;33m")
+ccend=\$(echo -e "\033[0m")
+# sed -E 
+# -e "/[Ee]rror[: ]/ s%$pathpat%$ccred&$ccend%g" 
+# -e "/[Ww]arning[: ]/ s%$pathpat%$ccyellow&$ccend%g"
+
+watchexec --watch "./" --exts py,go,bash,sh,kv,php,rb --restart "${prefix_to_run-}$(pwd)/${*}"  2>&1  \
+        | ${REPLACER} --unbuffered '/\ process\ jobs\ in\ this\ environment/d' \
+        | ${REPLACER} --unbuffered '/Top\ level\ /d' \
+        | ${REPLACER} --unbuffered '/\ warning:\ already\ initialized\ constant/d' \
+        | ${REPLACER} --unbuffered '/\ was\ here/d' \
+      | ${REPLACER} --unbuffered 's/\ on\ line\ /:/g' \
+      | ${REPLACER} --unbuffered 's/:\ line\ /:/g' \
+      | ${REPLACER} --unbuffered 's/\ No\ such\ file\ or\ directory\ in\ /\ in\ \o033[38;5;213m/g' \
+      | ${REPLACER} --unbuffered 's/\,\ no\ offenses\ /\,\ \o033[01;32m no\ offenses\ \o033[0m/g' \
+      | ${REPLACER} --unbuffered 's/\ examples\,\ 0\ failures/\o033[01;32m\ examples\,\ 0\ failures \o033[0m/g' \
+      | ${REPLACER} --unbuffered 's/\ returns\ /\o033[01;32m\ returns\ /g' \
+      | ${REPLACER} --unbuffered 's/\[Command\ was\ successful\]/\o033[01;32m\[Command\ was\ successful\]/g' \
+      | ${REPLACER} --unbuffered 's/\ GET\ /\o033[01;35m\ GET\ /g' \
+      | ${REPLACER} --unbuffered 's/Top\ /\o033[38;5;100mTop\ /g' \
+      | ${REPLACER} --unbuffered 's/\ seconds\ /\o033[38;5;231m\ seconds\ /g' \
+      | ${REPLACER} --unbuffered 's/\ behaves\ like\ /\o033[01;36m\ behaves\ like\ /g' \
+      | ${REPLACER} --unbuffered 's/\ when\ /\o033[38;5;225m\ when\ /g' \
+      | ${REPLACER} --unbuffered 's/ErrorException:\ /\o033[38;5;196mErrorException:\ \o033[38;5;213m/g' \
+       | ${REPLACER} --unbuffered "s/\ require_once(.\/wp-content/\ require_once(\n$cwd\/wp-content/g" \
+       | ${REPLACER} --unbuffered "s/\ require(.\/wp-content/\ require(\n$cwd\/wp-content/g" \
+       | ${REPLACER} --unbuffered "s/\ require\ .\/wp-content/\ require\ \n$cwd\/wp-content/g" \
+       | ${REPLACER} --unbuffered "s/\ include\ .\/wp-content/\ include\ \n$cwd\/wp-content/g" \
+       | ${REPLACER} --unbuffered "s/\ include_once(.\/wp-content/\ include_once(\n$cwd\/wp-content/g" \
+       | ${REPLACER} --unbuffered "s/\ in\ \//\ in\ \n\//g" \
+      | ${REPLACER} --unbuffered 's/Stack\ trace:/\o033[38;0mStack\ trace:/g' \
+      | ${REPLACER} --unbuffered 's/Call\ Stack:/\o033[38;0mCall\ Stack:/g' \
+      | ${REPLACER} --unbuffered 's/#. //g' \
+      | ${REPLACER} --unbuffered -E "/[Ee]rror[: ]/ s%$pathpat%$ccred&$ccend%g" \
+      | ${REPLACER} --unbuffered -E "/[Ww]arning[: ]/ s%$pathpat%$ccyellow&$ccend%g" \
+      | ${REPLACER} --unbuffered 's/"${_maybe_name-}"/\o033[38;5;178m"${_maybe_name-}"\o033[0m/g' \
+      | ${REPLACER} --unbuffered 's/\.\/spec\//\o033[0m\.\/spec\//g' \
+      | ${REPLACER} --unbuffered 's/"${_maybe_name-}"/\o033[38;5;178m"${_maybe_name-}"\o033[0m/g' \
+ 
+      # | ${REPLACER} --unbuffered 's@/./@/@g' \
+ 
+EOF
+      chmod a+x  ".${_filename}.watch.test.bash"
+      ./".${_filename}.watch.test.bash"
+    }
+    elif ( command -v nodemon >/dev/null 2>&1; )  ; then
+    {
+      # go observe homework.go
+      # rust observe Cargo.toml
+      # echo "nodemon --watch \"${file_to_watch-}\"  --ext ${extension_to_observe} --exec \"${prefix_to_run-}$(pwd)/${*}\"  "
+      echo "nodemon --watch \"./\" --ext py,go,bash,sh,kv,php,rb --spawn --exec \"${prefix_to_run-}$(pwd)/${*}\" "
+
+      # nodemon --watch "${file_to_observe}" --ext ${extension_to_observe} --spawn --exec "${extra_args_to_run} ${file_to_observe}" 2>&1  \
+      cat <<-EOF > ".${_filename}.watch.test.bash"
+#!/usr/bin/env bash
+
+pathpat="(/[^/]*)+:[0-9]+"
+ccred=\$(echo -e "\033[0;31m")
+ccyellow=\$(echo -e "\033[0;33m")
+ccend=\$(echo -e "\033[0m")
+# sed -E 
+# -e "/[Ee]rror[: ]/ s%$pathpat%$ccred&$ccend%g" 
+# -e "/[Ww]arning[: ]/ s%$pathpat%$ccyellow&$ccend%g"
+
+nodemon --watch "./" --ext py,go,bash,sh,kv,php,rb --spawn --exec "${prefix_to_run-}$(pwd)/${*}"  2>&1  \
+        | ${REPLACER} --unbuffered '/\ process\ jobs\ in\ this\ environment/d' \
+        | ${REPLACER} --unbuffered '/Top\ level\ /d' \
+        | ${REPLACER} --unbuffered '/\ warning:\ already\ initialized\ constant/d' \
+        | ${REPLACER} --unbuffered '/\ was\ here/d' \
+      | ${REPLACER} --unbuffered 's/\ on\ line\ /:/g' \
+      | ${REPLACER} --unbuffered 's/:\ line\ /:/g' \
+      | ${REPLACER} --unbuffered 's/\ No\ such\ file\ or\ directory\ in\ /\ in\ \o033[38;5;213m/g' \
+      | ${REPLACER} --unbuffered 's/\,\ no\ offenses\ /\,\ \o033[01;32m no\ offenses\ \o033[0m/g' \
+      | ${REPLACER} --unbuffered 's/\ examples\,\ 0\ failures/\o033[01;32m\ examples\,\ 0\ failures \o033[0m/g' \
+      | ${REPLACER} --unbuffered 's/\ returns\ /\o033[01;32m\ returns\ /g' \
+      | ${REPLACER} --unbuffered 's/\[Command\ was\ successful\]/\o033[01;32m\[Command\ was\ successful\]/g' \
+      | ${REPLACER} --unbuffered 's/\ GET\ /\o033[01;35m\ GET\ /g' \
+      | ${REPLACER} --unbuffered 's/Top\ /\o033[38;5;100mTop\ /g' \
+      | ${REPLACER} --unbuffered 's/\ seconds\ /\o033[38;5;231m\ seconds\ /g' \
+      | ${REPLACER} --unbuffered 's/\ behaves\ like\ /\o033[01;36m\ behaves\ like\ /g' \
+      | ${REPLACER} --unbuffered 's/\ when\ /\o033[38;5;225m\ when\ /g' \
+      | ${REPLACER} --unbuffered 's/ErrorException:\ /\o033[38;5;196mErrorException:\ \o033[38;5;213m/g' \
+       | ${REPLACER} --unbuffered "s/\ require_once(.\/wp-content/\ require_once(\n$cwd\/wp-content/g" \
+       | ${REPLACER} --unbuffered "s/\ require(.\/wp-content/\ require(\n$cwd\/wp-content/g" \
+       | ${REPLACER} --unbuffered "s/\ require\ .\/wp-content/\ require\ \n$cwd\/wp-content/g" \
+       | ${REPLACER} --unbuffered "s/\ include\ .\/wp-content/\ include\ \n$cwd\/wp-content/g" \
+       | ${REPLACER} --unbuffered "s/\ include_once(.\/wp-content/\ include_once(\n$cwd\/wp-content/g" \
+       | ${REPLACER} --unbuffered "s/\ in\ \//\ in\ \n\//g" \
+      | ${REPLACER} --unbuffered 's/Stack\ trace:/\o033[38;0mStack\ trace:/g' \
+      | ${REPLACER} --unbuffered 's/Call\ Stack:/\o033[38;0mCall\ Stack:/g' \
+      | ${REPLACER} --unbuffered 's/#. //g' \
+      | ${REPLACER} --unbuffered -E "/[Ee]rror[: ]/ s%$pathpat%$ccred&$ccend%g" \
+      | ${REPLACER} --unbuffered -E "/[Ww]arning[: ]/ s%$pathpat%$ccyellow&$ccend%g" \
+      | ${REPLACER} --unbuffered 's/"${_maybe_name-}"/\o033[38;5;178m"${_maybe_name-}"\o033[0m/g' \
+      | ${REPLACER} --unbuffered 's/\.\/spec\//\o033[0m\.\/spec\//g' \
+      | ${REPLACER} --unbuffered 's/"${_maybe_name-}"/\o033[38;5;178m"${_maybe_name-}"\o033[0m/g' \
+ 
+      # | ${REPLACER} --unbuffered 's@/./@/@g' \
+
+EOF
+      chmod a+x  ".${_filename}.watch.test.bash"
+      ./".${_filename}.watch.test.bash"
+    }
+    else 
+    {
+      echo "ERROR could not find watchexec or nodemon to start 
+      Please install either:
+        
+        faster   https://github.com/watchexec/watchexec   <-- keeps colors stdout
+        classic  https://www.npmjs.com/package/nodemon    <-- removes all colors stdout
+
+      "
+      exit 1
+    }
+    fi
 
   }
   fi
