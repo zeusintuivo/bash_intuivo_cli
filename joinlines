@@ -1,0 +1,48 @@
+#!/bin/bash
+
+# Replace includes
+#sed -i -e "/include Policies::DefaultResourcePolicy/{s/include Policies::DefaultResourcePolicy/\r < Policies::DefaultResourcePolicy/;}" app/lib/policies/*
+# Join line 3 with 4
+#sed -i -e "3{N; s/\n//;}" app/lib/policies/*
+# Remove sed leftovers
+#rm app/lib/policies/*-e
+
+if [ ${#} -lt 1 ] ; then
+{
+  echo "$0 joins to line in a file
+
+  Needs one number to know which line to join
+
+  Samples
+
+
+  echo 'hola
+  hello' | joinlines 1      <- this will output line 1 plus line 2 = 'hola  hello'
+
+
+  joinlines 2 filename.txt  <- this will output line 2 plus line 3 in file filename.tx
+  gsb | grep "M " | cut -c4-    <- see which files you want to change
+  git status -b | grep "M " | cut -c4-    <- see which files you want to change
+
+  gsb | grep "M " | cut -c4- | xargs -I {} joinlines 3 {}  <-- do the change
+  git status -b  | grep "M " | cut -c4- | xargs -I {} joinlines 3 {}  <-- do the change
+
+  "
+  exit 1
+}
+fi
+
+if [[ -n "${2}" ]] ; then
+{
+  sed -i -e "${1}{N; s/\n//;}" "${2}"
+  rm "${2}-e"
+}
+else
+{
+  #PIPING expexted
+  sed  "${1}{N; s/\n//;}"
+}
+fi
+
+
+

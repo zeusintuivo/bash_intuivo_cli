@@ -428,7 +428,21 @@ fi
 
 REPLACERGNU="NO"
 if [[ $VALIDREPLACER == "GNU" ]] ; then
+{
   REPLACERGNU="YES"
+}
+fi
+
+# one more check for gsed from brew in macs
+if [[ $REPLACERGNU == "NO" ]] ; then
+{  
+  if command -v gsed >/dev/null 2>&1 ; then 
+  { 
+    REPLACERGNU="YES"
+    REPLACER="gsed"
+  }
+  fi
+}
 fi
 
 # Test
