@@ -330,6 +330,7 @@ if [[ $REPLACERGNU == "YES" ]] ; then
 # bundle exec guard -G "$(pwd)/.${_filename}.watch.test.guardfile" \
 #         | ${REPLACER} --unbuffered '/\ process\ jobs\ in\ this\ environment/d' \
 #         | ${REPLACER} --unbuffered '/Top\ level\ /d' \
+#         | ${REPLACER} --unbuffered '/5\ levels/d' \
 #         | ${REPLACER} --unbuffered '/\ warning:\ already\ initialized\ constant/d' \
 #         | ${REPLACER} --unbuffered '/\ was\ here/d' \
 #       | ${REPLACER} --unbuffered 's/\ on\ line\ /:/g' \
@@ -377,7 +378,7 @@ if [[ $REPLACERGNU == "YES" ]] ; then
       echo "watchexec --watch \"${file_to_watch-}\" --exts ${extension_to_observe} --restart \"${extra_args_to_run} ${file_to_observe}\"  "
 
       # watchexec --watch "${file_to_observe}" --exts ${extension_to_observe} --restart "${extra_args_to_run} ${file_to_observe}" 2>&1  \
-      cat <<-EOF > ".${_filename}.watch.test.bash"
+      cat <<-EOF > ".${_filename}.watchexec.watch.test.bash"
 #!/usr/bin/env bash
 
 pathpat="(/[^/]*)+:[0-9]+"
@@ -389,50 +390,51 @@ ccend=\$(echo -e "\033[0m")
 # -e "/[Ww]arning[: ]/ s%$pathpat%$ccyellow&$ccend%g"
 
 watchexec --watch "${file_to_watch}" --exts ${extension_to_observe} --restart "${extra_args_to_run} ${file_to_observe}" 2>&1  \
-        | ${REPLACER} --unbuffered '/\ process\ jobs\ in\ this\ environment/d' \
-        | ${REPLACER} --unbuffered '/Top\ level\ /d' \
-        | ${REPLACER} --unbuffered '/\ warning:\ already\ initialized\ constant/d' \
-        | ${REPLACER} --unbuffered '/\ was\ here/d' \
-      | ${REPLACER} --unbuffered 's/\ on\ line\ /:/g' \
-      | ${REPLACER} --unbuffered 's/:\ line\ /:/g' \
-      | ${REPLACER} --unbuffered 's/\ No\ such\ file\ or\ directory\ in\ /\ in\ \o033[38;5;213m/g' \
-      | ${REPLACER} --unbuffered 's/\,\ no\ offenses\ /\,\ \o033[01;32m no\ offenses\ \o033[0m/g' \
-      | ${REPLACER} --unbuffered 's/\ examples\,\ 0\ failures/\o033[01;32m\ examples\,\ 0\ failures \o033[0m/g' \
-      | ${REPLACER} --unbuffered 's/\ returns\ /\o033[01;32m\ returns\ /g' \
-      | ${REPLACER} --unbuffered 's/\ Do\ not\ use\ /\o033[48;5;235m\o033[38;5;196m\ Do\ not\ use\ /g' \
-      | ${REPLACER} --unbuffered 's/..Failure.Error:/\o033[48;5;235m\o033[38;5;196m..Failure.Error:/g' \
-      | ${REPLACER} --unbuffered 's/.FAILED\ /\o033[48;5;235m\o033[38;5;196m...FAILED\ \o033[0m/g' \
-      | ${REPLACER} --unbuffered 's/.failures:/\o033[48;5;235m\o033[38;5;196m.failures\o033[0m:/g' \
-      | ${REPLACER} --unbuffered 's/\ in\ tests\./\ in\ tests\.\o033[0m/g' \
-      | ${REPLACER} --unbuffered 's/expected\ the\ /\o033[0mexpected\ the\ /g' \
-      | ${REPLACER} --unbuffered 's/\[Command\ was\ successful\]/\o033[01;32m\[Command\ was\ successful\]/g' \
-      | ${REPLACER} --unbuffered 's/\ GET\ /\o033[01;35m\ GET\ /g' \
-      | ${REPLACER} --unbuffered 's/Top\ /\o033[38;5;100mTop\ /g' \
-      | ${REPLACER} --unbuffered 's/\ seconds\ /\o033[38;5;231m\ seconds\ /g' \
-      | ${REPLACER} --unbuffered 's/\ behaves\ like\ /\o033[01;36m\ behaves\ like\ /g' \
-      | ${REPLACER} --unbuffered 's/\ when\ /\o033[38;5;225m\ when\ /g' \
-      | ${REPLACER} --unbuffered 's/ErrorException:\ /\o033[38;5;196mErrorException:\ \o033[38;5;213m/g' \
-       | ${REPLACER} --unbuffered "s/\ require_once(.\/wp-content/\ require_once(\n$pwd_backslash_escaped_for_sed\/wp-content/g" \
-       | ${REPLACER} --unbuffered "s/\ require(.\/wp-content/\ require(\n$pwd_backslash_escaped_for_sed\/wp-content/g" \
-       | ${REPLACER} --unbuffered "s/\ require\ .\/wp-content/\ require\ \n$pwd_backslash_escaped_for_sed\/wp-content/g" \
-       | ${REPLACER} --unbuffered "s/\ include\ .\/wp-content/\ include\ \n$pwd_backslash_escaped_for_sed\/wp-content/g" \
-       | ${REPLACER} --unbuffered "s/\ include_once(.\/wp-content/\ include_once(\n$pwd_backslash_escaped_for_sed\/wp-content/g" \
-       | ${REPLACER} --unbuffered "s/\ in\ \//\ in\ \n\//g" \
-      | ${REPLACER} --unbuffered 's/Stack\ trace:/\o033[38;0mStack\ trace:/g' \
-      | ${REPLACER} --unbuffered 's/Call\ Stack:/\o033[38;0mCall\ Stack:/g' \
-      | ${REPLACER} --unbuffered 's/#. //g' \
-      | ${REPLACER} --unbuffered -E "/[Ee]rror[: ]/ s%$pathpat%$ccred&$ccend%g" \
-      | ${REPLACER} --unbuffered -E "/[Ww]arning[: ]/ s%$pathpat%$ccyellow&$ccend%g" \
-      | ${REPLACER} --unbuffered 's/"${_maybe_name-}"/\o033[38;5;178m"${_maybe_name-}"\o033[0m/g' \
-      | ${REPLACER} --unbuffered 's/\.\/spec\//\o033[0m\.\/spec\//g' \
-      | ${REPLACER} --unbuffered 's/"${_maybe_name-}"/\o033[38;5;178m"${_maybe_name-}"\o033[0m/g' \
+        | ${REPLACER} --unbuffered '/\ process\ jobs\ in\ this\ environment/d' \\
+        | ${REPLACER} --unbuffered '/Top\ level\ /d' \\
+        | ${REPLACER} --unbuffered '/5\ levels/d' \\
+        | ${REPLACER} --unbuffered '/\ warning:\ already\ initialized\ constant/d' \\
+        | ${REPLACER} --unbuffered '/\ was\ here/d' \\
+      | ${REPLACER} --unbuffered 's/\ on\ line\ /:/g' \\
+      | ${REPLACER} --unbuffered 's/:\ line\ /:/g' \\
+      | ${REPLACER} --unbuffered 's/\ No\ such\ file\ or\ directory\ in\ /\ in\ \o033[38;5;213m/g' \\
+      | ${REPLACER} --unbuffered 's/\,\ no\ offenses\ /\,\ \o033[01;32m no\ offenses\ \o033[0m/g' \\
+      | ${REPLACER} --unbuffered 's/\ examples\,\ 0\ failures/\o033[01;32m\ examples\,\ 0\ failures \o033[0m/g' \\
+      | ${REPLACER} --unbuffered 's/\ returns\ /\o033[01;32m\ returns\ /g' \\
+      | ${REPLACER} --unbuffered 's/\ Do\ not\ use\ /\o033[48;5;235m\o033[38;5;196m\ Do\ not\ use\ /g' \\
+      | ${REPLACER} --unbuffered 's/..Failure.Error:/\o033[48;5;235m\o033[38;5;196m..Failure.Error:/g' \\
+      | ${REPLACER} --unbuffered 's/.FAILED\ /\o033[48;5;235m\o033[38;5;196m...FAILED\ \o033[0m/g' \\
+      | ${REPLACER} --unbuffered 's/.failures:/\o033[48;5;235m\o033[38;5;196m.failures\o033[0m:/g' \\
+      | ${REPLACER} --unbuffered 's/\ in\ tests\./\ in\ tests\.\o033[0m/g' \\
+      | ${REPLACER} --unbuffered 's/expected\ the\ /\o033[0mexpected\ the\ /g' \\
+      | ${REPLACER} --unbuffered 's/\[Command\ was\ successful\]/\o033[01;32m\[Command\ was\ successful\]/g' \\
+      | ${REPLACER} --unbuffered 's/\ GET\ /\o033[01;35m\ GET\ /g' \\
+      | ${REPLACER} --unbuffered 's/Top\ /\o033[38;5;100mTop\ /g' \\
+      | ${REPLACER} --unbuffered 's/\ seconds\ /\o033[38;5;231m\ seconds\ /g' \\
+      | ${REPLACER} --unbuffered 's/\ behaves\ like\ /\o033[01;36m\ behaves\ like\ /g' \\
+      | ${REPLACER} --unbuffered 's/\ when\ /\o033[38;5;225m\ when\ /g' \\
+      | ${REPLACER} --unbuffered 's/ErrorException:\ /\o033[38;5;196mErrorException:\ \o033[38;5;213m/g' \\
+       | ${REPLACER} --unbuffered "s/\ require_once(.\/wp-content/\ require_once(\n$pwd_backslash_escaped_for_sed\/wp-content/g" \\
+       | ${REPLACER} --unbuffered "s/\ require(.\/wp-content/\ require(\n$pwd_backslash_escaped_for_sed\/wp-content/g" \\
+       | ${REPLACER} --unbuffered "s/\ require\ .\/wp-content/\ require\ \n$pwd_backslash_escaped_for_sed\/wp-content/g" \\
+       | ${REPLACER} --unbuffered "s/\ include\ .\/wp-content/\ include\ \n$pwd_backslash_escaped_for_sed\/wp-content/g" \\
+       | ${REPLACER} --unbuffered "s/\ include_once(.\/wp-content/\ include_once(\n$pwd_backslash_escaped_for_sed\/wp-content/g" \\
+       | ${REPLACER} --unbuffered "s/\ in\ \//\ in\ \n\//g" \\
+      | ${REPLACER} --unbuffered 's/Stack\ trace:/\o033[38;0mStack\ trace:/g' \\
+      | ${REPLACER} --unbuffered 's/Call\ Stack:/\o033[38;0mCall\ Stack:/g' \\
+      | ${REPLACER} --unbuffered 's/#. //g' \\
+      | ${REPLACER} --unbuffered -E "/[Ee]rror[: ]/ s%$pathpat%$ccred&$ccend%g" \\
+      | ${REPLACER} --unbuffered -E "/[Ww]arning[: ]/ s%$pathpat%$ccyellow&$ccend%g" \\
+      | ${REPLACER} --unbuffered 's/"${_maybe_name-}"/\o033[38;5;178m"${_maybe_name-}"\o033[0m/g' \\
+      | ${REPLACER} --unbuffered 's/\.\/spec\//\o033[0m\.\/spec\//g' \\
+      | ${REPLACER} --unbuffered 's/"${_maybe_name-}"/\o033[38;5;178m"${_maybe_name-}"\o033[0m/g' \\
  
-      # | ${REPLACER} --unbuffered 's@/./@/@g' \
+      # | ${REPLACER} --unbuffered 's@/./@/@g' \\
 
 EOF
-      # | ${REPLACER} --unbuffered 's@/./@/@g' \
-      chmod a+x  ".${_filename}.watch.test.bash"
-      ./".${_filename}.watch.test.bash"
+      # | ${REPLACER} --unbuffered 's@/./@/@g' \\
+      chmod a+x  ".${_filename}.watchexec.watch.test.bash"
+      ./".${_filename}.watchexec.watch.test.bash"
 
 #     }
 #     elif ( command -v watchman >/dev/null 2>&1; )  ; then
@@ -442,7 +444,7 @@ EOF
 #       echo " \"${extra_args_to_run} ${file_to_observe}\"  "
 
 #       # watchman watch "${file_to_observe}"  trigger "${extra_args_to_run} ${file_to_observe}" 2>&1  \
-#       cat <<-EOF > ".${_filename}.watch.test.bash"
+#       cat <<-EOF > ".${_filename}.watchman.watch.test.bash"
 # #!/usr/bin/env bash
 
 # pathpat="(/[^/]*)+:[0-9]+"
@@ -456,6 +458,7 @@ EOF
 # ${extra_args_to_run} 2>&1  \
 #         | ${REPLACER} --unbuffered '/\ process\ jobs\ in\ this\ environment/d' \
 #         | ${REPLACER} --unbuffered '/Top\ level\ /d' \
+#         | ${REPLACER} --unbuffered '/5\ levels/d' \
 #         | ${REPLACER} --unbuffered '/\ warning:\ already\ initialized\ constant/d' \
 #         | ${REPLACER} --unbuffered '/\ was\ here/d' \
 #       | ${REPLACER} --unbuffered 's/\ on\ line\ /:/g' \
@@ -492,11 +495,11 @@ EOF
 
 # EOF
 #       watchman watch \"${file_to_watch-}\"  
-#       watchman -- trigger "$pwd_backslash_escaped_for_sed" "${_maybe_name-}" '*.rb' -- "$cwd/.${_filename}.watch.test.bash"
+#       watchman -- trigger "$pwd_backslash_escaped_for_sed" "${_maybe_name-}" '*.rb' -- "$cwd/.${_filename}.watchman.watch.test.bash"
 
 #       # | ${REPLACER} --unbuffered 's@/./@/@g' \
-#       chmod a+x  ".${_filename}.watch.test.bash"
-#       ./".${_filename}.watch.test.bash"
+#       chmod a+x  ".${_filename}.watchman.watch.test.bash"
+#       ./".${_filename}.watchman.watch.test.bash"
 
     }
     elif ( command -v nodemon >/dev/null 2>&1; )  ; then
@@ -505,7 +508,7 @@ EOF
       echo "nodemon --watch \"${file_to_watch-}\" --ext ${extension_to_observe} --spawn --exec \"${extra_args_to_run} ${file_to_observe}\"  "
 
       # nodemon --watch "${file_to_observe}" --ext ${extension_to_observe} --spawn --exec "${extra_args_to_run} ${file_to_observe}" 2>&1  \
-      cat <<-EOF > ".${_filename}.watch.test.bash"
+      cat <<-EOF > ".${_filename}.nodemon.watch.test.bash"
 #!/usr/bin/env bash
 
 pathpat="(/[^/]*)+:[0-9]+"
@@ -519,6 +522,7 @@ ccend=\$(echo -e "\033[0m")
 nodemon --watch "${file_to_watch}" --ext ${extension_to_observe} --spawn --exec "${extra_args_to_run} ${file_to_observe}" 2>&1  \
         | ${REPLACER} --unbuffered '/\ process\ jobs\ in\ this\ environment/d' \
         | ${REPLACER} --unbuffered '/Top\ level\ /d' \
+        | ${REPLACER} --unbuffered '/5\ levels/d' \
         | ${REPLACER} --unbuffered '/\ warning:\ already\ initialized\ constant/d' \
         | ${REPLACER} --unbuffered '/\ was\ here/d' \
       | ${REPLACER} --unbuffered 's/\ on\ line\ /:/g' \
@@ -553,8 +557,8 @@ nodemon --watch "${file_to_watch}" --ext ${extension_to_observe} --spawn --exec 
 
 EOF
       # | ${REPLACER} --unbuffered 's@/./@/@g' \
-      chmod a+x  ".${_filename}.watch.test.bash"
-      ./".${_filename}.watch.test.bash"
+      chmod a+x  ".${_filename}.nodemon.watch.test.bash"
+      ./".${_filename}.nodemon.watch.test.bash"
     }
     else 
     {
@@ -601,7 +605,7 @@ EOF
 # end
 
 # EOF
-#       cat <<-EOF > ".${_filename}.watch.test.bash"
+#       cat <<-EOF > ".${_filename}.guard.watch.test.bash"
 # #!/usr/bin/env bash
 
 # echo "bundle install guard guard-rubocop guard-rspec"
@@ -615,6 +619,7 @@ EOF
 # bundle exec guard -G "$(pwd)/.${_filename}.watch.test.guardfile" \
 #         | ${REPLACER} --unbuffered '/\ process\ jobs\ in\ this\ environment/d' \
 #         | ${REPLACER} --unbuffered '/Top\ level\ /d' \
+#         | ${REPLACER} --unbuffered '/5\ levels/d' \
 #         | ${REPLACER} --unbuffered '/\ warning:\ already\ initialized\ constant/d' \
 #         | ${REPLACER} --unbuffered '/\ was\ here/d' \
 #       | ${REPLACER} --unbuffered 's/\ on\ line\ /:/g' \
@@ -652,8 +657,8 @@ EOF
 
 # EOF
 #       # | ${REPLACER} --unbuffered 's@/./@/@g' \
-#       chmod a+x  ".${_filename}.watch.test.bash"
-#       ./".${_filename}.watch.test.bash"
+#       chmod a+x  ".${_filename}.guard.watch.test.bash"
+#       ./".${_filename}.guard.watch.test.bash"
 
 #     }    
     if ( command -v watchexec >/dev/null 2>&1; )  ; then
@@ -664,7 +669,7 @@ EOF
       echo "watchexec --watch \"./\" --exts py,go,bash,sh,kv,php,rb --restart \"${prefix_to_run-}$(pwd)/${*}\" "
 
       # watchexec --watch "${file_to_observe}" --exts ${extension_to_observe} --restart "${extra_args_to_run} ${file_to_observe}" 2>&1  \
-      cat <<-EOF > ".${_filename}.watch.test.bash"
+      cat <<-EOF > ".${_filename}.watchexec.watch.test.bash"
 #!/usr/bin/env bash
 
 pathpat="(/[^/]*)+:[0-9]+"
@@ -678,6 +683,7 @@ ccend=\$(echo -e "\033[0m")
 watchexec --watch "./" --exts py,go,bash,sh,kv,php,rb --restart "${prefix_to_run-}$(pwd)/${*}"  2>&1  \
         | ${REPLACER} --unbuffered '/\ process\ jobs\ in\ this\ environment/d' \
         | ${REPLACER} --unbuffered '/Top\ level\ /d' \
+        | ${REPLACER} --unbuffered '/5\ levels/d' \
         | ${REPLACER} --unbuffered '/\ warning:\ already\ initialized\ constant/d' \
         | ${REPLACER} --unbuffered '/\ was\ here/d' \
       | ${REPLACER} --unbuffered 's/\ on\ line\ /:/g' \
@@ -711,8 +717,8 @@ watchexec --watch "./" --exts py,go,bash,sh,kv,php,rb --restart "${prefix_to_run
       # | ${REPLACER} --unbuffered 's@/./@/@g' \
  
 EOF
-      chmod a+x  ".${_filename}.watch.test.bash"
-      ./".${_filename}.watch.test.bash"
+      chmod a+x  ".${_filename}.watchexec.watch.test.bash"
+      ./".${_filename}.watchexec.watch.test.bash"
 #     }
 #     elif ( command -v watchman >/dev/null 2>&1; )  ; then
 #     {
@@ -721,7 +727,7 @@ EOF
 #       echo "watchman watch \"${file_to_watch-}\"  trigger \"${extra_args_to_run} ${file_to_observe}\"  "
 
 #       # watchman watch "${file_to_observe}"  trigger "${extra_args_to_run} ${file_to_observe}" 2>&1  \
-#       cat <<-EOF > ".${_filename}.watch.test.bash"
+#       cat <<-EOF > ".${_filename}.watchman.watch.test.bash"
 # #!/usr/bin/env bash
 
 # pathpat="(/[^/]*)+:[0-9]+"
@@ -735,6 +741,7 @@ EOF
 # "${prefix_to_run-}$(pwd)/${*}"  2>&1  \
 #         | ${REPLACER} --unbuffered '/\ process\ jobs\ in\ this\ environment/d' \
 #         | ${REPLACER} --unbuffered '/Top\ level\ /d' \
+#         | ${REPLACER} --unbuffered '/5\ levels/d' \
 #         | ${REPLACER} --unbuffered '/\ warning:\ already\ initialized\ constant/d' \
 #         | ${REPLACER} --unbuffered '/\ was\ here/d' \
 #       | ${REPLACER} --unbuffered 's/\ on\ line\ /:/g' \
@@ -771,11 +778,11 @@ EOF
 
 # EOF
 #       watchman watch \"${file_to_watch-}\"  
-#       watchman -- trigger "$cwd" "${_maybe_name-}" '*.rb' -- "$cwd/.${_filename}.watch.test.bash"
+#       watchman -- trigger "$cwd" "${_maybe_name-}" '*.rb' -- "$cwd/.${_filename}.watchman.watch.test.bash"
 
 #       # | ${REPLACER} --unbuffered 's@/./@/@g' \
-#       chmod a+x  ".${_filename}.watch.test.bash"
-#       ./".${_filename}.watch.test.bash"
+#       chmod a+x  ".${_filename}.watchman.watch.test.bash"
+#       ./".${_filename}.watchman.watch.test.bash"
 
     }
     elif ( command -v nodemon >/dev/null 2>&1; )  ; then
@@ -786,7 +793,7 @@ EOF
       echo "nodemon --watch \"./\" --ext py,go,bash,sh,kv,php,rb --spawn --exec \"${prefix_to_run-}$(pwd)/${*}\" "
 
       # nodemon --watch "${file_to_observe}" --ext ${extension_to_observe} --spawn --exec "${extra_args_to_run} ${file_to_observe}" 2>&1  \
-      cat <<-EOF > ".${_filename}.watch.test.bash"
+      cat <<-EOF > ".${_filename}.nodemon.watch.test.bash"
 #!/usr/bin/env bash
 
 pathpat="(/[^/]*)+:[0-9]+"
@@ -800,6 +807,7 @@ ccend=\$(echo -e "\033[0m")
 nodemon --watch "./" --ext py,go,bash,sh,kv,php,rb --spawn --exec "${prefix_to_run-}$(pwd)/${*}"  2>&1  \
         | ${REPLACER} --unbuffered '/\ process\ jobs\ in\ this\ environment/d' \
         | ${REPLACER} --unbuffered '/Top\ level\ /d' \
+        | ${REPLACER} --unbuffered '/5\ levels/d' \
         | ${REPLACER} --unbuffered '/\ warning:\ already\ initialized\ constant/d' \
         | ${REPLACER} --unbuffered '/\ was\ here/d' \
       | ${REPLACER} --unbuffered 's/\ on\ line\ /:/g' \
@@ -833,8 +841,8 @@ nodemon --watch "./" --ext py,go,bash,sh,kv,php,rb --spawn --exec "${prefix_to_r
       # | ${REPLACER} --unbuffered 's@/./@/@g' \
 
 EOF
-      chmod a+x  ".${_filename}.watch.test.bash"
-      ./".${_filename}.watch.test.bash"
+      chmod a+x  ".${_filename}.nodemon.watch.test.bash"
+      ./".${_filename}.nodemon.watch.test.bash"
     }
     else 
     {
