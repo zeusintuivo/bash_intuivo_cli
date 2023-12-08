@@ -237,8 +237,8 @@ elif [[ "${extension_to_observe-}" == "rb"  ]] ; then
     # cat "${file_to_observe-}" | grep  "^[[:space:]]*RSpec.describe"
     # grep  "^[[:space:]]*RSpec.describe"  < "${file_to_observe-}" | cuet "RSpec.describe" 
     # grep  "^[[:space:]]*RSpec.describe"  < "${file_to_observe-}" | cuet "RSpec.describe" | xargs 
-    grep  "^[[:space:]]*RSpec.describe"  < "${file_to_observe-}" | cuet "RSpec.describe" | xargs |  cut -d' ' -f1
-    _maybe_name=$(grep  "^[[:space:]]*RSpec.describe"  < "${file_to_observe-}" | cuet "RSpec.describe" | xargs |  cut -d' ' -f1)  # assume tests use only this format
+    grep  "^[[:space:]]*RSpec.describe"  < "${file_to_observe-}" | cuet "RSpec.describe" | xargs |  cut -d' ' -f1 |  cut -d, -f1
+    _maybe_name=$(grep  "^[[:space:]]*RSpec.describe"  < "${file_to_observe-}" | cuet "RSpec.describe" | xargs |  cut -d' ' -f1 |  cut -d, -f1)  # assume tests use only this format
 echo "              _maybe_name:${_maybe_name-}"
 
     if [[ -n "${_maybe_name}" ]] ; then 
@@ -330,7 +330,7 @@ if [[ $REPLACERGNU == "YES" ]] ; then
 # bundle exec guard -G "$(pwd)/.${_filename}.watch.test.guardfile" \
 #         | ${REPLACER} --unbuffered '/\ process\ jobs\ in\ this\ environment/d' \
 #         | ${REPLACER} --unbuffered '/Top\ level\ /d' \
-#         | ${REPLACER} --unbuffered '/5\ levels/d' \
+#         | ${REPLACER} --unbuffered '/block....levels/d' \
 #         | ${REPLACER} --unbuffered '/\ warning:\ already\ initialized\ constant/d' \
 #         | ${REPLACER} --unbuffered '/\ was\ here/d' \
 #       | ${REPLACER} --unbuffered 's/\ on\ line\ /:/g' \
@@ -392,7 +392,7 @@ ccend=\$(echo -e "\033[0m")
 watchexec --watch "${file_to_watch}" --exts ${extension_to_observe} --restart "${extra_args_to_run} ${file_to_observe}" 2>&1  \
         | ${REPLACER} --unbuffered '/\ process\ jobs\ in\ this\ environment/d' \\
         | ${REPLACER} --unbuffered '/Top\ level\ /d' \\
-        | ${REPLACER} --unbuffered '/5\ levels/d' \\
+        | ${REPLACER} --unbuffered '/block....levels/d' \\
         | ${REPLACER} --unbuffered '/\ warning:\ already\ initialized\ constant/d' \\
         | ${REPLACER} --unbuffered '/\ was\ here/d' \\
       | ${REPLACER} --unbuffered 's/\ on\ line\ /:/g' \\
@@ -458,7 +458,7 @@ EOF
 # ${extra_args_to_run} 2>&1  \
 #         | ${REPLACER} --unbuffered '/\ process\ jobs\ in\ this\ environment/d' \
 #         | ${REPLACER} --unbuffered '/Top\ level\ /d' \
-#         | ${REPLACER} --unbuffered '/5\ levels/d' \
+#         | ${REPLACER} --unbuffered '/block....levels/d' \
 #         | ${REPLACER} --unbuffered '/\ warning:\ already\ initialized\ constant/d' \
 #         | ${REPLACER} --unbuffered '/\ was\ here/d' \
 #       | ${REPLACER} --unbuffered 's/\ on\ line\ /:/g' \
@@ -522,7 +522,7 @@ ccend=\$(echo -e "\033[0m")
 nodemon --watch "${file_to_watch}" --ext ${extension_to_observe} --spawn --exec "${extra_args_to_run} ${file_to_observe}" 2>&1  \
         | ${REPLACER} --unbuffered '/\ process\ jobs\ in\ this\ environment/d' \
         | ${REPLACER} --unbuffered '/Top\ level\ /d' \
-        | ${REPLACER} --unbuffered '/5\ levels/d' \
+        | ${REPLACER} --unbuffered '/block....levels/d' \
         | ${REPLACER} --unbuffered '/\ warning:\ already\ initialized\ constant/d' \
         | ${REPLACER} --unbuffered '/\ was\ here/d' \
       | ${REPLACER} --unbuffered 's/\ on\ line\ /:/g' \
@@ -619,7 +619,7 @@ EOF
 # bundle exec guard -G "$(pwd)/.${_filename}.watch.test.guardfile" \
 #         | ${REPLACER} --unbuffered '/\ process\ jobs\ in\ this\ environment/d' \
 #         | ${REPLACER} --unbuffered '/Top\ level\ /d' \
-#         | ${REPLACER} --unbuffered '/5\ levels/d' \
+#         | ${REPLACER} --unbuffered '/block....levels/d' \
 #         | ${REPLACER} --unbuffered '/\ warning:\ already\ initialized\ constant/d' \
 #         | ${REPLACER} --unbuffered '/\ was\ here/d' \
 #       | ${REPLACER} --unbuffered 's/\ on\ line\ /:/g' \
@@ -683,7 +683,7 @@ ccend=\$(echo -e "\033[0m")
 watchexec --watch "./" --exts py,go,bash,sh,kv,php,rb --restart "${prefix_to_run-}$(pwd)/${*}"  2>&1  \
         | ${REPLACER} --unbuffered '/\ process\ jobs\ in\ this\ environment/d' \
         | ${REPLACER} --unbuffered '/Top\ level\ /d' \
-        | ${REPLACER} --unbuffered '/5\ levels/d' \
+        | ${REPLACER} --unbuffered '/block....levels/d' \
         | ${REPLACER} --unbuffered '/\ warning:\ already\ initialized\ constant/d' \
         | ${REPLACER} --unbuffered '/\ was\ here/d' \
       | ${REPLACER} --unbuffered 's/\ on\ line\ /:/g' \
@@ -741,7 +741,7 @@ EOF
 # "${prefix_to_run-}$(pwd)/${*}"  2>&1  \
 #         | ${REPLACER} --unbuffered '/\ process\ jobs\ in\ this\ environment/d' \
 #         | ${REPLACER} --unbuffered '/Top\ level\ /d' \
-#         | ${REPLACER} --unbuffered '/5\ levels/d' \
+#         | ${REPLACER} --unbuffered '/block....levels/d' \
 #         | ${REPLACER} --unbuffered '/\ warning:\ already\ initialized\ constant/d' \
 #         | ${REPLACER} --unbuffered '/\ was\ here/d' \
 #       | ${REPLACER} --unbuffered 's/\ on\ line\ /:/g' \
@@ -807,7 +807,7 @@ ccend=\$(echo -e "\033[0m")
 nodemon --watch "./" --ext py,go,bash,sh,kv,php,rb --spawn --exec "${prefix_to_run-}$(pwd)/${*}"  2>&1  \
         | ${REPLACER} --unbuffered '/\ process\ jobs\ in\ this\ environment/d' \
         | ${REPLACER} --unbuffered '/Top\ level\ /d' \
-        | ${REPLACER} --unbuffered '/5\ levels/d' \
+        | ${REPLACER} --unbuffered '/block....levels/d' \
         | ${REPLACER} --unbuffered '/\ warning:\ already\ initialized\ constant/d' \
         | ${REPLACER} --unbuffered '/\ was\ here/d' \
       | ${REPLACER} --unbuffered 's/\ on\ line\ /:/g' \
