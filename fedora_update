@@ -1,6 +1,33 @@
 #!/usr/bin/env bash
 #!/bin/bash
+( # subprocess
+  cd $HOME/_/clis/ && pull_all_subdirectories &
+)
 
+cd
+
+function update_snaps(){
+  local _snaps=""
+  _snaps="$(sudo snap list | grep -v 'Name' | cut -d' '  -f1)"
+  wait
+  echo "snaps: ${_snaps}"
+  local _one=""
+  while read -r _one ; do
+  {
+    [[ -z "${_one}" ]] && continue
+    echo "Checking  ${_one}"
+    echo sudo pkill "${_one}"
+    sudo pkill "${_one}"
+    wait
+    echo sudo  snap refresh "${_one}"
+    sudo snap refresh "${_one}"
+    wait
+  }
+  done <<< "${_snaps}"
+
+} # end update_snaps
+echo "snaps"
+update_snaps &
 sudo dnf update -vy &
 flatpak update -y &
 # snap refresh
@@ -15,6 +42,5 @@ gem update &
 
 flutter upgrade &
 rustup upgrade &
- 
-cd $HOME/_/clis/ && pull_all_subdirectories
+
 
