@@ -32,7 +32,7 @@ sudo dnf update -vy &
 flatpak update -y &
 # snap refresh
 brew unlink php &
-composer global update &
+yes | composer global update &
 brew update
 wait
 brew upgrade &
