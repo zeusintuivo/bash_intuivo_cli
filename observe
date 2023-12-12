@@ -228,7 +228,7 @@ elif [[ "${extension_to_observe-}" == "rb"  ]] ; then
   if ( echo "${file_to_observe-}" | grep -q "_spec.rb[[:space:]]*$" ) ; then
   {
     # rspec yes ?
-    extra_args_to_run="clear && bundle exec rubocop -A  \\\"$(pwd)/${file_to_observe-}\\\" &&  bundle exec rspec --tty --color --format documentation \\\"$(pwd)/${file_to_observe-}\\\" "
+    extra_args_to_run="clear && bundle exec rubocop -A  \\\"$(pwd)/${file_to_observe-}\\\" && ULL_SPEC_RUN=true RACK_ENV=test RAILS_ENV=test NODE_ENV=test COVERAGE=true CI_RSPEC=false  bundle exec rspec --tty --color --format documentation \\\"$(pwd)/${file_to_observe-}\\\" "
     file_to_watch="$(pwd)/${file_to_observe-}"
 
     # try to find related classed from described yes ?
