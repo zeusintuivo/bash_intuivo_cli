@@ -113,9 +113,9 @@ fi
 
 # one more check for gsed from brew in macs
 if [[ $REPLACERGNU == "NO" ]] ; then
-{  
-  if command -v gsed >/dev/null 2>&1 ; then 
-  { 
+{
+  if command -v gsed >/dev/null 2>&1 ; then
+  {
     REPLACERGNU="YES"
     REPLACER="gsed"
   }
@@ -228,20 +228,20 @@ elif [[ "${extension_to_observe-}" == "rb"  ]] ; then
   if ( echo "${file_to_observe-}" | grep -q "_spec.rb[[:space:]]*$" ) ; then
   {
     # rspec yes ?
-    extra_args_to_run="clear && bundle exec rubocop -A  \\\"$(pwd)/${file_to_observe-}\\\" && ULL_SPEC_RUN=true RACK_ENV=test RAILS_ENV=test NODE_ENV=test COVERAGE=true CI_RSPEC=false  bundle exec rspec --tty --color --format documentation \\\"$(pwd)/${file_to_observe-}\\\" "
+    extra_args_to_run="clear && bundle exec rubocop -A  \\\"$(pwd)/${file_to_observe-}\\\" && FULL_SPEC_RUN=true RACK_ENV=test RAILS_ENV=test NODE_ENV=test COVERAGE=true CI_RSPEC=false  bundle exec rspec --tty --color --format documentation \\\"$(pwd)/${file_to_observe-}\\\" "
     file_to_watch="$(pwd)/${file_to_observe-}"
 
     # try to find related classed from described yes ?
     local _maybe_name=""
     # echo "${file_to_observe-}"
     # cat "${file_to_observe-}" | grep  "^[[:space:]]*RSpec.describe"
-    # grep  "^[[:space:]]*RSpec.describe"  < "${file_to_observe-}" | cuet "RSpec.describe" 
-    # grep  "^[[:space:]]*RSpec.describe"  < "${file_to_observe-}" | cuet "RSpec.describe" | xargs 
+    # grep  "^[[:space:]]*RSpec.describe"  < "${file_to_observe-}" | cuet "RSpec.describe"
+    # grep  "^[[:space:]]*RSpec.describe"  < "${file_to_observe-}" | cuet "RSpec.describe" | xargs
     grep  "^[[:space:]]*RSpec.describe"  < "${file_to_observe-}" | cuet "RSpec.describe" | xargs |  cut -d' ' -f1 |  cut -d, -f1
     _maybe_name=$(grep  "^[[:space:]]*RSpec.describe"  < "${file_to_observe-}" | cuet "RSpec.describe" | xargs |  cut -d' ' -f1 |  cut -d, -f1)  # assume tests use only this format
 echo "              _maybe_name:${_maybe_name-}"
 
-    if [[ -n "${_maybe_name}" ]] ; then 
+    if [[ -n "${_maybe_name}" ]] ; then
     {
       if ( ag -l "${_maybe_name}" | grep -v  '_spec.rb'  ) ; then # list all found filenames with ag with out other tests
       {
@@ -249,7 +249,7 @@ echo "              _maybe_name:${_maybe_name-}"
         _rubocops="watch(%r{^${file_to_watch}\.rb\$})"
         _possible_related_classes="$( ag -l "${_maybe_name}" | grep -v  '_spec.rb' )"
 echo "_possible_related_classes:${_possible_related_classes-}"
-        if [[ -n "${_maybe_name}" ]] ; then 
+        if [[ -n "${_maybe_name}" ]] ; then
         {
           local one=""
           while read -r one ; do
@@ -264,7 +264,7 @@ echo "_possible_related_classes:${_possible_related_classes-}"
         fi
       }
       fi
-    } 
+    }
     fi
     file_to_observe=""
 
@@ -279,7 +279,7 @@ echo "_possible_related_classes:${_possible_related_classes-}"
   fi
 
 
-  # 
+  #
 }
 else
 {
@@ -295,9 +295,9 @@ echo "            file_to_watch:${file_to_watch-}"
 echo "        extra_args_to_run:${extra_args_to_run-}"
 
 if [[ $REPLACERGNU == "YES" ]] ; then
-{  
+{
   echo '-----'
-  if [[ -n "${extra_args_to_run}" ]] ; then 
+  if [[ -n "${extra_args_to_run}" ]] ; then
   {
 #     if ( bundle info guard   >/dev/null 2>&1  ) ; then
 #     {
@@ -321,9 +321,9 @@ if [[ $REPLACERGNU == "YES" ]] ; then
 
 # echo "bundle install guard guard-rubocop guard-rspec"
 
-# bundle add guard >/dev/null 2>&1; 
-# bundle add guard-rubocop >/dev/null 2>&1; 
-# bundle add guard-rspec >/dev/null 2>&1; 
+# bundle add guard >/dev/null 2>&1;
+# bundle add guard-rubocop >/dev/null 2>&1;
+# bundle add guard-rspec >/dev/null 2>&1;
 
 # echo "bundle guard -G \"$(pwd)/.${_filename}.watch.test.guardfile\" "
 
@@ -360,10 +360,10 @@ if [[ $REPLACERGNU == "YES" ]] ; then
 #       | ${REPLACER} --unbuffered 's/"${_maybe_name-}"/\o033[38;5;178m"${_maybe_name-}"\o033[0m/g' \
 #       | ${REPLACER} --unbuffered 's/\.\/spec\//\o033[0m\.\/spec\//g' \
 #       | ${REPLACER} --unbuffered 's/"${_maybe_name-}"/\o033[38;5;178m"${_maybe_name-}"\o033[0m/g' \
- 
+
 #       # | ${REPLACER} --unbuffered 's@/./@/@g' \
 
-#       # bundle remove guard-rubocop  >/dev/null 2>&1; 
+#       # bundle remove guard-rubocop  >/dev/null 2>&1;
 #       git checkout Gemfile Gemfile.lock
 
 # EOF
@@ -385,8 +385,8 @@ pathpat="(/[^/]*)+:[0-9]+"
 ccred=\$(echo -e "\033[0;31m")
 ccyellow=\$(echo -e "\033[0;33m")
 ccend=\$(echo -e "\033[0m")
-# sed -E 
-# -e "/[Ee]rror[: ]/ s%$pathpat%$ccred&$ccend%g" 
+# sed -E
+# -e "/[Ee]rror[: ]/ s%$pathpat%$ccred&$ccend%g"
 # -e "/[Ww]arning[: ]/ s%$pathpat%$ccyellow&$ccend%g"
 
 watchexec --watch "${file_to_watch}" --exts ${extension_to_observe} --restart "${extra_args_to_run} ${file_to_observe}" 2>&1  \
@@ -428,7 +428,7 @@ watchexec --watch "${file_to_watch}" --exts ${extension_to_observe} --restart "$
       | ${REPLACER} --unbuffered 's/"${_maybe_name-}"/\o033[38;5;178m"${_maybe_name-}"\o033[0m/g' \\
       | ${REPLACER} --unbuffered 's/\.\/spec\//\o033[0m\.\/spec\//g' \\
       | ${REPLACER} --unbuffered 's/"${_maybe_name-}"/\o033[38;5;178m"${_maybe_name-}"\o033[0m/g' \\
- 
+
       # | ${REPLACER} --unbuffered 's@/./@/@g' \\
 
 EOF
@@ -451,8 +451,8 @@ EOF
 # ccred=\$(echo -e "\033[0;31m")
 # ccyellow=\$(echo -e "\033[0;33m")
 # ccend=\$(echo -e "\033[0m")
-# # sed -E 
-# # -e "/[Ee]rror[: ]/ s%$pathpat%$ccred&$ccend%g" 
+# # sed -E
+# # -e "/[Ee]rror[: ]/ s%$pathpat%$ccred&$ccend%g"
 # # -e "/[Ww]arning[: ]/ s%$pathpat%$ccyellow&$ccend%g"
 
 # ${extra_args_to_run} 2>&1  \
@@ -488,13 +488,13 @@ EOF
 #       | ${REPLACER} --unbuffered 's/"${_maybe_name-}"/\o033[38;5;178m"${_maybe_name-}"\o033[0m/g' \
 #       | ${REPLACER} --unbuffered 's/\.\/spec\//\o033[0m\.\/spec\//g' \
 #       | ${REPLACER} --unbuffered 's/"${_maybe_name-}"/\o033[38;5;178m"${_maybe_name-}"\o033[0m/g' \
- 
+
 #       # | ${REPLACER} --unbuffered 's@/./@/@g' \
 
 # watchman trigger-del "$pwd_backslash_escaped_for_sed" "${_maybe_name-}"
 
 # EOF
-#       watchman watch \"${file_to_watch-}\"  
+#       watchman watch \"${file_to_watch-}\"
 #       watchman -- trigger "$pwd_backslash_escaped_for_sed" "${_maybe_name-}" '*.rb' -- "$cwd/.${_filename}.watchman.watch.test.bash"
 
 #       # | ${REPLACER} --unbuffered 's@/./@/@g' \
@@ -515,8 +515,8 @@ pathpat="(/[^/]*)+:[0-9]+"
 ccred=\$(echo -e "\033[0;31m")
 ccyellow=\$(echo -e "\033[0;33m")
 ccend=\$(echo -e "\033[0m")
-# sed -E 
-# -e "/[Ee]rror[: ]/ s%$pathpat%$ccred&$ccend%g" 
+# sed -E
+# -e "/[Ee]rror[: ]/ s%$pathpat%$ccred&$ccend%g"
 # -e "/[Ww]arning[: ]/ s%$pathpat%$ccyellow&$ccend%g"
 
 nodemon --watch "${file_to_watch}" --ext ${extension_to_observe} --spawn --exec "${extra_args_to_run} ${file_to_observe}" 2>&1  \
@@ -552,7 +552,7 @@ nodemon --watch "${file_to_watch}" --ext ${extension_to_observe} --spawn --exec 
       | ${REPLACER} --unbuffered 's/"${_maybe_name-}"/\o033[38;5;178m"${_maybe_name-}"\o033[0m/g' \
       | ${REPLACER} --unbuffered 's/\.\/spec\//\o033[0m\.\/spec\//g' \
       | ${REPLACER} --unbuffered 's/"${_maybe_name-}"/\o033[38;5;178m"${_maybe_name-}"\o033[0m/g' \
- 
+
       # | ${REPLACER} --unbuffered 's@/./@/@g' \
 
 EOF
@@ -560,14 +560,14 @@ EOF
       chmod a+x  ".${_filename}.nodemon.watch.test.bash"
       ./".${_filename}.nodemon.watch.test.bash"
     }
-    else 
+    else
     {
-      echo "ERROR could not find watchexec or nodemon to start 
+      echo "ERROR could not find watchexec or nodemon to start
       Please install either:
-        
-        faster   https://github.com/watchexec/watchexec  
-        descent  https://facebook.github.io/watchman/    
-        classic  https://www.npmjs.com/package/nodemon   
+
+        faster   https://github.com/watchexec/watchexec
+        descent  https://facebook.github.io/watchman/
+        classic  https://www.npmjs.com/package/nodemon
 
       "
       exit 1
@@ -610,9 +610,9 @@ EOF
 
 # echo "bundle install guard guard-rubocop guard-rspec"
 
-# bundle add guard >/dev/null 2>&1; 
-# bundle add guard-rubocop >/dev/null 2>&1; 
-# bundle add guard-rspec >/dev/null 2>&1; 
+# bundle add guard >/dev/null 2>&1;
+# bundle add guard-rubocop >/dev/null 2>&1;
+# bundle add guard-rspec >/dev/null 2>&1;
 
 # echo "bundle guard -G \"$(pwd)/.${_filename}.watch.test.guardfile\" "
 
@@ -649,10 +649,10 @@ EOF
 #       | ${REPLACER} --unbuffered 's/"${_maybe_name-}"/\o033[38;5;178m"${_maybe_name-}"\o033[0m/g' \
 #       | ${REPLACER} --unbuffered 's/\.\/spec\//\o033[0m\.\/spec\//g' \
 #       | ${REPLACER} --unbuffered 's/"${_maybe_name-}"/\o033[38;5;178m"${_maybe_name-}"\o033[0m/g' \
- 
+
 #       # | ${REPLACER} --unbuffered 's@/./@/@g' \
 
-#       # bundle remove guard-rubocop  >/dev/null 2>&1; 
+#       # bundle remove guard-rubocop  >/dev/null 2>&1;
 #       git checkout Gemfile Gemfile.lock
 
 # EOF
@@ -660,7 +660,7 @@ EOF
 #       chmod a+x  ".${_filename}.guard.watch.test.bash"
 #       ./".${_filename}.guard.watch.test.bash"
 
-#     }    
+#     }
     if ( command -v watchexec >/dev/null 2>&1; )  ; then
     {
       # go observe homework.go
@@ -676,8 +676,8 @@ pathpat="(/[^/]*)+:[0-9]+"
 ccred=\$(echo -e "\033[0;31m")
 ccyellow=\$(echo -e "\033[0;33m")
 ccend=\$(echo -e "\033[0m")
-# sed -E 
-# -e "/[Ee]rror[: ]/ s%$pathpat%$ccred&$ccend%g" 
+# sed -E
+# -e "/[Ee]rror[: ]/ s%$pathpat%$ccred&$ccend%g"
 # -e "/[Ww]arning[: ]/ s%$pathpat%$ccyellow&$ccend%g"
 
 watchexec --watch "./" --exts py,go,bash,sh,kv,php,rb --restart "${prefix_to_run-}$(pwd)/${*}"  2>&1  \
@@ -713,9 +713,9 @@ watchexec --watch "./" --exts py,go,bash,sh,kv,php,rb --restart "${prefix_to_run
       | ${REPLACER} --unbuffered 's/"${_maybe_name-}"/\o033[38;5;178m"${_maybe_name-}"\o033[0m/g' \
       | ${REPLACER} --unbuffered 's/\.\/spec\//\o033[0m\.\/spec\//g' \
       | ${REPLACER} --unbuffered 's/"${_maybe_name-}"/\o033[38;5;178m"${_maybe_name-}"\o033[0m/g' \
- 
+
       # | ${REPLACER} --unbuffered 's@/./@/@g' \
- 
+
 EOF
       chmod a+x  ".${_filename}.watchexec.watch.test.bash"
       ./".${_filename}.watchexec.watch.test.bash"
@@ -734,8 +734,8 @@ EOF
 # ccred=\$(echo -e "\033[0;31m")
 # ccyellow=\$(echo -e "\033[0;33m")
 # ccend=\$(echo -e "\033[0m")
-# # sed -E 
-# # -e "/[Ee]rror[: ]/ s%$pathpat%$ccred&$ccend%g" 
+# # sed -E
+# # -e "/[Ee]rror[: ]/ s%$pathpat%$ccred&$ccend%g"
 # # -e "/[Ww]arning[: ]/ s%$pathpat%$ccyellow&$ccend%g"
 
 # "${prefix_to_run-}$(pwd)/${*}"  2>&1  \
@@ -771,13 +771,13 @@ EOF
 #       | ${REPLACER} --unbuffered 's/"${_maybe_name-}"/\o033[38;5;178m"${_maybe_name-}"\o033[0m/g' \
 #       | ${REPLACER} --unbuffered 's/\.\/spec\//\o033[0m\.\/spec\//g' \
 #       | ${REPLACER} --unbuffered 's/"${_maybe_name-}"/\o033[38;5;178m"${_maybe_name-}"\o033[0m/g' \
- 
+
 #       # | ${REPLACER} --unbuffered 's@/./@/@g' \
 
 # watchman trigger-del "$cwd" "${_maybe_name-}"
 
 # EOF
-#       watchman watch \"${file_to_watch-}\"  
+#       watchman watch \"${file_to_watch-}\"
 #       watchman -- trigger "$cwd" "${_maybe_name-}" '*.rb' -- "$cwd/.${_filename}.watchman.watch.test.bash"
 
 #       # | ${REPLACER} --unbuffered 's@/./@/@g' \
@@ -800,8 +800,8 @@ pathpat="(/[^/]*)+:[0-9]+"
 ccred=\$(echo -e "\033[0;31m")
 ccyellow=\$(echo -e "\033[0;33m")
 ccend=\$(echo -e "\033[0m")
-# sed -E 
-# -e "/[Ee]rror[: ]/ s%$pathpat%$ccred&$ccend%g" 
+# sed -E
+# -e "/[Ee]rror[: ]/ s%$pathpat%$ccred&$ccend%g"
 # -e "/[Ww]arning[: ]/ s%$pathpat%$ccyellow&$ccend%g"
 
 nodemon --watch "./" --ext py,go,bash,sh,kv,php,rb --spawn --exec "${prefix_to_run-}$(pwd)/${*}"  2>&1  \
@@ -837,21 +837,21 @@ nodemon --watch "./" --ext py,go,bash,sh,kv,php,rb --spawn --exec "${prefix_to_r
       | ${REPLACER} --unbuffered 's/"${_maybe_name-}"/\o033[38;5;178m"${_maybe_name-}"\o033[0m/g' \
       | ${REPLACER} --unbuffered 's/\.\/spec\//\o033[0m\.\/spec\//g' \
       | ${REPLACER} --unbuffered 's/"${_maybe_name-}"/\o033[38;5;178m"${_maybe_name-}"\o033[0m/g' \
- 
+
       # | ${REPLACER} --unbuffered 's@/./@/@g' \
 
 EOF
       chmod a+x  ".${_filename}.nodemon.watch.test.bash"
       ./".${_filename}.nodemon.watch.test.bash"
     }
-    else 
+    else
     {
-      echo "ERROR could not find watchexec or nodemon to start 
+      echo "ERROR could not find watchexec or nodemon to start
       Please install either:
-        
-        faster   https://github.com/watchexec/watchexec  
-        descent  https://facebook.github.io/watchman/    
-        classic  https://www.npmjs.com/package/nodemon   
+
+        faster   https://github.com/watchexec/watchexec
+        descent  https://facebook.github.io/watchman/
+        classic  https://www.npmjs.com/package/nodemon
 
       "
       exit 1
@@ -861,7 +861,7 @@ EOF
   }
   fi
   echo '-----'
- 
+
 }
 else
 {
