@@ -217,6 +217,7 @@ elif [[ "${extension_to_observe-}" == "py"  ]] ; then
   # python
   # python  project_file
   # ps aux | grep "${1-}" | head -1 |xargs
+   ps axt | grep live-server | grep coverage |xargs | cut -d\  -f1 |xargs  -I {} kill {}
   prefix_to_run="[[ -n \\\"\$(ps aux | grep '${file_to_observe-}' | grep -v 'grep'  | head -1 | xargs)\\\"  ]] || kill \\\"\$(ps aux | grep '${file_to_observe-}' | grep -v 'grep'  | head -1 | xargs | cut -d' ' -f2 )\\\" || python \\\"$(pwd)/${file_to_observe-}\\\" && python "
   file_to_watch="$(pwd)/"
   extension_to_observe="py"
@@ -225,10 +226,16 @@ elif [[ "${extension_to_observe-}" == "rb"  ]] ; then
 {
   # ruby
   extension_to_observe="rb"
-  if ( echo "${file_to_observe-}" | grep -q "_spec.rb[[:space:]]*$" ) ; then
+  if ( grep -q "_spec.rb[[:space:]]*$" <<< "${file_to_observe-}" ) || ( grep -q '_spec.rb' <<<  "${file_to_observe-}" ) ; then  # if ends with or contains
   {
     # rspec yes ?
-    extra_args_to_run="clear && bundle exec rubocop -A  \\\"$(pwd)/${file_to_observe-}\\\" && FULL_SPEC_RUN=true RACK_ENV=test RAILS_ENV=test NODE_ENV=test COVERAGE=true CI_RSPEC=false  bundle exec rspec --tty --color --format documentation \\\"$(pwd)/${file_to_observe-}\\\" "
+    # kill live-server coverage
+    ps axt | grep live-server | grep coverage |xargs | cut -d\  -f1 |xargs  -I {} kill {}
+    # one file
+    local extra_args_to_run_preview="clear && bundle exec rubocop -A  \\\"$(pwd)/${file_to_observe-}\\\" && FULL_SPEC_RUN=true RACK_ENV=test RAILS_ENV=test NODE_ENV=test COVERAGE=true CI_RSPEC=false  bundle exec rspec --tty --color --format documentation \\\"$(pwd)/${file_to_observe-}\\\" && live-server coverage "
+    extra_args_to_run="[[ -n \\\"\$(ps axt | grep 'live-server' | grep 'coverage'  | head -1 | xargs)\\\"  ]] || kill \\\"\$(ps axt | grep 'live-server' | grep 'coverage'  | head -1 | xargs | cut -d' ' -f2 )\\\" || ( ${extra_args_to_run_preview}  ) && ( ${extra_args_to_run_preview}  ) "
+    local _files_to_rubocop="$(pwd)/${file_to_observe-}"
+    local _files_to_rspec="$(pwd)/${file_to_observe-}"
     file_to_watch="$(pwd)/${file_to_observe-}"
 
     # try to find related classed from described yes ?
@@ -252,14 +259,58 @@ echo "_possible_related_classes:${_possible_related_classes-}"
         if [[ -n "${_maybe_name}" ]] ; then
         {
           local one=""
+          local _found=0
           while read -r one ; do
           {
-            [[ -z "${one-}" ]] && continue
+            [[ -z "${one-}" ]] && continue # skip empty lines
+            [[ -f "${one-}" ]] || continue # only if file exists
+
             file_to_watch="${file_to_watch}\" --watch \"$(pwd)/${one}"
+            _files_to_rubocop="${_files_to_rubocop}\\\" \\\"$(pwd)/${one}"
             _rubocops="${_rubocops}
     watch(%r{^$(pwd)/${one}\$})"
+
+            (( _found++ ))
           }
           done <<< "${_possible_related_classes}"
+          # multiple files
+          if [ ${_found} -gt 0 ] ; then
+          {
+            extra_args_to_run_preview="clear && bundle exec rubocop -A  \\\"${_files_to_rubocop-}\\\" && FULL_SPEC_RUN=true RACK_ENV=test RAILS_ENV=test NODE_ENV=test COVERAGE=true CI_RSPEC=false  bundle exec rspec --tty --color --format documentation \\\"${_files_to_rspec-}\\\" && live-server coverage "
+            extra_args_to_run="[[ -n \\\"\$(ps axt | grep 'live-server' | grep 'coverage'  | head -1 | xargs)\\\"  ]] || kill \\\"\$(ps axt | grep 'live-server' | grep 'coverage'  | head -1 | xargs | cut -d' ' -f2 )\\\" || ( ${extra_args_to_run_preview}  ) && ( ${extra_args_to_run_preview}  ) "
+          }
+          fi
+
+          _found=0
+          local __all_passed_files="$( sed 's/\.rb\ /.rb\n/g' <<< "${*-}")"
+          echo __all_passed_files:"${__all_passed_files}"
+
+          while read -r one ; do
+          {
+            [[ -z "${one-}" ]] && continue # skip empty lines
+            [[ -f "${one-}" ]] || continue # only if file exists
+
+            file_to_watch="${file_to_watch}\" --watch \"$(pwd)/${one}"
+            _files_to_rubocop="${_files_to_rubocop}\\\" \\\"$(pwd)/${one}"
+            _rubocops="${_rubocops}
+    watch(%r{^$(pwd)/${one}\$})"
+            if  ( grep -q "_spec.rb[[:space:]]*$"  <<< "${one}" ) ; then
+            {
+              _files_to_rspec="${_files_to_rspec}\\\" \\\"$(pwd)/${one}"
+            }
+            fi
+            (( _found++ ))
+          }
+          done <<< "${__all_passed_files}"
+          # multiple files
+          echo _files_to_rspec:"${_files_to_rspec}"
+          ## DEBUG exit 0
+          if [ ${_found} -gt 0 ] ; then
+          {
+            extra_args_to_run_preview="clear && bundle exec rubocop -A  \\\"${_files_to_rubocop-}\\\" && FULL_SPEC_RUN=true RACK_ENV=test RAILS_ENV=test NODE_ENV=test COVERAGE=true CI_RSPEC=false  bundle exec rspec --tty --color --format documentation \\\"${_files_to_rspec-}\\\" && live-server coverage "
+            extra_args_to_run="[[ -n \\\"\$(ps axt | grep 'live-server' | grep 'coverage'  | head -1 | xargs)\\\"  ]] || kill \\\"\$(ps axt | grep 'live-server' | grep 'coverage'  | head -1 | xargs | cut -d' ' -f2 )\\\" || ( ${extra_args_to_run_preview}  ) && ( ${extra_args_to_run_preview}  ) "
+          }
+          fi
         }
         fi
       }
@@ -344,7 +395,7 @@ if [[ $REPLACERGNU == "YES" ]] ; then
 #       | ${REPLACER} --unbuffered 's/Top\ /\o033[38;5;100mTop\ /g' \
 #       | ${REPLACER} --unbuffered 's/\ seconds\ /\o033[38;5;231m\ seconds\ /g' \
 #       | ${REPLACER} --unbuffered 's/\ behaves\ like\ /\o033[01;36m\ behaves\ like\ /g' \
-#       | ${REPLACER} --unbuffered 's/\ when\ /\o033[38;5;225m\ when\ /g' \
+#       | ${REPLACER} --unbuffered 's/\ when\ /\o033[01;36m\ when\ /g' \
 #       | ${REPLACER} --unbuffered 's/ErrorException:\ /\o033[38;5;196mErrorException:\ \o033[38;5;213m/g' \
 #        | ${REPLACER} --unbuffered "s/\ require_once(.\/wp-content/\ require_once(\n$pwd_backslash_escaped_for_sed\/wp-content/g" \
 #        | ${REPLACER} --unbuffered "s/\ require(.\/wp-content/\ require(\n$pwd_backslash_escaped_for_sed\/wp-content/g" \
@@ -408,11 +459,20 @@ watchexec --watch "${file_to_watch}" --exts ${extension_to_observe} --restart "$
       | ${REPLACER} --unbuffered 's/\ in\ tests\./\ in\ tests\.\o033[0m/g' \\
       | ${REPLACER} --unbuffered 's/expected\ the\ /\o033[0mexpected\ the\ /g' \\
       | ${REPLACER} --unbuffered 's/\[Command\ was\ successful\]/\o033[01;32m\[Command\ was\ successful\]/g' \\
-      | ${REPLACER} --unbuffered 's/\ GET\ /\o033[01;35m\ GET\ /g' \\
+      | ${REPLACER} --unbuffered 's/\ GET\ /\o033[01;35m\ GET\ /g' \
+      | ${REPLACER} --unbuffered 's/\ POST\ /\o033[01;35m\ POST\ /g' \
+      | ${REPLACER} --unbuffered 's/\ DELETE\ /\o033[01;35m\ DELETE\ /g' \
+      | ${REPLACER} --unbuffered 's/\ PUT\ /\o033[01;35m\ PUT\ /g' \
+      | ${REPLACER} --unbuffered 's/\ PATCH\ /\o033[01;35m\ PATCH\ /g' \
+      | ${REPLACER} --unbuffered 's/\ OPTIONS\ /\o033[01;35m\ OPTIONS\ /g' \
       | ${REPLACER} --unbuffered 's/Top\ /\o033[38;5;100mTop\ /g' \\
       | ${REPLACER} --unbuffered 's/\ seconds\ /\o033[38;5;231m\ seconds\ /g' \\
       | ${REPLACER} --unbuffered 's/\ behaves\ like\ /\o033[01;36m\ behaves\ like\ /g' \\
-      | ${REPLACER} --unbuffered 's/\ when\ /\o033[38;5;225m\ when\ /g' \\
+      | ${REPLACER} --unbuffered 's/\ when\ /\o033[01;36m\ when\ /g' \\
+      | ${REPLACER} --unbuffered 's/\ do\ /\o033[0m\ do\ /g' \\
+      | ${REPLACER} --unbuffered 's/\ does\ /\o033[0m\ does\ /g' \\
+      | ${REPLACER} --unbuffered 's/\ finds\ /\o033[0m\ finds\ /g' \\
+      | ${REPLACER} --unbuffered 's/\ serializes\ /\o033[0m\ serializes\ /g' \\
       | ${REPLACER} --unbuffered 's/ErrorException:\ /\o033[38;5;196mErrorException:\ \o033[38;5;213m/g' \\
        | ${REPLACER} --unbuffered "s/\ require_once(.\/wp-content/\ require_once(\n$pwd_backslash_escaped_for_sed\/wp-content/g" \\
        | ${REPLACER} --unbuffered "s/\ require(.\/wp-content/\ require(\n$pwd_backslash_escaped_for_sed\/wp-content/g" \\
@@ -472,7 +532,7 @@ EOF
 #       | ${REPLACER} --unbuffered 's/Top\ /\o033[38;5;100mTop\ /g' \
 #       | ${REPLACER} --unbuffered 's/\ seconds\ /\o033[38;5;231m\ seconds\ /g' \
 #       | ${REPLACER} --unbuffered 's/\ behaves\ like\ /\o033[01;36m\ behaves\ like\ /g' \
-#       | ${REPLACER} --unbuffered 's/\ when\ /\o033[38;5;225m\ when\ /g' \
+#       | ${REPLACER} --unbuffered 's/\ when\ /\o033[01;36m\ when\ /g' \
 #       | ${REPLACER} --unbuffered 's/ErrorException:\ /\o033[38;5;196mErrorException:\ \o033[38;5;213m/g' \
 #        | ${REPLACER} --unbuffered "s/\ require_once(.\/wp-content/\ require_once(\n$pwd_backslash_escaped_for_sed\/wp-content/g" \
 #        | ${REPLACER} --unbuffered "s/\ require(.\/wp-content/\ require(\n$pwd_backslash_escaped_for_sed\/wp-content/g" \
@@ -533,10 +593,19 @@ nodemon --watch "${file_to_watch}" --ext ${extension_to_observe} --spawn --exec 
       | ${REPLACER} --unbuffered 's/\ returns\ /\o033[01;32m\ returns\ /g' \
       | ${REPLACER} --unbuffered 's/\[Command\ was\ successful\]/\o033[01;32m\[Command\ was\ successful\]/g' \
       | ${REPLACER} --unbuffered 's/\ GET\ /\o033[01;35m\ GET\ /g' \
+      | ${REPLACER} --unbuffered 's/\ POST\ /\o033[01;35m\ POST\ /g' \
+      | ${REPLACER} --unbuffered 's/\ DELETE\ /\o033[01;35m\ DELETE\ /g' \
+      | ${REPLACER} --unbuffered 's/\ PUT\ /\o033[01;35m\ PUT\ /g' \
+      | ${REPLACER} --unbuffered 's/\ PATCH\ /\o033[01;35m\ PATCH\ /g' \
+      | ${REPLACER} --unbuffered 's/\ OPTIONS\ /\o033[01;35m\ OPTIONS\ /g' \
       | ${REPLACER} --unbuffered 's/Top\ /\o033[38;5;100mTop\ /g' \
       | ${REPLACER} --unbuffered 's/\ seconds\ /\o033[38;5;231m\ seconds\ /g' \
-      | ${REPLACER} --unbuffered 's/\ behaves\ like\ /\o033[01;36m\ behaves\ like\ /g' \
-      | ${REPLACER} --unbuffered 's/\ when\ /\o033[38;5;225m\ when\ /g' \
+      | ${REPLACER} --unbuffered 's/\ behaves\ like\ /\o033[01;36m\ behaves\ like\ /g' \\
+      | ${REPLACER} --unbuffered 's/\ when\ /\o033[01;36m\ when\ /g' \\
+      | ${REPLACER} --unbuffered 's/\ do\ /\o033[0m\ do\ /g' \\
+      | ${REPLACER} --unbuffered 's/\ does\ /\o033[0m\ does\ /g' \\
+      | ${REPLACER} --unbuffered 's/\ finds\ /\o033[0m\ finds\ /g' \\
+      | ${REPLACER} --unbuffered 's/\ serializes\ /\o033[0m\ serializes\ /g' \\
       | ${REPLACER} --unbuffered 's/ErrorException:\ /\o033[38;5;196mErrorException:\ \o033[38;5;213m/g' \
        | ${REPLACER} --unbuffered "s/\ require_once(.\/wp-content/\ require_once(\n$cwd\/wp-content/g" \
        | ${REPLACER} --unbuffered "s/\ require(.\/wp-content/\ require(\n$cwd\/wp-content/g" \
@@ -633,7 +702,7 @@ EOF
 #       | ${REPLACER} --unbuffered 's/Top\ /\o033[38;5;100mTop\ /g' \
 #       | ${REPLACER} --unbuffered 's/\ seconds\ /\o033[38;5;231m\ seconds\ /g' \
 #       | ${REPLACER} --unbuffered 's/\ behaves\ like\ /\o033[01;36m\ behaves\ like\ /g' \
-#       | ${REPLACER} --unbuffered 's/\ when\ /\o033[38;5;225m\ when\ /g' \
+#       | ${REPLACER} --unbuffered 's/\ when\ /\o033[01;36m\ when\ /g' \
 #       | ${REPLACER} --unbuffered 's/ErrorException:\ /\o033[38;5;196mErrorException:\ \o033[38;5;213m/g' \
 #        | ${REPLACER} --unbuffered "s/\ require_once(.\/wp-content/\ require_once(\n$cwd\/wp-content/g" \
 #        | ${REPLACER} --unbuffered "s/\ require(.\/wp-content/\ require(\n$cwd\/wp-content/g" \
@@ -697,7 +766,7 @@ watchexec --watch "./" --exts py,go,bash,sh,kv,php,rb --restart "${prefix_to_run
       | ${REPLACER} --unbuffered 's/Top\ /\o033[38;5;100mTop\ /g' \
       | ${REPLACER} --unbuffered 's/\ seconds\ /\o033[38;5;231m\ seconds\ /g' \
       | ${REPLACER} --unbuffered 's/\ behaves\ like\ /\o033[01;36m\ behaves\ like\ /g' \
-      | ${REPLACER} --unbuffered 's/\ when\ /\o033[38;5;225m\ when\ /g' \
+      | ${REPLACER} --unbuffered 's/\ when\ /\o033[01;36m\ when\ /g' \
       | ${REPLACER} --unbuffered 's/ErrorException:\ /\o033[38;5;196mErrorException:\ \o033[38;5;213m/g' \
        | ${REPLACER} --unbuffered "s/\ require_once(.\/wp-content/\ require_once(\n$cwd\/wp-content/g" \
        | ${REPLACER} --unbuffered "s/\ require(.\/wp-content/\ require(\n$cwd\/wp-content/g" \
@@ -755,7 +824,7 @@ EOF
 #       | ${REPLACER} --unbuffered 's/Top\ /\o033[38;5;100mTop\ /g' \
 #       | ${REPLACER} --unbuffered 's/\ seconds\ /\o033[38;5;231m\ seconds\ /g' \
 #       | ${REPLACER} --unbuffered 's/\ behaves\ like\ /\o033[01;36m\ behaves\ like\ /g' \
-#       | ${REPLACER} --unbuffered 's/\ when\ /\o033[38;5;225m\ when\ /g' \
+#       | ${REPLACER} --unbuffered 's/\ when\ /\o033[01;36m\ when\ /g' \
 #       | ${REPLACER} --unbuffered 's/ErrorException:\ /\o033[38;5;196mErrorException:\ \o033[38;5;213m/g' \
 #        | ${REPLACER} --unbuffered "s/\ require_once(.\/wp-content/\ require_once(\n$cwd\/wp-content/g" \
 #        | ${REPLACER} --unbuffered "s/\ require(.\/wp-content/\ require(\n$cwd\/wp-content/g" \
@@ -821,7 +890,7 @@ nodemon --watch "./" --ext py,go,bash,sh,kv,php,rb --spawn --exec "${prefix_to_r
       | ${REPLACER} --unbuffered 's/Top\ /\o033[38;5;100mTop\ /g' \
       | ${REPLACER} --unbuffered 's/\ seconds\ /\o033[38;5;231m\ seconds\ /g' \
       | ${REPLACER} --unbuffered 's/\ behaves\ like\ /\o033[01;36m\ behaves\ like\ /g' \
-      | ${REPLACER} --unbuffered 's/\ when\ /\o033[38;5;225m\ when\ /g' \
+      | ${REPLACER} --unbuffered 's/\ when\ /\o033[01;36m\ when\ /g' \
       | ${REPLACER} --unbuffered 's/ErrorException:\ /\o033[38;5;196mErrorException:\ \o033[38;5;213m/g' \
        | ${REPLACER} --unbuffered "s/\ require_once(.\/wp-content/\ require_once(\n$cwd\/wp-content/g" \
        | ${REPLACER} --unbuffered "s/\ require(.\/wp-content/\ require(\n$cwd\/wp-content/g" \
@@ -873,4 +942,4 @@ fi
 } # end _main
 
 
-_main "${1:-}" "${2:-}"
+_main "${1:-}" "${2:-}" "${*-}"
