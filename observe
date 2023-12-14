@@ -181,17 +181,83 @@ function _trap_on_INT(){
 # trap  '_trap_on_INT $0 "${?}" LINENO BASH_LINENO FUNCNAME BASH_COMMAND $FUNCNAME $BASH_LINENO $LINENO   $BASH_COMMAND'  INT ERR
 
 function _main(){
+  # set -exu
+  local file_to_observe="${1-}"
+  local extension_to_observe=$(file_extension "${1-}")
+  local extra_args_to_run="${*:2}"
+  local prefix_to_run=""
+  local file_to_watch="\"./\""
+  local _filename=${file_to_observe##*/}          # get only last filename
+  local _script_name=".${_filename}.watch.test.bash"
+  local _rubocops=""
+  local _rpec_file="watch(%r{^${_filename}\$})"
+  local replacer_colors_prefix=$(cat <<-EOF
+#!/usr/bin/env bash
+# set -exu
+pathpat="(/[^/]*)+:[0-9]+"
+ccred=\$(echo -e "\033[0;31m")
+ccyellow=\$(echo -e "\033[0;33m")
+ccend=\$(echo -e "\033[0m")
+# sed -E
+# -e "/[Ee]rror[: ]/ s%\$pathpat%\$ccred&\$ccend%g"
+# -e "/[Ww]arning[: ]/ s%\$pathpat%\$ccyellow&\$ccend%g"
 
-
-file_to_observe="${1-}"
-extension_to_observe=$(file_extension "${1-}")
-extra_args_to_run="${*:2}"
-prefix_to_run=""
-file_to_watch="\"./\""
-    local _filename=${file_to_observe##*/}          # get only last filename
-    local _script_name=".${_filename}.watch.test.bash"
-local _rubocops=""
-local _rpec_file="watch(%r{^${_filename}\$})"
+EOF
+)
+# echo "${replacer_colors_prefix}"
+# exit 0
+  local replacer_colors_sufix2=""
+  local replacer_colors_sufix=$(cat <<-EOF
+          | ${REPLACER} --unbuffered '/\ process\ jobs\ in\ this\ environment/d' \\
+        | ${REPLACER} --unbuffered '/Top\ level\ /d' \\
+        | ${REPLACER} --unbuffered '/DEPRECATION WARNING..desired_principal_rate_change_amount=/d' \\
+        | ${REPLACER} --unbuffered '/app.commands.loan.applications.create.rb.../d' \\
+        | ${REPLACER} --unbuffered '/block....levels/d' \\
+        | ${REPLACER} --unbuffered '/\ warning:\ already\ initialized\ constant/d' \\
+        | ${REPLACER} --unbuffered '/\ was\ here/d' \\
+      | ${REPLACER} --unbuffered 's/\ on\ line\ /:/g' \\
+      | ${REPLACER} --unbuffered 's/:\ line\ /:/g' \\
+      | ${REPLACER} --unbuffered 's/\ No\ such\ file\ or\ directory\ in\ /\ in\ \o033[38;5;213m/g' \\
+      | ${REPLACER} --unbuffered 's/\,\ no\ offenses\ /\,\ \o033[01;32m no\ offenses\ \o033[0m/g' \\
+      | ${REPLACER} --unbuffered 's/\ examples\,\ 0\ failures/\o033[01;32m\ examples\,\ 0\ failures \o033[0m/g' \\
+      | ${REPLACER} --unbuffered 's/\ returns\ /\o033[01;32m\ returns\ /g' \\
+      | ${REPLACER} --unbuffered 's/\ Do\ not\ use\ /\o033[48;5;235m\o033[38;5;196m\ Do\ not\ use\ /g' \\
+      | ${REPLACER} --unbuffered 's/..Failure.Error:/\o033[48;5;235m\o033[38;5;196m..Failure.Error:/g' \\
+      | ${REPLACER} --unbuffered 's/.FAILED\ /\o033[48;5;235m\o033[38;5;196m...FAILED\ \o033[0m/g' \\
+      | ${REPLACER} --unbuffered 's/.failures:/\o033[48;5;235m\o033[38;5;196m.failures\o033[0m:/g' \\
+      | ${REPLACER} --unbuffered 's/\ in\ tests\./\ in\ tests\.\o033[0m/g' \\
+      | ${REPLACER} --unbuffered 's/expected\ the\ /\o033[0mexpected\ the\ /g' \\
+      | ${REPLACER} --unbuffered 's/\[Command\ was\ successful\]/\o033[01;32m\[Command\ was\ successful\]/g' \\
+      | ${REPLACER} --unbuffered 's/\ GET\ /\o033[01;35m\ GET\ /g' \\
+      | ${REPLACER} --unbuffered 's/\ POST\ /\o033[01;35m\ POST\ /g' \\
+      | ${REPLACER} --unbuffered 's/\ DELETE\ /\o033[01;35m\ DELETE\ /g' \\
+      | ${REPLACER} --unbuffered 's/\ PUT\ /\o033[01;35m\ PUT\ /g' \\
+      | ${REPLACER} --unbuffered 's/\ PATCH\ /\o033[01;35m\ PATCH\ /g' \\
+      | ${REPLACER} --unbuffered 's/\ OPTIONS\ /\o033[01;35m\ OPTIONS\ /g' \\
+      | ${REPLACER} --unbuffered 's/[^[:alpha:]#]\+/\o033[01;35m\ /g' \\
+      | ${REPLACER} --unbuffered 's/Top\ /\o033[38;5;100mTop\ /g' \\
+      | ${REPLACER} --unbuffered 's/\ seconds\ /\o033[38;5;231m\ seconds\ /g' \\
+      | ${REPLACER} --unbuffered 's/\ behaves\ like\ /\o033[01;36m\ behaves\ like\ /g' \\
+      | ${REPLACER} --unbuffered 's/\ when\ /\o033[01;36m\ when\ /g' \\
+      | ${REPLACER} --unbuffered 's/\ do\ /\o033[0m\ do\ /g' \\
+      | ${REPLACER} --unbuffered 's/\ does\ /\o033[0m\ does\ /g' \\
+      | ${REPLACER} --unbuffered 's/\ finds\ /\o033[0m\ finds\ /g' \\
+      | ${REPLACER} --unbuffered 's/\ serializes\ /\o033[0m\ serializes\ /g' \\
+      | ${REPLACER} --unbuffered 's/ErrorException:\ /\o033[38;5;196mErrorException:\ \o033[38;5;213m/g' \\
+       | ${REPLACER} --unbuffered "s/\ require_once(.\/wp-content/\ require_once(\n$pwd_backslash_escaped_for_sed\/wp-content/g" \\
+       | ${REPLACER} --unbuffered "s/\ require(.\/wp-content/\ require(\n$pwd_backslash_escaped_for_sed\/wp-content/g" \\
+       | ${REPLACER} --unbuffered "s/\ require\ .\/wp-content/\ require\ \n$pwd_backslash_escaped_for_sed\/wp-content/g" \\
+       | ${REPLACER} --unbuffered "s/\ include\ .\/wp-content/\ include\ \n$pwd_backslash_escaped_for_sed\/wp-content/g" \\
+       | ${REPLACER} --unbuffered "s/\ include_once(.\/wp-content/\ include_once(\n$pwd_backslash_escaped_for_sed\/wp-content/g" \\
+       | ${REPLACER} --unbuffered "s/\ in\ \//\ in\ \n\//g" \\
+      | ${REPLACER} --unbuffered 's/Stack\ trace:/\o033[38;0mStack\ trace:/g' \\
+      | ${REPLACER} --unbuffered 's/Call\ Stack:/\o033[38;0mCall\ Stack:/g' \\
+      | ${REPLACER} --unbuffered 's/#. //g' \\
+      | ${REPLACER} --unbuffered -E "/[Ee]rror[: ]/ s%\$pathpat%\$ccred&\$ccend%g" \\
+      | ${REPLACER} --unbuffered -E "/[Ww]arning[: ]/ s%\$pathpat%\$ccyellow&\$ccend%g" \\
+      | ${REPLACER} --unbuffered 's/\.\/spec\//\o033[0m\.\/spec\//g' \\
+EOF
+)
 if [[ "${extension_to_observe-}" == "go"  ]] ; then
 {
   # GO
@@ -265,12 +331,14 @@ echo "_possible_related_classes:${_possible_related_classes-}"
             [[ -z "${one-}" ]] && continue # skip empty lines
             [[ -f "${one-}" ]] || continue # only if file exists
 
-            file_to_watch="${file_to_watch}\" --watch \"$(pwd)/${one}"
-            _files_to_rubocop="${_files_to_rubocop}\\\" \\\"$(pwd)/${one}"
+            file_to_watch="${file_to_watch}\"\\
+ --watch \"$(pwd)/${one}"
+            _files_to_rubocop="${_files_to_rubocop}\\\"\\
+ \\\"$(pwd)/${one}"
             _rubocops="${_rubocops}
     watch(%r{^$(pwd)/${one}\$})"
 
-            (( _found++ ))
+            _found=$(( _found + 1 ))
           }
           done <<< "${_possible_related_classes}"
           # multiple files
@@ -290,16 +358,19 @@ echo "_possible_related_classes:${_possible_related_classes-}"
             [[ -z "${one-}" ]] && continue # skip empty lines
             [[ -f "${one-}" ]] || continue # only if file exists
 
-            file_to_watch="${file_to_watch}\" --watch \"$(pwd)/${one}"
-            _files_to_rubocop="${_files_to_rubocop}\\\" \\\"$(pwd)/${one}"
+            file_to_watch="${file_to_watch}\"\\
+ --watch \"$(pwd)/${one}"
+            _files_to_rubocop="${_files_to_rubocop}\\\"\\
+ \\\"$(pwd)/${one}"
             _rubocops="${_rubocops}
     watch(%r{^$(pwd)/${one}\$})"
             if  ( grep -q "_spec.rb[[:space:]]*$"  <<< "${one}" ) ; then
             {
-              _files_to_rspec="${_files_to_rspec}\\\" \\\"$(pwd)/${one}"
+              _files_to_rspec="${_files_to_rspec}\\\"\\
+ \\\"$(pwd)/${one}"
             }
             fi
-            (( _found++ ))
+            _found=$(( _found + 1 ))
           }
           done <<< "${__all_passed_files}"
           # multiple files
@@ -311,6 +382,15 @@ echo "_possible_related_classes:${_possible_related_classes-}"
             extra_args_to_run="[[ -n \\\"\$(ps axt | grep 'live-server' | grep 'coverage'  | head -1 | xargs)\\\"  ]] || kill \\\"\$(ps axt | grep 'live-server' | grep 'coverage'  | head -1 | xargs | cut -d' ' -f2 )\\\" || ( ${extra_args_to_run_preview}  ) && ( ${extra_args_to_run_preview}  ) "
           }
           fi
+
+  local replacer_colors_sufix2=$(cat <<-EOF
+      | ${REPLACER} --unbuffered 's/"${_maybe_name-}"/\o033[38;5;178m"${_maybe_name-}"\o033[0m/g' \\
+      | ${REPLACER} --unbuffered 's/"${_maybe_name-}"/\o033[38;5;178m"${_maybe_name-}"\o033[0m/g' \\
+
+   # | ${REPLACER} --unbuffered 's@/./@/@g' \\
+
+EOF
+)
         }
         fi
       }
@@ -344,6 +424,7 @@ echo "            prefix_to_run:${prefix_to_run-}"
 echo "          file_to_observe:${file_to_observe-}"
 echo "            file_to_watch:${file_to_watch-}"
 echo "        extra_args_to_run:${extra_args_to_run-}"
+
 
 if [[ $REPLACERGNU == "YES" ]] ; then
 {
@@ -379,40 +460,6 @@ if [[ $REPLACERGNU == "YES" ]] ; then
 # echo "bundle guard -G \"$(pwd)/.${_filename}.watch.test.guardfile\" "
 
 # bundle exec guard -G "$(pwd)/.${_filename}.watch.test.guardfile" \
-#         | ${REPLACER} --unbuffered '/\ process\ jobs\ in\ this\ environment/d' \
-#         | ${REPLACER} --unbuffered '/Top\ level\ /d' \
-#         | ${REPLACER} --unbuffered '/block....levels/d' \
-#         | ${REPLACER} --unbuffered '/\ warning:\ already\ initialized\ constant/d' \
-#         | ${REPLACER} --unbuffered '/\ was\ here/d' \
-#       | ${REPLACER} --unbuffered 's/\ on\ line\ /:/g' \
-#       | ${REPLACER} --unbuffered 's/:\ line\ /:/g' \
-#       | ${REPLACER} --unbuffered 's/\ No\ such\ file\ or\ directory\ in\ /\ in\ \o033[38;5;213m/g' \
-#       | ${REPLACER} --unbuffered 's/\,\ no\ offenses\ /\,\ \o033[01;32m no\ offenses\ \o033[0m/g' \
-#       | ${REPLACER} --unbuffered 's/\ examples\,\ 0\ failures/\o033[01;32m\ examples\,\ 0\ failures \o033[0m/g' \
-#       | ${REPLACER} --unbuffered 's/\ returns\ /\o033[01;32m\ returns\ /g' \
-#       | ${REPLACER} --unbuffered 's/\[Command\ was\ successful\]/\o033[01;32m\[Command\ was\ successful\]/g' \
-#       | ${REPLACER} --unbuffered 's/\ GET\ /\o033[01;35m\ GET\ /g' \
-#       | ${REPLACER} --unbuffered 's/Top\ /\o033[38;5;100mTop\ /g' \
-#       | ${REPLACER} --unbuffered 's/\ seconds\ /\o033[38;5;231m\ seconds\ /g' \
-#       | ${REPLACER} --unbuffered 's/\ behaves\ like\ /\o033[01;36m\ behaves\ like\ /g' \
-#       | ${REPLACER} --unbuffered 's/\ when\ /\o033[01;36m\ when\ /g' \
-#       | ${REPLACER} --unbuffered 's/ErrorException:\ /\o033[38;5;196mErrorException:\ \o033[38;5;213m/g' \
-#        | ${REPLACER} --unbuffered "s/\ require_once(.\/wp-content/\ require_once(\n$pwd_backslash_escaped_for_sed\/wp-content/g" \
-#        | ${REPLACER} --unbuffered "s/\ require(.\/wp-content/\ require(\n$pwd_backslash_escaped_for_sed\/wp-content/g" \
-#        | ${REPLACER} --unbuffered "s/\ require\ .\/wp-content/\ require\ \n$pwd_backslash_escaped_for_sed\/wp-content/g" \
-#        | ${REPLACER} --unbuffered "s/\ include\ .\/wp-content/\ include\ \n$pwd_backslash_escaped_for_sed\/wp-content/g" \
-#        | ${REPLACER} --unbuffered "s/\ include_once(.\/wp-content/\ include_once(\n$pwd_backslash_escaped_for_sed\/wp-content/g" \
-#        | ${REPLACER} --unbuffered "s/\ in\ \//\ in\ \n\//g" \
-#       | ${REPLACER} --unbuffered 's/Stack\ trace:/\o033[38;0mStack\ trace:/g' \
-#       | ${REPLACER} --unbuffered 's/Call\ Stack:/\o033[38;0mCall\ Stack:/g' \
-#       | ${REPLACER} --unbuffered 's/#. //g' \
-#       | ${REPLACER} --unbuffered -E "/[Ee]rror[: ]/ s%$pathpat%$ccred&$ccend%g" \
-#       | ${REPLACER} --unbuffered -E "/[Ww]arning[: ]/ s%$pathpat%$ccyellow&$ccend%g" \
-#       | ${REPLACER} --unbuffered 's/"${_maybe_name-}"/\o033[38;5;178m"${_maybe_name-}"\o033[0m/g' \
-#       | ${REPLACER} --unbuffered 's/\.\/spec\//\o033[0m\.\/spec\//g' \
-#       | ${REPLACER} --unbuffered 's/"${_maybe_name-}"/\o033[38;5;178m"${_maybe_name-}"\o033[0m/g' \
-
-#       # | ${REPLACER} --unbuffered 's@/./@/@g' \
 
 #       # bundle remove guard-rubocop  >/dev/null 2>&1;
 #       git checkout Gemfile Gemfile.lock
@@ -434,54 +481,12 @@ if [[ $REPLACERGNU == "YES" ]] ; then
 
 #       # watchman watch "${file_to_observe}"  trigger "${extra_args_to_run} ${file_to_observe}" 2>&1  \
 #       cat <<-EOF > ".${_filename}.watchman.watch.test.bash"
-# #!/usr/bin/env bash
-
-# pathpat="(/[^/]*)+:[0-9]+"
-# ccred=\$(echo -e "\033[0;31m")
-# ccyellow=\$(echo -e "\033[0;33m")
-# ccend=\$(echo -e "\033[0m")
-# # sed -E
-# # -e "/[Ee]rror[: ]/ s%$pathpat%$ccred&$ccend%g"
-# # -e "/[Ww]arning[: ]/ s%$pathpat%$ccyellow&$ccend%g"
+# ${replacer_colors_prefix}
 
 # ${extra_args_to_run} 2>&1  \
-#         | ${REPLACER} --unbuffered '/\ process\ jobs\ in\ this\ environment/d' \
-#         | ${REPLACER} --unbuffered '/Top\ level\ /d' \
-#         | ${REPLACER} --unbuffered '/block....levels/d' \
-#         | ${REPLACER} --unbuffered '/\ warning:\ already\ initialized\ constant/d' \
-#         | ${REPLACER} --unbuffered '/\ was\ here/d' \
-#       | ${REPLACER} --unbuffered 's/\ on\ line\ /:/g' \
-#       | ${REPLACER} --unbuffered 's/:\ line\ /:/g' \
-#       | ${REPLACER} --unbuffered 's/\ No\ such\ file\ or\ directory\ in\ /\ in\ \o033[38;5;213m/g' \
-#       | ${REPLACER} --unbuffered 's/\,\ no\ offenses\ /\,\ \o033[01;32m no\ offenses\ \o033[0m/g' \
-#       | ${REPLACER} --unbuffered 's/\ examples\,\ 0\ failures/\o033[01;32m\ examples\,\ 0\ failures \o033[0m/g' \
-#       | ${REPLACER} --unbuffered 's/\ returns\ /\o033[01;32m\ returns\ /g' \
-#       | ${REPLACER} --unbuffered 's/\[Command\ was\ successful\]/\o033[01;32m\[Command\ was\ successful\]/g' \
-#       | ${REPLACER} --unbuffered 's/\ GET\ /\o033[01;35m\ GET\ /g' \
-#       | ${REPLACER} --unbuffered 's/Top\ /\o033[38;5;100mTop\ /g' \
-#       | ${REPLACER} --unbuffered 's/\ seconds\ /\o033[38;5;231m\ seconds\ /g' \
-#       | ${REPLACER} --unbuffered 's/\ behaves\ like\ /\o033[01;36m\ behaves\ like\ /g' \
-#       | ${REPLACER} --unbuffered 's/\ when\ /\o033[01;36m\ when\ /g' \
-#       | ${REPLACER} --unbuffered 's/ErrorException:\ /\o033[38;5;196mErrorException:\ \o033[38;5;213m/g' \
-#        | ${REPLACER} --unbuffered "s/\ require_once(.\/wp-content/\ require_once(\n$pwd_backslash_escaped_for_sed\/wp-content/g" \
-#        | ${REPLACER} --unbuffered "s/\ require(.\/wp-content/\ require(\n$pwd_backslash_escaped_for_sed\/wp-content/g" \
-#        | ${REPLACER} --unbuffered "s/\ require\ .\/wp-content/\ require\ \n$pwd_backslash_escaped_for_sed\/wp-content/g" \
-#        | ${REPLACER} --unbuffered "s/\ include\ .\/wp-content/\ include\ \n$pwd_backslash_escaped_for_sed\/wp-content/g" \
-#        | ${REPLACER} --unbuffered "s/\ include_once(.\/wp-content/\ include_once(\n$pwd_backslash_escaped_for_sed\/wp-content/g" \
-#        | ${REPLACER} --unbuffered "s/\ in\ \//\ in\ \n\//g" \
-#       | ${REPLACER} --unbuffered 's/Stack\ trace:/\o033[38;0mStack\ trace:/g' \
-#       | ${REPLACER} --unbuffered 's/Call\ Stack:/\o033[38;0mCall\ Stack:/g' \
-#       | ${REPLACER} --unbuffered 's/#. //g' \
-#       | ${REPLACER} --unbuffered -E "/[Ee]rror[: ]/ s%$pathpat%$ccred&$ccend%g" \
-#       | ${REPLACER} --unbuffered -E "/[Ww]arning[: ]/ s%$pathpat%$ccyellow&$ccend%g" \
-#       | ${REPLACER} --unbuffered 's/"${_maybe_name-}"/\o033[38;5;178m"${_maybe_name-}"\o033[0m/g' \
-#       | ${REPLACER} --unbuffered 's/\.\/spec\//\o033[0m\.\/spec\//g' \
-#       | ${REPLACER} --unbuffered 's/"${_maybe_name-}"/\o033[38;5;178m"${_maybe_name-}"\o033[0m/g' \
-
-#       # | ${REPLACER} --unbuffered 's@/./@/@g' \
 
 # watchman trigger-del "$pwd_backslash_escaped_for_sed" "${_maybe_name-}"
-
+# ${replacer_colors_sufix}
 # EOF
 #       watchman watch \"${file_to_watch-}\"
 #       watchman -- trigger "$pwd_backslash_escaped_for_sed" "${_maybe_name-}" '*.rb' -- "$cwd/.${_filename}.watchman.watch.test.bash"
@@ -496,74 +501,22 @@ if [[ $REPLACERGNU == "YES" ]] ; then
       # ruby rspec observe spec/concern_spec.rb
       echo "nodemon --watch \"${file_to_watch-}\" --ext ${extension_to_observe} --spawn --exec \"${extra_args_to_run} ${file_to_observe}\"  "
 
+      [[ -e ./".${_filename}.nodemon.watch.test.bash" ]] && rm -rf ./".${_filename}.nodemon.watch.test.bash"
+
       # nodemon --watch "${file_to_observe}" --ext ${extension_to_observe} --spawn --exec "${extra_args_to_run} ${file_to_observe}" 2>&1  \
-      cat <<-EOF > ".${_filename}.nodemon.watch.test.bash"
-#!/usr/bin/env bash
 
-pathpat="(/[^/]*)+:[0-9]+"
-ccred=\$(echo -e "\033[0;31m")
-ccyellow=\$(echo -e "\033[0;33m")
-ccend=\$(echo -e "\033[0m")
-# sed -E
-# -e "/[Ee]rror[: ]/ s%$pathpat%$ccred&$ccend%g"
-# -e "/[Ww]arning[: ]/ s%$pathpat%$ccyellow&$ccend%g"
+cat <<-EOF >  ".${_filename}.nodemon.watch.test.bash"
+${replacer_colors_prefix}
 
-nodemon --watch "${file_to_watch}" --ext ${extension_to_observe} --spawn --exec "${extra_args_to_run} ${file_to_observe}" 2>&1  \
-        | ${REPLACER} --unbuffered '/\ process\ jobs\ in\ this\ environment/d' \\
-        | ${REPLACER} --unbuffered '/Top\ level\ /d' \\
-        | ${REPLACER} --unbuffered '/block....levels/d' \\
-        | ${REPLACER} --unbuffered '/DEPRECATION WARNING..desired_principal_rate_change_amount=/d' \\
-        | ${REPLACER} --unbuffered '/app.commands.loan.applications.create.rb.../d' \\
-        | ${REPLACER} --unbuffered '/\ warning:\ already\ initialized\ constant/d' \\
-        | ${REPLACER} --unbuffered '/\ was\ here/d' \\
-      | ${REPLACER} --unbuffered 's/FAILED/\o033[48;5;235m\o033[38;5;196m...FAILED.\o033[0m/g' \\
-      | ${REPLACER} --unbuffered 's/\ on\ line\ /:/g' \\
-      | ${REPLACER} --unbuffered 's/:\ line\ /:/g' \\
-      | ${REPLACER} --unbuffered 's/\ No\ such\ file\ or\ directory\ in\ /\ in\ \o033[38;5;213m/g' \\
-      | ${REPLACER} --unbuffered 's/\,\ no\ offenses\ /\,\ \o033[01;32m no\ offenses\ \o033[0m/g' \\
-      | ${REPLACER} --unbuffered 's/\ examples\,\ 0\ failures/\o033[01;32m\ examples\,\ 0\ failures \o033[0m/g' \\
-      | ${REPLACER} --unbuffered 's/\ returns\ /\o033[01;32m\ returns\ /g' \\
-      | ${REPLACER} --unbuffered 's/\ Do\ not\ use\ /\o033[48;5;235m\o033[38;5;196m\ Do\ not\ use\ /g' \\
-      | ${REPLACER} --unbuffered 's/..Failure.Error:/\o033[48;5;235m\o033[38;5;196m..Failure.Error:/g' \\
-      | ${REPLACER} --unbuffered 's/.failures:/\o033[48;5;235m\o033[38;5;196m.failures\o033[0m:/g' \\
-      | ${REPLACER} --unbuffered 's/Failures:/\o033[48;5;235m\o033[38;5;196mFailures\o033[0m:/g' \\
-      | ${REPLACER} --unbuffered 's/\ in\ tests\./\ in\ tests\.\o033[0m/g' \\
-      | ${REPLACER} --unbuffered 's/expected\ the\ /\o033[0mexpected\ the\ /g' \\
-      | ${REPLACER} --unbuffered 's/\[Command\ was\ successful\]/\o033[01;32m\[Command\ was\ successful\]/g' \\
-      | ${REPLACER} --unbuffered 's/\ GET\ /\o033[01;35m\ GET\ /g' \\
-      | ${REPLACER} --unbuffered 's/\ POST\ /\o033[01;35m\ POST\ /g' \\
-      | ${REPLACER} --unbuffered 's/\ DELETE\ /\o033[01;35m\ DELETE\ /g' \\
-      | ${REPLACER} --unbuffered 's/\ PUT\ /\o033[01;35m\ PUT\ /g' \\
-      | ${REPLACER} --unbuffered 's/\ PATCH\ /\o033[01;35m\ PATCH\ /g' \\
-      | ${REPLACER} --unbuffered 's/\ OPTIONS\ /\o033[01;35m\ OPTIONS\ /g' \\
-      | ${REPLACER} --unbuffered 's/[^[:alpha:]#]\+/\o033[01;35m\ /g' \\
-      | ${REPLACER} --unbuffered 's/Top\ /\o033[38;5;100mTop\ /g' \\
-      | ${REPLACER} --unbuffered 's/\ seconds\ /\o033[38;5;231m\ seconds\ /g' \\
-      | ${REPLACER} --unbuffered 's/\ behaves\ like\ /\o033[01;36m\ behaves\ like\ /g' \\
-      | ${REPLACER} --unbuffered 's/\ when\ /\o033[01;36m\ when\ /g' \\
-      | ${REPLACER} --unbuffered 's/\ do\ /\o033[0m\ do\ /g' \\
-      | ${REPLACER} --unbuffered 's/\ does\ /\o033[0m\ does\ /g' \\
-      | ${REPLACER} --unbuffered 's/\ finds\ /\o033[0m\ finds\ /g' \\
-      | ${REPLACER} --unbuffered 's/\ serializes\ /\o033[0m\ serializes\ /g' \\
-      | ${REPLACER} --unbuffered 's/ErrorException:\ /\o033[38;5;196mErrorException:\ \o033[38;5;213m/g' \\
-       | ${REPLACER} --unbuffered "s/\ require_once(.\/wp-content/\ require_once(\n$cwd\/wp-content/g" \\
-       | ${REPLACER} --unbuffered "s/\ require(.\/wp-content/\ require(\n$cwd\/wp-content/g" \\
-       | ${REPLACER} --unbuffered "s/\ require\ .\/wp-content/\ require\ \n$cwd\/wp-content/g" \\
-       | ${REPLACER} --unbuffered "s/\ include\ .\/wp-content/\ include\ \n$cwd\/wp-content/g" \\
-       | ${REPLACER} --unbuffered "s/\ include_once(.\/wp-content/\ include_once(\n$cwd\/wp-content/g" \\
-       | ${REPLACER} --unbuffered "s/\ in\ \//\ in\ \n\//g" \\
-      | ${REPLACER} --unbuffered 's/Stack\ trace:/\o033[38;0mStack\ trace:/g' \\
-      | ${REPLACER} --unbuffered 's/Call\ Stack:/\o033[38;0mCall\ Stack:/g' \\
-      | ${REPLACER} --unbuffered 's/#. //g' \\
-      | ${REPLACER} --unbuffered -E "/[Ee]rror[: ]/ s%$pathpat%$ccred&$ccend%g" \\
-      | ${REPLACER} --unbuffered -E "/[Ww]arning[: ]/ s%$pathpat%$ccyellow&$ccend%g" \\
-      | ${REPLACER} --unbuffered 's/"${_maybe_name-}"/\o033[38;5;178m"${_maybe_name-}"\o033[0m/g' \\
-      | ${REPLACER} --unbuffered 's/\.\/spec\//\o033[0m\.\/spec\//g' \\
-      | ${REPLACER} --unbuffered 's/"${_maybe_name-}"/\o033[38;5;178m"${_maybe_name-}"\o033[0m/g' \\
+nodemon --watch "${file_to_watch}" \\
+--ext ${extension_to_observe} \\
+--spawn \\
+--exec "${extra_args_to_run} ${file_to_observe}"  2>&1  \\
 
-      # | ${REPLACER} --unbuffered 's@/./@/@g' \\
 
 EOF
+# ${replacer_colors_sufix}
+# ${replacer_colors_sufix2}
       # | ${REPLACER} --unbuffered 's@/./@/@g' \
       chmod a+x  ".${_filename}.nodemon.watch.test.bash"
       ./".${_filename}.nodemon.watch.test.bash"
@@ -572,73 +525,15 @@ EOF
     {
       # ruby rspec observe spec/concern_spec.rb
       echo "watchexec --watch \"${file_to_watch-}\" --exts ${extension_to_observe} --restart \"${extra_args_to_run} ${file_to_observe}\"  "
+      [[ -e ./".${_filename}.watchexec.watch.test.bash" ]] && rm -rf ./".${_filename}.watchexec.watch.test.bash"
 
       # watchexec --watch "${file_to_observe}" --exts ${extension_to_observe} --restart "${extra_args_to_run} ${file_to_observe}" 2>&1  \
       cat <<-EOF > ".${_filename}.watchexec.watch.test.bash"
-#!/usr/bin/env bash
-
-pathpat="(/[^/]*)+:[0-9]+"
-ccred=\$(echo -e "\033[0;31m")
-ccyellow=\$(echo -e "\033[0;33m")
-ccend=\$(echo -e "\033[0m")
-# sed -E
-# -e "/[Ee]rror[: ]/ s%$pathpat%$ccred&$ccend%g"
-# -e "/[Ww]arning[: ]/ s%$pathpat%$ccyellow&$ccend%g"
+${replacer_colors_prefix}
 
 watchexec --watch "${file_to_watch}" --exts ${extension_to_observe} --restart "${extra_args_to_run} ${file_to_observe}" 2>&1  \
-        | ${REPLACER} --unbuffered '/\ process\ jobs\ in\ this\ environment/d' \\
-        | ${REPLACER} --unbuffered '/Top\ level\ /d' \\
-        | ${REPLACER} --unbuffered '/DEPRECATION WARNING..desired_principal_rate_change_amount=/d' \\
-        | ${REPLACER} --unbuffered '/app.commands.loan.applications.create.rb.../d' \\
-        | ${REPLACER} --unbuffered '/block....levels/d' \\
-        | ${REPLACER} --unbuffered '/\ warning:\ already\ initialized\ constant/d' \\
-        | ${REPLACER} --unbuffered '/\ was\ here/d' \\
-      | ${REPLACER} --unbuffered 's/\ on\ line\ /:/g' \\
-      | ${REPLACER} --unbuffered 's/:\ line\ /:/g' \\
-      | ${REPLACER} --unbuffered 's/\ No\ such\ file\ or\ directory\ in\ /\ in\ \o033[38;5;213m/g' \\
-      | ${REPLACER} --unbuffered 's/\,\ no\ offenses\ /\,\ \o033[01;32m no\ offenses\ \o033[0m/g' \\
-      | ${REPLACER} --unbuffered 's/\ examples\,\ 0\ failures/\o033[01;32m\ examples\,\ 0\ failures \o033[0m/g' \\
-      | ${REPLACER} --unbuffered 's/\ returns\ /\o033[01;32m\ returns\ /g' \\
-      | ${REPLACER} --unbuffered 's/\ Do\ not\ use\ /\o033[48;5;235m\o033[38;5;196m\ Do\ not\ use\ /g' \\
-      | ${REPLACER} --unbuffered 's/..Failure.Error:/\o033[48;5;235m\o033[38;5;196m..Failure.Error:/g' \\
-      | ${REPLACER} --unbuffered 's/.FAILED\ /\o033[48;5;235m\o033[38;5;196m...FAILED\ \o033[0m/g' \\
-      | ${REPLACER} --unbuffered 's/.failures:/\o033[48;5;235m\o033[38;5;196m.failures\o033[0m:/g' \\
-      | ${REPLACER} --unbuffered 's/\ in\ tests\./\ in\ tests\.\o033[0m/g' \\
-      | ${REPLACER} --unbuffered 's/expected\ the\ /\o033[0mexpected\ the\ /g' \\
-      | ${REPLACER} --unbuffered 's/\[Command\ was\ successful\]/\o033[01;32m\[Command\ was\ successful\]/g' \\
-      | ${REPLACER} --unbuffered 's/\ GET\ /\o033[01;35m\ GET\ /g' \\
-      | ${REPLACER} --unbuffered 's/\ POST\ /\o033[01;35m\ POST\ /g' \\
-      | ${REPLACER} --unbuffered 's/\ DELETE\ /\o033[01;35m\ DELETE\ /g' \\
-      | ${REPLACER} --unbuffered 's/\ PUT\ /\o033[01;35m\ PUT\ /g' \\
-      | ${REPLACER} --unbuffered 's/\ PATCH\ /\o033[01;35m\ PATCH\ /g' \\
-      | ${REPLACER} --unbuffered 's/\ OPTIONS\ /\o033[01;35m\ OPTIONS\ /g' \\
-      | ${REPLACER} --unbuffered 's/[^[:alpha:]#]\+/\o033[01;35m\ /g' \\
-      | ${REPLACER} --unbuffered 's/Top\ /\o033[38;5;100mTop\ /g' \\
-      | ${REPLACER} --unbuffered 's/\ seconds\ /\o033[38;5;231m\ seconds\ /g' \\
-      | ${REPLACER} --unbuffered 's/\ behaves\ like\ /\o033[01;36m\ behaves\ like\ /g' \\
-      | ${REPLACER} --unbuffered 's/\ when\ /\o033[01;36m\ when\ /g' \\
-      | ${REPLACER} --unbuffered 's/\ do\ /\o033[0m\ do\ /g' \\
-      | ${REPLACER} --unbuffered 's/\ does\ /\o033[0m\ does\ /g' \\
-      | ${REPLACER} --unbuffered 's/\ finds\ /\o033[0m\ finds\ /g' \\
-      | ${REPLACER} --unbuffered 's/\ serializes\ /\o033[0m\ serializes\ /g' \\
-      | ${REPLACER} --unbuffered 's/ErrorException:\ /\o033[38;5;196mErrorException:\ \o033[38;5;213m/g' \\
-       | ${REPLACER} --unbuffered "s/\ require_once(.\/wp-content/\ require_once(\n$pwd_backslash_escaped_for_sed\/wp-content/g" \\
-       | ${REPLACER} --unbuffered "s/\ require(.\/wp-content/\ require(\n$pwd_backslash_escaped_for_sed\/wp-content/g" \\
-       | ${REPLACER} --unbuffered "s/\ require\ .\/wp-content/\ require\ \n$pwd_backslash_escaped_for_sed\/wp-content/g" \\
-       | ${REPLACER} --unbuffered "s/\ include\ .\/wp-content/\ include\ \n$pwd_backslash_escaped_for_sed\/wp-content/g" \\
-       | ${REPLACER} --unbuffered "s/\ include_once(.\/wp-content/\ include_once(\n$pwd_backslash_escaped_for_sed\/wp-content/g" \\
-       | ${REPLACER} --unbuffered "s/\ in\ \//\ in\ \n\//g" \\
-      | ${REPLACER} --unbuffered 's/Stack\ trace:/\o033[38;0mStack\ trace:/g' \\
-      | ${REPLACER} --unbuffered 's/Call\ Stack:/\o033[38;0mCall\ Stack:/g' \\
-      | ${REPLACER} --unbuffered 's/#. //g' \\
-      | ${REPLACER} --unbuffered -E "/[Ee]rror[: ]/ s%$pathpat%$ccred&$ccend%g" \\
-      | ${REPLACER} --unbuffered -E "/[Ww]arning[: ]/ s%$pathpat%$ccyellow&$ccend%g" \\
-      | ${REPLACER} --unbuffered 's/"${_maybe_name-}"/\o033[38;5;178m"${_maybe_name-}"\o033[0m/g' \\
-      | ${REPLACER} --unbuffered 's/\.\/spec\//\o033[0m\.\/spec\//g' \\
-      | ${REPLACER} --unbuffered 's/"${_maybe_name-}"/\o033[38;5;178m"${_maybe_name-}"\o033[0m/g' \\
-
-      # | ${REPLACER} --unbuffered 's@/./@/@g' \\
-
+${replacer_colors_sufix}
+${replacer_colors_sufix2}
 EOF
       # | ${REPLACER} --unbuffered 's@/./@/@g' \\
       chmod a+x  ".${_filename}.watchexec.watch.test.bash"
@@ -701,40 +596,6 @@ EOF
 # echo "bundle guard -G \"$(pwd)/.${_filename}.watch.test.guardfile\" "
 
 # bundle exec guard -G "$(pwd)/.${_filename}.watch.test.guardfile" \
-#         | ${REPLACER} --unbuffered '/\ process\ jobs\ in\ this\ environment/d' \
-#         | ${REPLACER} --unbuffered '/Top\ level\ /d' \
-#         | ${REPLACER} --unbuffered '/block....levels/d' \
-#         | ${REPLACER} --unbuffered '/\ warning:\ already\ initialized\ constant/d' \
-#         | ${REPLACER} --unbuffered '/\ was\ here/d' \
-#       | ${REPLACER} --unbuffered 's/\ on\ line\ /:/g' \
-#       | ${REPLACER} --unbuffered 's/:\ line\ /:/g' \
-#       | ${REPLACER} --unbuffered 's/\ No\ such\ file\ or\ directory\ in\ /\ in\ \o033[38;5;213m/g' \
-#       | ${REPLACER} --unbuffered 's/\,\ no\ offenses\ /\,\ \o033[01;32m no\ offenses\ \o033[0m/g' \
-#       | ${REPLACER} --unbuffered 's/\ examples\,\ 0\ failures/\o033[01;32m\ examples\,\ 0\ failures \o033[0m/g' \
-#       | ${REPLACER} --unbuffered 's/\ returns\ /\o033[01;32m\ returns\ /g' \
-#       | ${REPLACER} --unbuffered 's/\[Command\ was\ successful\]/\o033[01;32m\[Command\ was\ successful\]/g' \
-#       | ${REPLACER} --unbuffered 's/\ GET\ /\o033[01;35m\ GET\ /g' \
-#       | ${REPLACER} --unbuffered 's/Top\ /\o033[38;5;100mTop\ /g' \
-#       | ${REPLACER} --unbuffered 's/\ seconds\ /\o033[38;5;231m\ seconds\ /g' \
-#       | ${REPLACER} --unbuffered 's/\ behaves\ like\ /\o033[01;36m\ behaves\ like\ /g' \
-#       | ${REPLACER} --unbuffered 's/\ when\ /\o033[01;36m\ when\ /g' \
-#       | ${REPLACER} --unbuffered 's/ErrorException:\ /\o033[38;5;196mErrorException:\ \o033[38;5;213m/g' \
-#        | ${REPLACER} --unbuffered "s/\ require_once(.\/wp-content/\ require_once(\n$cwd\/wp-content/g" \
-#        | ${REPLACER} --unbuffered "s/\ require(.\/wp-content/\ require(\n$cwd\/wp-content/g" \
-#        | ${REPLACER} --unbuffered "s/\ require\ .\/wp-content/\ require\ \n$cwd\/wp-content/g" \
-#        | ${REPLACER} --unbuffered "s/\ include\ .\/wp-content/\ include\ \n$cwd\/wp-content/g" \
-#        | ${REPLACER} --unbuffered "s/\ include_once(.\/wp-content/\ include_once(\n$cwd\/wp-content/g" \
-#        | ${REPLACER} --unbuffered "s/\ in\ \//\ in\ \n\//g" \
-#       | ${REPLACER} --unbuffered 's/Stack\ trace:/\o033[38;0mStack\ trace:/g' \
-#       | ${REPLACER} --unbuffered 's/Call\ Stack:/\o033[38;0mCall\ Stack:/g' \
-#       | ${REPLACER} --unbuffered 's/#. //g' \
-#       | ${REPLACER} --unbuffered -E "/[Ee]rror[: ]/ s%$pathpat%$ccred&$ccend%g" \
-#       | ${REPLACER} --unbuffered -E "/[Ww]arning[: ]/ s%$pathpat%$ccyellow&$ccend%g" \
-#       | ${REPLACER} --unbuffered 's/"${_maybe_name-}"/\o033[38;5;178m"${_maybe_name-}"\o033[0m/g' \
-#       | ${REPLACER} --unbuffered 's/\.\/spec\//\o033[0m\.\/spec\//g' \
-#       | ${REPLACER} --unbuffered 's/"${_maybe_name-}"/\o033[38;5;178m"${_maybe_name-}"\o033[0m/g' \
-
-#       # | ${REPLACER} --unbuffered 's@/./@/@g' \
 
 #       # bundle remove guard-rubocop  >/dev/null 2>&1;
 #       git checkout Gemfile Gemfile.lock
@@ -751,55 +612,14 @@ EOF
       # rust observe Cargo.toml
       # echo "nodemon --watch \"${file_to_watch-}\"  --exts ${extension_to_observe} --restart \"${prefix_to_run-}$(pwd)/${*}\"  "
       echo "watchexec --watch \"./\" --exts py,go,bash,sh,kv,php,rb --restart \"${prefix_to_run-}$(pwd)/${*}\" "
+      [[ -e ./".${_filename}.watchexec.watch.test.bash" ]] && rm -rf ./".${_filename}.watchexec.watch.test.bash"
 
       # watchexec --watch "${file_to_observe}" --exts ${extension_to_observe} --restart "${extra_args_to_run} ${file_to_observe}" 2>&1  \
       cat <<-EOF > ".${_filename}.watchexec.watch.test.bash"
-#!/usr/bin/env bash
-
-pathpat="(/[^/]*)+:[0-9]+"
-ccred=\$(echo -e "\033[0;31m")
-ccyellow=\$(echo -e "\033[0;33m")
-ccend=\$(echo -e "\033[0m")
-# sed -E
-# -e "/[Ee]rror[: ]/ s%$pathpat%$ccred&$ccend%g"
-# -e "/[Ww]arning[: ]/ s%$pathpat%$ccyellow&$ccend%g"
+${replacer_colors_prefix}
 
 watchexec --watch "./" --exts py,go,bash,sh,kv,php,rb --restart "${prefix_to_run-}$(pwd)/${*}"  2>&1  \
-        | ${REPLACER} --unbuffered '/\ process\ jobs\ in\ this\ environment/d' \
-        | ${REPLACER} --unbuffered '/Top\ level\ /d' \
-        | ${REPLACER} --unbuffered '/block....levels/d' \
-        | ${REPLACER} --unbuffered '/\ warning:\ already\ initialized\ constant/d' \
-        | ${REPLACER} --unbuffered '/\ was\ here/d' \
-      | ${REPLACER} --unbuffered 's/\ on\ line\ /:/g' \
-      | ${REPLACER} --unbuffered 's/:\ line\ /:/g' \
-      | ${REPLACER} --unbuffered 's/\ No\ such\ file\ or\ directory\ in\ /\ in\ \o033[38;5;213m/g' \
-      | ${REPLACER} --unbuffered 's/\,\ no\ offenses\ /\,\ \o033[01;32m no\ offenses\ \o033[0m/g' \
-      | ${REPLACER} --unbuffered 's/\ examples\,\ 0\ failures/\o033[01;32m\ examples\,\ 0\ failures \o033[0m/g' \
-      | ${REPLACER} --unbuffered 's/\ returns\ /\o033[01;32m\ returns\ /g' \
-      | ${REPLACER} --unbuffered 's/\[Command\ was\ successful\]/\o033[01;32m\[Command\ was\ successful\]/g' \
-      | ${REPLACER} --unbuffered 's/\ GET\ /\o033[01;35m\ GET\ /g' \
-      | ${REPLACER} --unbuffered 's/Top\ /\o033[38;5;100mTop\ /g' \
-      | ${REPLACER} --unbuffered 's/\ seconds\ /\o033[38;5;231m\ seconds\ /g' \
-      | ${REPLACER} --unbuffered 's/\ behaves\ like\ /\o033[01;36m\ behaves\ like\ /g' \
-      | ${REPLACER} --unbuffered 's/\ when\ /\o033[01;36m\ when\ /g' \
-      | ${REPLACER} --unbuffered 's/ErrorException:\ /\o033[38;5;196mErrorException:\ \o033[38;5;213m/g' \
-       | ${REPLACER} --unbuffered "s/\ require_once(.\/wp-content/\ require_once(\n$cwd\/wp-content/g" \
-       | ${REPLACER} --unbuffered "s/\ require(.\/wp-content/\ require(\n$cwd\/wp-content/g" \
-       | ${REPLACER} --unbuffered "s/\ require\ .\/wp-content/\ require\ \n$cwd\/wp-content/g" \
-       | ${REPLACER} --unbuffered "s/\ include\ .\/wp-content/\ include\ \n$cwd\/wp-content/g" \
-       | ${REPLACER} --unbuffered "s/\ include_once(.\/wp-content/\ include_once(\n$cwd\/wp-content/g" \
-       | ${REPLACER} --unbuffered "s/\ in\ \//\ in\ \n\//g" \
-      | ${REPLACER} --unbuffered 's/Stack\ trace:/\o033[38;0mStack\ trace:/g' \
-      | ${REPLACER} --unbuffered 's/Call\ Stack:/\o033[38;0mCall\ Stack:/g' \
-      | ${REPLACER} --unbuffered 's/#. //g' \
-      | ${REPLACER} --unbuffered -E "/[Ee]rror[: ]/ s%$pathpat%$ccred&$ccend%g" \
-      | ${REPLACER} --unbuffered -E "/[Ww]arning[: ]/ s%$pathpat%$ccyellow&$ccend%g" \
-      | ${REPLACER} --unbuffered 's/"${_maybe_name-}"/\o033[38;5;178m"${_maybe_name-}"\o033[0m/g' \
-      | ${REPLACER} --unbuffered 's/\.\/spec\//\o033[0m\.\/spec\//g' \
-      | ${REPLACER} --unbuffered 's/"${_maybe_name-}"/\o033[38;5;178m"${_maybe_name-}"\o033[0m/g' \
-
-      # | ${REPLACER} --unbuffered 's@/./@/@g' \
-
+${replacer_colors_sufix}
 EOF
       chmod a+x  ".${_filename}.watchexec.watch.test.bash"
       ./".${_filename}.watchexec.watch.test.bash"
@@ -823,43 +643,9 @@ EOF
 # # -e "/[Ww]arning[: ]/ s%$pathpat%$ccyellow&$ccend%g"
 
 # "${prefix_to_run-}$(pwd)/${*}"  2>&1  \
-#         | ${REPLACER} --unbuffered '/\ process\ jobs\ in\ this\ environment/d' \
-#         | ${REPLACER} --unbuffered '/Top\ level\ /d' \
-#         | ${REPLACER} --unbuffered '/block....levels/d' \
-#         | ${REPLACER} --unbuffered '/\ warning:\ already\ initialized\ constant/d' \
-#         | ${REPLACER} --unbuffered '/\ was\ here/d' \
-#       | ${REPLACER} --unbuffered 's/\ on\ line\ /:/g' \
-#       | ${REPLACER} --unbuffered 's/:\ line\ /:/g' \
-#       | ${REPLACER} --unbuffered 's/\ No\ such\ file\ or\ directory\ in\ /\ in\ \o033[38;5;213m/g' \
-#       | ${REPLACER} --unbuffered 's/\,\ no\ offenses\ /\,\ \o033[01;32m no\ offenses\ \o033[0m/g' \
-#       | ${REPLACER} --unbuffered 's/\ examples\,\ 0\ failures/\o033[01;32m\ examples\,\ 0\ failures \o033[0m/g' \
-#       | ${REPLACER} --unbuffered 's/\ returns\ /\o033[01;32m\ returns\ /g' \
-#       | ${REPLACER} --unbuffered 's/\[Command\ was\ successful\]/\o033[01;32m\[Command\ was\ successful\]/g' \
-#       | ${REPLACER} --unbuffered 's/\ GET\ /\o033[01;35m\ GET\ /g' \
-#       | ${REPLACER} --unbuffered 's/Top\ /\o033[38;5;100mTop\ /g' \
-#       | ${REPLACER} --unbuffered 's/\ seconds\ /\o033[38;5;231m\ seconds\ /g' \
-#       | ${REPLACER} --unbuffered 's/\ behaves\ like\ /\o033[01;36m\ behaves\ like\ /g' \
-#       | ${REPLACER} --unbuffered 's/\ when\ /\o033[01;36m\ when\ /g' \
-#       | ${REPLACER} --unbuffered 's/ErrorException:\ /\o033[38;5;196mErrorException:\ \o033[38;5;213m/g' \
-#        | ${REPLACER} --unbuffered "s/\ require_once(.\/wp-content/\ require_once(\n$cwd\/wp-content/g" \
-#        | ${REPLACER} --unbuffered "s/\ require(.\/wp-content/\ require(\n$cwd\/wp-content/g" \
-#        | ${REPLACER} --unbuffered "s/\ require\ .\/wp-content/\ require\ \n$cwd\/wp-content/g" \
-#        | ${REPLACER} --unbuffered "s/\ include\ .\/wp-content/\ include\ \n$cwd\/wp-content/g" \
-#        | ${REPLACER} --unbuffered "s/\ include_once(.\/wp-content/\ include_once(\n$cwd\/wp-content/g" \
-#        | ${REPLACER} --unbuffered "s/\ in\ \//\ in\ \n\//g" \
-#       | ${REPLACER} --unbuffered 's/Stack\ trace:/\o033[38;0mStack\ trace:/g' \
-#       | ${REPLACER} --unbuffered 's/Call\ Stack:/\o033[38;0mCall\ Stack:/g' \
-#       | ${REPLACER} --unbuffered 's/#. //g' \
-#       | ${REPLACER} --unbuffered -E "/[Ee]rror[: ]/ s%$pathpat%$ccred&$ccend%g" \
-#       | ${REPLACER} --unbuffered -E "/[Ww]arning[: ]/ s%$pathpat%$ccyellow&$ccend%g" \
-#       | ${REPLACER} --unbuffered 's/"${_maybe_name-}"/\o033[38;5;178m"${_maybe_name-}"\o033[0m/g' \
-#       | ${REPLACER} --unbuffered 's/\.\/spec\//\o033[0m\.\/spec\//g' \
-#       | ${REPLACER} --unbuffered 's/"${_maybe_name-}"/\o033[38;5;178m"${_maybe_name-}"\o033[0m/g' \
-
-#       # | ${REPLACER} --unbuffered 's@/./@/@g' \
 
 # watchman trigger-del "$cwd" "${_maybe_name-}"
-
+# ${replacer_colors_sufix}
 # EOF
 #       watchman watch \"${file_to_watch-}\"
 #       watchman -- trigger "$cwd" "${_maybe_name-}" '*.rb' -- "$cwd/.${_filename}.watchman.watch.test.bash"
@@ -875,54 +661,14 @@ EOF
       # rust observe Cargo.toml
       # echo "nodemon --watch \"${file_to_watch-}\"  --ext ${extension_to_observe} --exec \"${prefix_to_run-}$(pwd)/${*}\"  "
       echo "nodemon --watch \"./\" --ext py,go,bash,sh,kv,php,rb --spawn --exec \"${prefix_to_run-}$(pwd)/${*}\" "
+      [[ -e ./".${_filename}.nodemon.watch.test.bash" ]] && rm -rf ./".${_filename}.nodemon.watch.test.bash"
 
       # nodemon --watch "${file_to_observe}" --ext ${extension_to_observe} --spawn --exec "${extra_args_to_run} ${file_to_observe}" 2>&1  \
       cat <<-EOF > ".${_filename}.nodemon.watch.test.bash"
-#!/usr/bin/env bash
-
-pathpat="(/[^/]*)+:[0-9]+"
-ccred=\$(echo -e "\033[0;31m")
-ccyellow=\$(echo -e "\033[0;33m")
-ccend=\$(echo -e "\033[0m")
-# sed -E
-# -e "/[Ee]rror[: ]/ s%$pathpat%$ccred&$ccend%g"
-# -e "/[Ww]arning[: ]/ s%$pathpat%$ccyellow&$ccend%g"
+${replacer_colors_prefix}
 
 nodemon --watch "./" --ext py,go,bash,sh,kv,php,rb --spawn --exec "${prefix_to_run-}$(pwd)/${*}"  2>&1  \
-        | ${REPLACER} --unbuffered '/\ process\ jobs\ in\ this\ environment/d' \
-        | ${REPLACER} --unbuffered '/Top\ level\ /d' \
-        | ${REPLACER} --unbuffered '/block....levels/d' \
-        | ${REPLACER} --unbuffered '/\ warning:\ already\ initialized\ constant/d' \
-        | ${REPLACER} --unbuffered '/\ was\ here/d' \
-      | ${REPLACER} --unbuffered 's/\ on\ line\ /:/g' \
-      | ${REPLACER} --unbuffered 's/:\ line\ /:/g' \
-      | ${REPLACER} --unbuffered 's/\ No\ such\ file\ or\ directory\ in\ /\ in\ \o033[38;5;213m/g' \
-      | ${REPLACER} --unbuffered 's/\,\ no\ offenses\ /\,\ \o033[01;32m no\ offenses\ \o033[0m/g' \
-      | ${REPLACER} --unbuffered 's/\ examples\,\ 0\ failures/\o033[01;32m\ examples\,\ 0\ failures \o033[0m/g' \
-      | ${REPLACER} --unbuffered 's/\ returns\ /\o033[01;32m\ returns\ /g' \
-      | ${REPLACER} --unbuffered 's/\[Command\ was\ successful\]/\o033[01;32m\[Command\ was\ successful\]/g' \
-      | ${REPLACER} --unbuffered 's/\ GET\ /\o033[01;35m\ GET\ /g' \
-      | ${REPLACER} --unbuffered 's/Top\ /\o033[38;5;100mTop\ /g' \
-      | ${REPLACER} --unbuffered 's/\ seconds\ /\o033[38;5;231m\ seconds\ /g' \
-      | ${REPLACER} --unbuffered 's/\ behaves\ like\ /\o033[01;36m\ behaves\ like\ /g' \
-      | ${REPLACER} --unbuffered 's/\ when\ /\o033[01;36m\ when\ /g' \
-      | ${REPLACER} --unbuffered 's/ErrorException:\ /\o033[38;5;196mErrorException:\ \o033[38;5;213m/g' \
-       | ${REPLACER} --unbuffered "s/\ require_once(.\/wp-content/\ require_once(\n$cwd\/wp-content/g" \
-       | ${REPLACER} --unbuffered "s/\ require(.\/wp-content/\ require(\n$cwd\/wp-content/g" \
-       | ${REPLACER} --unbuffered "s/\ require\ .\/wp-content/\ require\ \n$cwd\/wp-content/g" \
-       | ${REPLACER} --unbuffered "s/\ include\ .\/wp-content/\ include\ \n$cwd\/wp-content/g" \
-       | ${REPLACER} --unbuffered "s/\ include_once(.\/wp-content/\ include_once(\n$cwd\/wp-content/g" \
-       | ${REPLACER} --unbuffered "s/\ in\ \//\ in\ \n\//g" \
-      | ${REPLACER} --unbuffered 's/Stack\ trace:/\o033[38;0mStack\ trace:/g' \
-      | ${REPLACER} --unbuffered 's/Call\ Stack:/\o033[38;0mCall\ Stack:/g' \
-      | ${REPLACER} --unbuffered 's/#. //g' \
-      | ${REPLACER} --unbuffered -E "/[Ee]rror[: ]/ s%$pathpat%$ccred&$ccend%g" \
-      | ${REPLACER} --unbuffered -E "/[Ww]arning[: ]/ s%$pathpat%$ccyellow&$ccend%g" \
-      | ${REPLACER} --unbuffered 's/"${_maybe_name-}"/\o033[38;5;178m"${_maybe_name-}"\o033[0m/g' \
-      | ${REPLACER} --unbuffered 's/\.\/spec\//\o033[0m\.\/spec\//g' \
-      | ${REPLACER} --unbuffered 's/"${_maybe_name-}"/\o033[38;5;178m"${_maybe_name-}"\o033[0m/g' \
-
-      # | ${REPLACER} --unbuffered 's@/./@/@g' \
+${replacer_colors_sufix}
 
 EOF
       chmod a+x  ".${_filename}.nodemon.watch.test.bash"
