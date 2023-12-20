@@ -4,6 +4,10 @@
 # @author Zeus Intuivo <zeus@intuivo.com>
 #
 #
+# set -eu
+set -u
+export USER_HOME="${HOME}"
+export DEBUG=0
 load_struct_testing_wget(){
     local provider="$HOME/_/clis/execute_command_intuivo_cli/struct_testing"
     [   -e "${provider}"  ] && source "${provider}"
@@ -17,9 +21,29 @@ touch .nurignore_files
 touch .nurignore_dirs
 touch .ersetzeignore_files
 touch .ersetzeignore_dirs
+touch .oeignore_files
+touch .oeignore_dirs
+if touch "${HOME}/.config/git/ignore" ; then
+{
+    mkdir -p "${HOME}/.config/git"
+}
+fi
 
 _if_not_contains .gitignore ".nurignore_files" || echo -e "\n.nurignore_files" >> .gitignore
 _if_not_contains .gitignore ".nurignore_dirs" || echo -e "\n.nurignore_dirs" >> .gitignore
 _if_not_contains .gitignore ".ersetzeignore_files" || echo -e "\n.ersetzeignore_files" >> .gitignore
 _if_not_contains .gitignore ".ersetzeignore_dirs" || echo -e "\n.ersetzeignore_dirs" >> .gitignore
+_if_not_contains .gitignore ".oeignore_files" || echo -e "\n.oeignore_files" >> .gitignore
+_if_not_contains .gitignore ".oeignore_dirs" || echo -e "\n.oeignore_dirs" >> .gitignore
+
+if [[ -f  "${HOME}/.config/git/ignore" ]] ; then
+{
+_if_not_contains "${HOME}/.config/git/ignore" ".nurignore_files" || echo -e "\n.nurignore_files" >> "${HOME}/.config/git/ignore"
+_if_not_contains "${HOME}/.config/git/ignore" ".nurignore_dirs" || echo -e "\n.nurignore_dirs" >> "${HOME}/.config/git/ignore"
+_if_not_contains "${HOME}/.config/git/ignore" ".ersetzeignore_files" || echo -e "\n.ersetzeignore_files" >> "${HOME}/.config/git/ignore"
+_if_not_contains "${HOME}/.config/git/ignore" ".ersetzeignore_dirs" || echo -e "\n.ersetzeignore_dirs" >> "${HOME}/.config/git/ignore"
+_if_not_contains "${HOME}/.config/git/ignore" ".oeignore_files" || echo -e "\n.oeignore_files" >> "${HOME}/.config/git/ignore"
+_if_not_contains "${HOME}/.config/git/ignore" ".oeignore_dirs" || echo -e "\n.oeignore_dirs" >> "${HOME}/.config/git/ignore"
+}
+fi
 

@@ -78,7 +78,93 @@ fi
 ## SED REF: http://www.theunixschool.com/2014/08/sed-examples-remove-delete-chars-from-line-file.html
 #                                           # remove 1st character in every line:
 # echo "err_buff3=$?"
-findings=$(find . | ag --nocolor "/.*${SEEKING}[^/]*$" | trim_start_space | sed 's/^\../  /g')
+
+
+MOREIGNORE_FILES=""
+[ -f .oeignore_files ] && MOREIGNORE_FILES=$(<.oeignore_files)
+MOREIGNORE_DIRS=""
+[ -f .oeignore_dirs ] && MOREIGNORE_DIRS=$(<.oeignore_dirs)
+
+# echo "MOREIGNORE_FILES:${MOREIGNORE_FILES}"
+# echo "MOREIGNORE_DIRS:${MOREIGNORE_DIRS}"
+# exit 0
+
+FILESTOEXCLUDE=".dir_bash_history
+.gitignore
+.ersetzeignore_dirs
+.ersetzeignore_files
+.nurignore_dirs
+.nurignore_files
+.tutorial
+ack
+bootstrap.php.cache
+conflicts
+composer.phar
+countalltables
+dBug.php
+generateinserts
+generatelocations
+generateparams
+load_insert
+phpunit
+${MOREIGNORE_FILES}"
+
+DIRSTOEXCLUDE=".cargo
+.nyc_output
+.serverless
+.tmp
+.ecryptfs
+.gvfs
+.git
+.idea
+.vagrant
+.servo
+coverage
+AbsoluteUrlBundle
+app/Stubs
+bower_components
+cache
+.cache
+dist
+node_modules
+python
+storage/debugbar
+storage/logs
+target
+tmp
+log
+ports
+app/Stubs
+var/cache
+var/logs
+var/session
+app/cache
+app/logs
+app/session
+${MOREIGNORE_DIRS}"
+# echo "FILESTOEXCLUDE:${FILESTOEXCLUDE}"
+# echo "DIRSTOEXCLUDE:${DIRSTOEXCLUDE}"
+# exit 0
+
+IGNORELIST=""
+EXCLUDEPREFIX='-e'
+    while read -r ONE_FILENAME; do
+      # if not empty
+      if [[ -n "${ONE_FILENAME}" ]] ; then
+        IGNORELIST="${IGNORELIST} ${EXCLUDEPREFIX} ${ONE_FILENAME}"
+      fi
+    done <<< "${FILESTOEXCLUDE}"
+    while read -r ONE_DIRNAME; do
+      # if not empty
+      if [[ -n "${ONE_DIRNAME}" ]] ; then
+        IGNORELIST="${IGNORELIST} ${EXCLUDEPREFIX} ${ONE_DIRNAME}"
+      fi
+    done <<< "${DIRSTOEXCLUDE}"
+
+
+
+
+findings=$(find . | ag --nocolor "/.*${SEEKING}[^/]*$" | trim_start_space | sed 's/^\../  /g' | grep -v "${IGNORELIST}")
 # echo "err_buff4=$?"
 if [[ -n "${findings}" ]] ; then
 {
