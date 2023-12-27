@@ -240,6 +240,15 @@ function _main(){
   local -i _err=0
   local file_to_observe="${1-}"
   local extension_to_observe=$(file_extension "${1-}")
+  local observe_one_line=""
+  if ( grep -q ":"  <<< "${file_to_observe}" ) ; then
+  {
+    observe_one_line="${file_to_observe}"
+    local cut_file_number="$(cut -d: -f1 <<< "${file_to_observe}" )"
+    extension_to_observe=$(file_extension "${cut_file_number:-}")
+    file_to_observe="${cut_file_number}"
+  }
+  fi
   local extra_args_to_run="${*:2}"
   local prefix_to_run=""
   local file_to_watch="\"./\""
@@ -356,8 +365,18 @@ elif [[ "${extension_to_observe-}" == "rb"  ]] ; then
     # kill live-server coverage
     ps axt | grep live-server | grep coverage |xargs | cut -d\  -f1 |xargs  -I {} kill {}
     # one file
-    local extra_args_to_run_preview="clear && bundle exec rubocop -A  \\\"$(pwd)/${file_to_observe-}\\\" && FULL_SPEC_RUN=true RACK_ENV=test RAILS_ENV=test NODE_ENV=test COVERAGE=true CI_RSPEC=false  bundle exec rspec --tty --color --format documentation \\\"$(pwd)/${file_to_observe-}\\\" && live-server coverage "
-    extra_args_to_run="[[ -n \\\"\$(ps axt | grep 'live-server' | grep 'coverage'  | head -1 | xargs)\\\"  ]] || kill \\\"\$(ps axt | grep 'live-server' | grep 'coverage'  | head -1 | xargs | cut -d' ' -f2 )\\\" || ( ${extra_args_to_run_preview}  ) && ( ${extra_args_to_run_preview}  ) "
+    local extra_args_to_run_preview=""
+    if [[ -n "${observe_one_line}" ]] ; then # Criteria: if one numeric : then pass only one test to run but keep observing other files
+    {
+      extra_args_to_run_preview="clear && bundle exec rubocop -A  \\\"$(pwd)/${file_to_observe-}\\\" && FULL_SPEC_RUN=true RACK_ENV=test RAILS_ENV=test NODE_ENV=test COVERAGE=true CI_RSPEC=false  bundle exec rspec --tty --color --format documentation \\\"$(pwd)/${observe_one_line-}\\\" && live-server coverage "
+      extra_args_to_run="[[ -n \\\"\$(ps axt | grep 'live-server' | grep 'coverage'  | head -1 | xargs)\\\"  ]] || kill \\\"\$(ps axt | grep 'live-server' | grep 'coverage'  | head -1 | xargs | cut -d' ' -f2 )\\\" || ( ${extra_args_to_run_preview}  ) && ( ${extra_args_to_run_preview}  ) "
+    }
+    else
+    {
+      extra_args_to_run_preview="clear && bundle exec rubocop -A  \\\"$(pwd)/${file_to_observe-}\\\" && FULL_SPEC_RUN=true RACK_ENV=test RAILS_ENV=test NODE_ENV=test COVERAGE=true CI_RSPEC=false  bundle exec rspec --tty --color --format documentation \\\"$(pwd)/${file_to_observe-}\\\" && live-server coverage "
+      extra_args_to_run="[[ -n \\\"\$(ps axt | grep 'live-server' | grep 'coverage'  | head -1 | xargs)\\\"  ]] || kill \\\"\$(ps axt | grep 'live-server' | grep 'coverage'  | head -1 | xargs | cut -d' ' -f2 )\\\" || ( ${extra_args_to_run_preview}  ) && ( ${extra_args_to_run_preview}  ) "
+    }
+    fi
     local _files_to_rubocop="$(pwd)/${file_to_observe-}"
     local _files_to_rspec="$(pwd)/${file_to_observe-}"
     file_to_watch="$(pwd)/${file_to_observe-}"
@@ -416,8 +435,17 @@ ${one}"
           # multiple files
           if [ ${_found} -gt 0 ] ; then
           {
-            extra_args_to_run_preview="clear && bundle exec rubocop -A  \\\"${_files_to_rubocop-}\\\" && FULL_SPEC_RUN=true RACK_ENV=test RAILS_ENV=test NODE_ENV=test COVERAGE=true CI_RSPEC=false  bundle exec rspec --tty --color --format documentation \\\"${_files_to_rspec-}\\\" && live-server coverage "
-            extra_args_to_run="[[ -n \\\"\$(ps axt | grep 'live-server' | grep 'coverage'  | head -1 | xargs)\\\"  ]] || kill \\\"\$(ps axt | grep 'live-server' | grep 'coverage'  | head -1 | xargs | cut -d' ' -f2 )\\\" || ( ${extra_args_to_run_preview}  ) && ( ${extra_args_to_run_preview}  ) "
+            if [[ -n "${observe_one_line}" ]] ; then # Criteria: if one numeric : then pass only one test to run but keep observing other files
+            {
+              extra_args_to_run_preview="clear && bundle exec rubocop -A  \\\"${_files_to_rubocop-}\\\" && FULL_SPEC_RUN=true RACK_ENV=test RAILS_ENV=test NODE_ENV=test COVERAGE=true CI_RSPEC=false  bundle exec rspec --tty --color --format documentation \\\"$(pwd)/${observe_one_line-}\\\" && live-server coverage "
+              extra_args_to_run="[[ -n \\\"\$(ps axt | grep 'live-server' | grep 'coverage'  | head -1 | xargs)\\\"  ]] || kill \\\"\$(ps axt | grep 'live-server' | grep 'coverage'  | head -1 | xargs | cut -d' ' -f2 )\\\" || ( ${extra_args_to_run_preview}  ) && ( ${extra_args_to_run_preview}  ) "
+            }
+            else
+            {
+              extra_args_to_run_preview="clear && bundle exec rubocop -A  \\\"${_files_to_rubocop-}\\\" && FULL_SPEC_RUN=true RACK_ENV=test RAILS_ENV=test NODE_ENV=test COVERAGE=true CI_RSPEC=false  bundle exec rspec --tty --color --format documentation \\\"${_files_to_rspec-}\\\" && live-server coverage "
+              extra_args_to_run="[[ -n \\\"\$(ps axt | grep 'live-server' | grep 'coverage'  | head -1 | xargs)\\\"  ]] || kill \\\"\$(ps axt | grep 'live-server' | grep 'coverage'  | head -1 | xargs | cut -d' ' -f2 )\\\" || ( ${extra_args_to_run_preview}  ) && ( ${extra_args_to_run_preview}  ) "
+            }
+            fi
           }
           fi
 
@@ -471,8 +499,17 @@ ${one}"
           ## DEBUG exit 0
           if [ ${_found} -gt 0 ] ; then
           {
-            extra_args_to_run_preview="clear && bundle exec rubocop -A  \\\"${_files_to_rubocop-}\\\" && FULL_SPEC_RUN=true RACK_ENV=test RAILS_ENV=test NODE_ENV=test COVERAGE=true CI_RSPEC=false  bundle exec rspec --tty --color --format documentation \\\"${_files_to_rspec-}\\\" && live-server coverage "
-            extra_args_to_run="[[ -n \\\"\$(ps axt | grep 'live-server' | grep 'coverage'  | head -1 | xargs)\\\"  ]] || kill \\\"\$(ps axt | grep 'live-server' | grep 'coverage'  | head -1 | xargs | cut -d' ' -f2 )\\\" || ( ${extra_args_to_run_preview}  ) && ( ${extra_args_to_run_preview}  ) "
+            if [[ -n "${observe_one_line}" ]] ; then # Criteria: if one numeric : then pass only one test to run but keep observing other files
+            {
+              extra_args_to_run_preview="clear && bundle exec rubocop -A  \\\"${_files_to_rubocop-}\\\" && FULL_SPEC_RUN=true RACK_ENV=test RAILS_ENV=test NODE_ENV=test COVERAGE=true CI_RSPEC=false  bundle exec rspec --tty --color --format documentation \\\"$(pwd)/${observe_one_line-}\\\" && live-server coverage "
+              extra_args_to_run="[[ -n \\\"\$(ps axt | grep 'live-server' | grep 'coverage'  | head -1 | xargs)\\\"  ]] || kill \\\"\$(ps axt | grep 'live-server' | grep 'coverage'  | head -1 | xargs | cut -d' ' -f2 )\\\" || ( ${extra_args_to_run_preview}  ) && ( ${extra_args_to_run_preview}  ) "
+            }
+            else
+            {
+              extra_args_to_run_preview="clear && bundle exec rubocop -A  \\\"${_files_to_rubocop-}\\\" && FULL_SPEC_RUN=true RACK_ENV=test RAILS_ENV=test NODE_ENV=test COVERAGE=true CI_RSPEC=false  bundle exec rspec --tty --color --format documentation \\\"${_files_to_rspec-}\\\" && live-server coverage "
+              extra_args_to_run="[[ -n \\\"\$(ps axt | grep 'live-server' | grep 'coverage'  | head -1 | xargs)\\\"  ]] || kill \\\"\$(ps axt | grep 'live-server' | grep 'coverage'  | head -1 | xargs | cut -d' ' -f2 )\\\" || ( ${extra_args_to_run_preview}  ) && ( ${extra_args_to_run_preview}  ) "
+            }
+            fi
           }
           fi
 
@@ -530,8 +567,17 @@ ${one}"
           # multiple files
           if [ ${_found} -gt 0 ] ; then
           {
-            extra_args_to_run_preview="clear && bundle exec rubocop -A  \\\"${_files_to_rubocop-}\\\" && FULL_SPEC_RUN=true RACK_ENV=test RAILS_ENV=test NODE_ENV=test COVERAGE=true CI_RSPEC=false  bundle exec rspec --tty --color --format documentation \\\"${_files_to_rspec-}\\\" && live-server coverage "
-            extra_args_to_run="[[ -n \\\"\$(ps axt | grep 'live-server' | grep 'coverage'  | head -1 | xargs)\\\"  ]] || kill \\\"\$(ps axt | grep 'live-server' | grep 'coverage'  | head -1 | xargs | cut -d' ' -f2 )\\\" || ( ${extra_args_to_run_preview}  ) && ( ${extra_args_to_run_preview}  ) "
+            if [[ -n "${observe_one_line}" ]] ; then # Criteria: if one numeric : then pass only one test to run but keep observing other files
+            {
+              extra_args_to_run_preview="clear && bundle exec rubocop -A  \\\"${_files_to_rubocop-}\\\" && FULL_SPEC_RUN=true RACK_ENV=test RAILS_ENV=test NODE_ENV=test COVERAGE=true CI_RSPEC=false  bundle exec rspec --tty --color --format documentation \\\"$(pwd)/${observe_one_line-}\\\" && live-server coverage "
+              extra_args_to_run="[[ -n \\\"\$(ps axt | grep 'live-server' | grep 'coverage'  | head -1 | xargs)\\\"  ]] || kill \\\"\$(ps axt | grep 'live-server' | grep 'coverage'  | head -1 | xargs | cut -d' ' -f2 )\\\" || ( ${extra_args_to_run_preview}  ) && ( ${extra_args_to_run_preview}  ) "
+            }
+            else
+            {
+              extra_args_to_run_preview="clear && bundle exec rubocop -A  \\\"${_files_to_rubocop-}\\\" && FULL_SPEC_RUN=true RACK_ENV=test RAILS_ENV=test NODE_ENV=test COVERAGE=true CI_RSPEC=false  bundle exec rspec --tty --color --format documentation \\\"${_files_to_rspec-}\\\" && live-server coverage "
+              extra_args_to_run="[[ -n \\\"\$(ps axt | grep 'live-server' | grep 'coverage'  | head -1 | xargs)\\\"  ]] || kill \\\"\$(ps axt | grep 'live-server' | grep 'coverage'  | head -1 | xargs | cut -d' ' -f2 )\\\" || ( ${extra_args_to_run_preview}  ) && ( ${extra_args_to_run_preview}  ) "
+            }
+            fi
           }
           fi
 
@@ -582,11 +628,20 @@ ${one}"
           done <<< "${__all_passed_files}"
           # multiple files
           echo _files_to_rspec:"${_files_to_rspec}"
-          ## DEBUG exit 0
+          # DEBUG exit 0
           if [ ${_found} -gt 0 ] ; then
           {
-            extra_args_to_run_preview="clear && bundle exec rubocop -A  \\\"${_files_to_rubocop-}\\\" && FULL_SPEC_RUN=true RACK_ENV=test RAILS_ENV=test NODE_ENV=test COVERAGE=true CI_RSPEC=false  bundle exec rspec --tty --color --format documentation \\\"${_files_to_rspec-}\\\" && live-server coverage "
-            extra_args_to_run="[[ -n \\\"\$(ps axt | grep 'live-server' | grep 'coverage'  | head -1 | xargs)\\\"  ]] || kill \\\"\$(ps axt | grep 'live-server' | grep 'coverage'  | head -1 | xargs | cut -d' ' -f2 )\\\" || ( ${extra_args_to_run_preview}  ) && ( ${extra_args_to_run_preview}  ) "
+            if [[ -n "${observe_one_line}" ]] ; then # Criteria: if one numeric : then pass only one test to run but keep observing other files
+            {
+              extra_args_to_run_preview="clear && bundle exec rubocop -A  \\\"${_files_to_rubocop-}\\\" && FULL_SPEC_RUN=true RACK_ENV=test RAILS_ENV=test NODE_ENV=test COVERAGE=true CI_RSPEC=false  bundle exec rspec --tty --color --format documentation \\\"$(pwd)/${observe_one_line-}\\\" && live-server coverage "
+              extra_args_to_run="[[ -n \\\"\$(ps axt | grep 'live-server' | grep 'coverage'  | head -1 | xargs)\\\"  ]] || kill \\\"\$(ps axt | grep 'live-server' | grep 'coverage'  | head -1 | xargs | cut -d' ' -f2 )\\\" || ( ${extra_args_to_run_preview}  ) && ( ${extra_args_to_run_preview}  ) "
+            }
+            else
+            {
+              extra_args_to_run_preview="clear && bundle exec rubocop -A  \\\"${_files_to_rubocop-}\\\" && FULL_SPEC_RUN=true RACK_ENV=test RAILS_ENV=test NODE_ENV=test COVERAGE=true CI_RSPEC=false  bundle exec rspec --tty --color --format documentation \\\"${_files_to_rspec-}\\\" && live-server coverage "
+              extra_args_to_run="[[ -n \\\"\$(ps axt | grep 'live-server' | grep 'coverage'  | head -1 | xargs)\\\"  ]] || kill \\\"\$(ps axt | grep 'live-server' | grep 'coverage'  | head -1 | xargs | cut -d' ' -f2 )\\\" || ( ${extra_args_to_run_preview}  ) && ( ${extra_args_to_run_preview}  ) "
+            }
+            fi
           }
           fi
 
