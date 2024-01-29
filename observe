@@ -965,14 +965,14 @@ EOF
       # go observe homework.go
       # rust observe Cargo.toml
       # echo "nodemon --watch \"${file_to_watch-}\"  --exts ${extension_to_observe} --restart \"${prefix_to_run-}$(pwd)/${*}\"  "
-      echo "watchexec --watch \"./\" --exts py,go,bash,sh,kv,php,rb --restart \"${prefix_to_run-}$(pwd)/${*}\" "
+      echo "watchexec --watch \"./\" --exts py,go,bash,sh,kv,php,rb,java --restart \"${prefix_to_run-}$(pwd)/${*}\" "
       [[ -e ./".${_filename}.watchexec.watch.test.bash" ]] && rm -rf ./".${_filename}.watchexec.watch.test.bash"
 
       # watchexec --watch "${file_to_observe}" --exts ${extension_to_observe} --restart "${extra_args_to_run} ${file_to_observe}" 2>&1  \
       cat <<-EOF > ".${_filename}.watchexec.watch.test.bash"
 ${replacer_colors_prefix}
 
-watchexec --watch "./" --exts py,go,bash,sh,kv,php,rb --restart "${prefix_to_run-}$(pwd)/${*}"  2>&1  \
+watchexec --watch "./" --exts py,go,bash,sh,kv,php,rb,java --restart "${prefix_to_run-}$(pwd)/${*}"  2>&1  \
 ${replacer_colors_sufix}
 EOF
       chmod a+x  ".${_filename}.watchexec.watch.test.bash"
@@ -1014,14 +1014,14 @@ EOF
       # go observe homework.go
       # rust observe Cargo.toml
       # echo "nodemon --watch \"${file_to_watch-}\"  --ext ${extension_to_observe} --exec \"${prefix_to_run-}$(pwd)/${*}\"  "
-      echo "nodemon --watch \"./\" --ext py,go,bash,sh,kv,php,rb --spawn --exec \"${prefix_to_run-}$(pwd)/${*}\" "
+      echo "nodemon --watch \"./\" --ext py,go,bash,sh,kv,php,rb,java --spawn --exec \"${prefix_to_run-}$(pwd)/${*}\" "
       [[ -e ./".${_filename}.nodemon.watch.test.bash" ]] && rm -rf ./".${_filename}.nodemon.watch.test.bash"
 
       # nodemon --watch "${file_to_observe}" --ext ${extension_to_observe} --spawn --exec "${extra_args_to_run} ${file_to_observe}" 2>&1  \
       cat <<-EOF > ".${_filename}.nodemon.watch.test.bash"
 ${replacer_colors_prefix}
 
-nodemon --watch "./" --ext py,go,bash,sh,kv,php,rb --spawn --exec "${prefix_to_run-}$(pwd)/${*}"  2>&1  \
+nodemon --watch "./" --ext py,go,bash,sh,kv,php,rb,java --spawn --exec "${prefix_to_run-}$(pwd)/${*}"  2>&1  \
 ${replacer_colors_sufix}
 
 EOF
