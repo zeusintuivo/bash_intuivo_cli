@@ -1,0 +1,50 @@
+#!/usr/bin/env bash
+#!/bin/bash
+
+function bash_log() {
+# log "INFO some info message"
+# log "DEBUG some debug message"
+# log "WARN some warning message"
+# log "ERROR some really ERROR message"
+# log "FATAL some really fatal message"
+# shellcheck disable=SC2155
+local type_of_msg=$(echo "${@}" | cut -d" " -f1)
+# shellcheck disable=SC2155
+local msg=$(echo "${@}" | cut -d" " -f2-)
+local _datum=$(date "+%Y.%m.%d-%H:%M:%S %Z")
+case "${type_of_msg}" in
+INFO*)  echo -en " ${PURPLE_BLUE-}[${GRAY241-}" ;;
+ERROR*) echo -en " ${PURPLE-}[${RED-}" ;;
+*)  echo -en " ${PURPLE_BLUE-}[${YELLOW226-}" ;;
+esac
+echo -en "${type_of_msg}"
+case "${type_of_msg}" in
+ERROR*) echo -e "${PURPLE-}] ${GRAY200-}${_datum}${RED89-}[${RED126-}$$${RED89-}] ${RED126-}${msg}${RESET-}" ;;
+*)  echo -e "${PURPLE_BLUE-}] ${GRAY238-}${_datum}${RED89-}[${RED126-}$$${RED89-}] ${CYAN60-}${msg}${RESET-}" ;;
+esac
+} # end bash_log
+
+function load_global_colors(){
+[[ -z "${BLACK-}" ]] && BLACK="\\033[38;5;16m"
+[[ -z "${BRIGHT_BLUE87-}" ]] && BRIGHT_BLUE87="\\033[38;5;87m"
+[[ -z "${CYAN-}" ]] && CYAN="\\033[38;5;123m"
+[[ -z "${CYAN60-}" ]] && CYAN60="\\033[38;5;60m"
+[[ -z "${GRAY241-}" ]] && GRAY241="\\033[38;5;241m"
+[[ -z "${GRAY200-}" ]] && GRAY200="\\033[38;5;200m"
+[[ -z "${GRAY238-}" ]] && GRAY238="\\033[38;5;238m"
+[[ -z "${GREEN-}" ]] && GREEN="\\033[38;5;22m"
+[[ -z "${PURPLE_BLUE-}" ]] && PURPLE_BLUE="\\033[38;5;93m"
+[[ -z "${PURPLE-}" ]] && PURPLE="\\033[01;35m"
+[[ -z "${RED-}" ]] && RED="\\033[38;5;1m"
+[[ -z "${RED89-}" ]] && RED89="\\033[38;5;89m"
+[[ -z "${RED126-}" ]] && RED126="\\033[38;5;126m"
+[[ -z "${RESET_PROMPT-}" ]] && RESET_PROMPT="[0m"
+[[ -z "${RESET-}" ]] && RESET="\\033[0m"
+[[ -z "${YELLOW220-}" ]] && YELLOW220="\\033[38;5;220m"
+[[ -z "${YELLOW226-}" ]] && YELLOW226="\\033[38;5;226m"
+[[ -z "${YELLOW-}" ]] && YELLOW="\\033[01;33m"
+[[ -z "${FROM_MAGENTA_NOT_VISIBLE-}" ]] && FROM_MAGENTA_NOT_VISIBLE="\\033[39m\\033[38;5;124m"
+} # end load_global_colors
+
+bash_log "${*:-}"
+
