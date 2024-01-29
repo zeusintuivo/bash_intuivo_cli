@@ -345,6 +345,94 @@ elif [[ "${extension_to_observe-}" == "toml" ]] && [[ "${file_to_observe-}" == "
   file_to_watch="$(pwd)/src"
   extension_to_observe="rs"
 }
+elif [[ "${extension_to_observe-}" == "xml" ]] && [[ "${file_to_observe-}" == "pom.xml" ]] ; then
+{
+  # Java Spring Boot pom.xml 
+  # check operation systems
+  local linuxy=0
+	local windowxy=0
+	if [[ "$(uname)" == "Darwin" ]] ; then
+    linuxy=1
+  elif [[ "$(expr substr $(uname -s) 1 5)" == "Linux" ]] ; then
+    linuxy=1
+  elif [[ "$(expr substr $(uname -s) 1 10)" == "MINGW32_NT" ]]  || [[ "$(expr substr $(uname -s) 1 10)" == "MINGW64_NT" ]] ; then
+    windowxy=1 
+		linuxy=0
+  fi
+	local open_cmd
+  case "$OSTYPE" in # this var OSTYPE is a global on linuxes and macs usually
+    (darwin*) linuxy=1 ;;
+    (cygwin*) windowxy=1 ; linuxy=1 ;;
+    (linux*) linuxy=1  ;;
+    (msys*) windowxy=1 ; linuxy=1  ;;
+    (*) echo "Platform $OSTYPE / $(uname) / $(expr substr $(uname -s) 1 5) / $(expr substr $(uname -s) 1 10) /  not supported"
+      return 1 ;;
+  esac
+    
+		echo "compile using Javac like ActiveJ"
+		echo "javac -classpath path/to/activej/libs/*.jar YourMainClass.java"
+		echo "run activej"
+		echo "java -jar target/your-application.jar"
+		echo "run manually activej"
+		echo "java -classpath path/to/activej/libs/*.jar:. YourMainClass"
+    # mvn spring-boot:run
+    if ( command -v mvn >/dev/null 2>&1; )  ; then
+      echo "mvn spring-boot:run -Dspring-boot.run.profiles=prod"
+      echo "mvn clean package"
+			echo "debug dev local:"
+			echo "mvn spring-boot:run"
+			if [ -e build.gradle.kts ] ; then
+        # kotlink ktor
+        prefix_to_run="[[ -n \\\"\$(ps aux | grep '${file_to_observe-}' | grep -v 'grep' | grep -v 'nodemon'  | head -1 | xargs)\\\"  ]] && kill \\\"\$(ps aux | grep '${file_to_observe-}' | grep -v 'grep' | grep -v 'nodemon'  | head -1 | xargs | cut -d' ' -f2 )\\\" || mvn compile exec:java -Dexec.mainClass=\\\"your.main.Class\\\" \\\"$(pwd)/${file_to_observe-}\\\" && mvn compile exec:java -Dexec.mainClass=\\\"your.main.Class\\\" "
+      else
+        # spring boot
+        prefix_to_run="[[ -n \\\"\$(ps aux | grep '${file_to_observe-}' | grep -v 'grep' | grep -v 'nodemon'  | head -1 | xargs)\\\"  ]] && kill \\\"\$(ps aux | grep '${file_to_observe-}' | grep -v 'grep' | grep -v 'nodemon'  | head -1 | xargs | cut -d' ' -f2 )\\\" || mvn spring-boot:run \\\"$(pwd)/${file_to_observe-}\\\" && mvn spring-boot:run "
+			fi
+		else
+			echo "./gradlew bootRun --args='--spring.profiles.active=prod'"
+			echo "debug dev local:"
+			echo "./gradlew bootRun"
+			echo "Create Jar"
+			echo "./gradlew build"
+			echo "java -jar target/yourapp-0.0.1-SNAPSHOT.jar"
+
+			if [ ${linuxy} -eq 1 ] && [ ${windowxy} -eq 0 ] ; then
+		    if ( command -v ./gradlew  >/dev/null 2>&1; )  ; then
+					if [ -e build.gradle.kts ] ; then
+						# kotlink ktor
+            prefix_to_run="[[ -n \\\"\$(ps aux | grep '${file_to_observe-}' | grep -v 'grep' | grep -v 'nodemon'  | head -1 | xargs)\\\"  ]] && kill \\\"\$(ps aux | grep '${file_to_observe-}' | grep -v 'grep' | grep -v 'nodemon'  | head -1 | xargs | cut -d' ' -f2 )\\\" || ./gradlew run  \\\"$(pwd)/${file_to_observe-}\\\" && ./gradlew run  "
+					else 
+						# spring boot
+            prefix_to_run="[[ -n \\\"\$(ps aux | grep '${file_to_observe-}' | grep -v 'grep' | grep -v 'nodemon'  | head -1 | xargs)\\\"  ]] && kill \\\"\$(ps aux | grep '${file_to_observe-}' | grep -v 'grep' | grep -v 'nodemon'  | head -1 | xargs | cut -d' ' -f2 )\\\" || ./gradlew bootRun  \\\"$(pwd)/${file_to_observe-}\\\" && ./gradlew bootRun  "
+					fi
+				fi
+			elif [ ${linuxy} -eq 1 ] && [ ${windowxy} -eq 0 ] ; then # cygwin or msys 
+		    if ( command -v gradlew.bat  >/dev/null 2>&1; )  ; then
+					if [ -e build.gradle.kts ] ; then
+            # kotlink ktor
+						prefix_to_run="[[ -n \\\"\$(ps aux | grep '${file_to_observe-}' | grep -v 'grep' | grep -v 'nodemon'  | head -1 | xargs)\\\"  ]] && kill \\\"\$(ps aux | grep '${file_to_observe-}' | grep -v 'grep' | grep -v 'nodemon'  | head -1 | xargs | cut -d' ' -f2 )\\\" || gradlew.bat run  \\\"$(pwd)/${file_to_observe-}\\\" && gradlew.bat run  "
+					else
+						# spring boot
+						prefix_to_run="[[ -n \\\"\$(ps aux | grep '${file_to_observe-}' | grep -v 'grep' | grep -v 'nodemon'  | head -1 | xargs)\\\"  ]] && kill \\\"\$(ps aux | grep '${file_to_observe-}' | grep -v 'grep' | grep -v 'nodemon'  | head -1 | xargs | cut -d' ' -f2 )\\\" || gradlew.bat bootRun  \\\"$(pwd)/${file_to_observe-}\\\" && gradlew.bat bootRun  "
+			    fi
+				fi
+			else 
+       prefix_to_run="[[ -n \\\"\$(ps aux | grep '${file_to_observe-}' | grep -v 'grep' | grep -v 'nodemon'  | head -1 | xargs)\\\"  ]] && kill \\\"\$(ps aux | grep '${file_to_observe-}' | grep -v 'grep' | grep -v 'nodemon'  | head -1 | xargs | cut -d' ' -f2 )\\\" || gradlew.bat bootRun  \\\"$(pwd)/${file_to_observe-}\\\" && gradlew.bat bootRun  "
+			fi
+		fi	
+
+  file_to_watch="$(pwd)/"
+  extension_to_observe="java"
+}
+elif [[ "${extension_to_observe-}" == "java"  ]] ; then
+{
+  # java
+  # java  project_file
+  prefix_to_run="[[ -n \\\"\$(ps aux | grep '${file_to_observe-}' | grep -v 'grep'  | head -1 | xargs)\\\"  ]] || kill \\\"\$(ps aux | grep '${file_to_observe-}' | grep -v 'grep'  | head -1 | xargs | cut -d' ' -f2 )\\\" || java \\\"$(pwd)/${file_to_observe-}\\\" && java "
+  file_to_watch="$(pwd)/"
+  extension_to_observe="java"
+	extra_args_to_run=""
+}
 elif [[ "${extension_to_observe-}" == "py"  ]] ; then
 {
   # python
@@ -677,7 +765,7 @@ EOF
 }
 else
 {
-  extension_to_observe="rs,py,go,bash,sh,kv,php,rb"
+  extension_to_observe="rs,py,go,bash,sh,kv,php,rb,java"
 }
 fi
 echo "     extension_to_observe:${extension_to_observe-}"
