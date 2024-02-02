@@ -50,7 +50,10 @@ function run_fedora_update() {
   flatpak update -y &
   # snap refresh
   brew unlink php &
+	git checkout /home/zeus/.config/composer/vendor/nesbot/carbon
   yes | composer global update &
+	git checkout /home/zeus/.config/composer/vendor/nesbot/carbon &
+	yes | composer global update &
   brew update
   wait
   brew upgrade &
