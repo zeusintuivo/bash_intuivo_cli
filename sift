@@ -3,37 +3,862 @@
 # @author Zeus Intuivo <zeus@intuivo.com>
 #
 #
+function load_colors() {
+  [[ -z "${CYAN:-}" ]] && CYAN="\\033[38;5;123m"
+  [[ -z "${PURPLE_BLUE:-}" ]] && PURPLE_BLUE="\\033[38;5;93m"
+  [[ -z "${YELLOW226:-}" ]] && YELLOW226="\\033[38;5;226m"
+  [[ -z "${GRAY241:-}" ]] && GRAY241="\\033[38;5;241m"
+  [[ -z "${GRAY242:-}" ]] && GRAY242="\\033[38;5;242m"
+  [[ -z "${GRAY243:-}" ]] && GRAY243="\\033[38;5;243m"
+  [[ -z "${YELLOW214:-}" ]] && YELLOW214="\\033[38;5;214m"
+  [[ -z "${RESET:-}" ]] && RESET="\\033[0m"
+  [[ -z "${RED:-}" ]] && RED="\\033[38;5;1m"
+  [[ -z "${BRIGHT_BLUE87:-}" ]] && BRIGHT_BLUE87="\\033[38;5;87m"
+  GRAYEDOUT="\033[01;30m"
+  RED="\033[01;31m"
+  GREEN="\033[01;32m"
+  YELLOW="\033[01;33m"
+  DARKBLUE="\033[01;34m"
+  DARKGREEN="\033[38;5;22m"
+  PURPLE="\033[01;35m"
+  CYAN="\033[01;36m"
+  WHITEBOLD="\033[01;37m"
+
+  LIGHTGREEN="\033[38;5;83m"
+  LIGHTPINK="\033[1;204m"
+  LIGHTYELLOW="\033[38;5;227m"
+  GREEN_OVER_DARKBLUE="\033[38;5;76m\033[48;5;17m"
+  YELLOW_OVER_DARKBLUE="\033[38;5;220m\033[48;5;20m"
+  DARKBLUE_OVER_DARKBLUE="\033[01;34m\033[48;5;20m"
+
+  RESET="\033[0m"
+} # end load_colors
+load_colors
+
+function get_linux_architecture(){
+  # How to use
+  #    FILE_TO_CALL=$(get_linux_architecture "debian")
+  # > _debian__64
+  # > _debian__32
+  #    FILE_TO_CALL=$(get_linux_architecture "${DISTRO}")
+  #
+  local system_nick="${1}"
+  local return_file_to_call=""
+  if [[ "$(uname -i)" == "x86_64" ]] ; then
+  {
+    return_file_to_call="_${system_nick}__64"
+  }
+  elif [[ "$(uname -i)" == "i686"   ]] ; then
+  {
+    return_file_to_call="_${system_nick}__32"
+  }
+  elif [[ "$(uname -i)" == "arm64"   ]] ; then
+  {
+    return_file_to_call="_${system_nick}__arm64"
+  }
+  else
+  {
+    return_file_to_call="_${system_nick}__$(uname -i)"
+    warning "ERROR to determine "$(uname -a)" architecture (uname -i)  for: <${return_file_to_call}>"
+  }
+  fi
+  if [ -z ${return_file_to_call} ] || [[ "${return_file_to_call}" =~ 'nknown' ]] ; then
+  {
+    if [[ "$(uname -a)" =~  'x86_64' ]] ; then
+    {
+      return_file_to_call="_${system_nick}__64"
+    }
+    fi
+    if [[ "$(uname -a)" =~  'i686' ]] ; then
+    {
+      return_file_to_call="_${system_nick}__32"
+    }
+    fi
+    if [[ "$(uname -a)" =~  'arm64' ]] ; then
+    {
+      return_file_to_call="_${system_nick}__arm64"
+    }
+    fi
+  }
+  fi
+  echo -n ${return_file_to_call}
+  return 0
+} # end get_linux_architecture
+
+function get_mac_architecture(){
+  # How to use
+  #    FILE_TO_CALL=$(get_mac_architecture "darwin")
+  # > _darwin__64
+  # > _darwin__32
+  #    FILE_TO_CALL=$(get_mac_architecture "${DISTRO}")
+  #
+  local system_nick="${1}"
+  local return_file_to_call=""
+  if [[ "$(uname -m)" == "x86_64" ]] ; then
+  {
+    return_file_to_call="_${system_nick}__64"
+  }
+  elif [[ "$(uname -m)" == "i686"   ]] ; then
+  {
+    return_file_to_call="_${system_nick}__32"
+  }
+  elif [[ "$(uname -m)" == "arm64"   ]] ; then
+  {
+    return_file_to_call="_${system_nick}__arm64"
+  }
+  else
+  {
+    return_file_to_call="_${system_nick}__$(uname -m)"
+    warning "ERROR to determine "$(uname -a)" architecture (uname -m)  for: <${return_file_to_call}>"
+  }
+  fi
+  if [ -z ${return_file_to_call} ] || [[ "${return_file_to_call}" =~ 'nknown' ]] ; then
+  {
+     if [[ "$(uname -a)" =~  'x86_64' ]] ; then
+     {
+       return_file_to_call="_${system_nick}__64"
+     }
+     fi
+     if [[ "$(uname -a)" =~  'i686' ]] ; then
+     {
+       return_file_to_call="_${system_nick}__32"
+     }
+     fi
+     if [[ "$(uname -a)" =~  'arm64' ]] ; then
+     {
+       return_file_to_call="_${system_nick}__arm64"
+     }
+     fi
+  }
+  fi
+  echo -n ${return_file_to_call}
+  return 0
+} # end get_mac_architecture
+
+function _get_debian_style_version_number_maybe(){
+  # Sample use:
+  #     local target_name="ubuntu"
+  #     local _debian_style_version_number_maybe=$(_get_debian_style_version_number_maybe)
+  #     FILE_TO_CALL=$(get_linux_architecture "${target_name}${_debian_style_version_number_maybe}")
+  #
+  trap '>&2 echo -e "${RED}" && echo "ERROR failed $0:$LINENO struct_testing _get_debian_style_version_number_maybe()  " && >&1 echo -n "" && return 1' ERR
+  local -i _err=0
+  local _response=""
+  local -i linuxversion=0
+  linuxversion=$(cut -d. -f1 <<< $(cut -d'"' -f2 <<< $(grep VERSION_ID= <<< $(cat /etc/*-release) ) ) )
+  _err=$?
+  if [ ${_err} -eq 0 ] && [ ${linuxversion} -gt 0 ] ;  then
+  {
+    local -i testnumber=0
+    testnumber=$(( linuxversion + 1 ))
+    testnumber=$(( testnumber - 1 ))
+    if [ ${testnumber} -eq ${linuxversion} ] ; then
+    {
+      _response=${linuxversion}
+      echo -n "_${_response}"
+      return 0
+    }
+    fi
+  }
+  fi
+  echo -n "${_response}"
+  return 1
+} # end _get_debian_style_version_number_maybe
+
+function _get_redhat_style_version_number_maybe(){
+  # Sample use:
+  #     local target_name="fedora"
+  #     local _redhat_style_version_number_maybe=$(_get_redhat_style_version_number_maybe)
+  #     FILE_TO_CALL=$(get_linux_architecture "${target_name}${_redhat_style_version_number_maybe}")
+  #
+  #
+  trap '>&2 echo -e "${RED}" && echo "ERROR failed $0:$LINENO struct_testing _get_redhat_style_version_number_maybe()  " && >&1 echo -n "" && return 1' ERR
+  local -i _err=0
+  local _response=""
+  local -i linuxversion=0
+  linuxversion=$(cut -d= -f2 <<< $(grep VERSION_ID= <<< $(cat /etc/*-release) ) )
+  _err=$?
+  if [ ${_err} -eq 0 ] && [ ${linuxversion} -gt 0 ] ;  then
+  {
+    local -i testnumber=0
+    testnumber=$(( linuxversion + 1 ))
+    testnumber=$(( testnumber - 1 ))
+    if [ ${testnumber} -eq ${linuxversion} ] ; then
+    {
+      _response=${linuxversion}
+      echo -n "_${_response}"
+      return 0
+    }
+    fi
+  }
+  fi
+  echo -n "${_response}"
+  return 1
+} # end _get_redhat_style_version_number_maybe
+
+function _get_mac_style_version_number_maybe(){
+  # Sample use:
+  #     local target_name="darwin"
+  #     local _mac_style_version_number_maybe=$(_get_mac_style_version_number_maybe)
+  #     FILE_TO_CALL=$(get_linux_architecture "${target_name}${_mac_style_version_number_maybe}")
+  #
+  #
+  trap '>&2 echo -e "${RED}" && echo "ERROR failed $0:$LINENO struct_testing _get_mac_style_version_number_maybe()  " && >&1 echo -n "" && return 1' ERR
+  local -i _err=0
+  local _response=""
+  local -i macversion1=0
+  local -i macversion2=0
+  local macversion=0
+  # macversion=$(cut -d. -f1 <<< $( uname -r ) )
+  macversion1=$(sw_vers | grep ProductVersion | cut -d: -f2 | xargs | cut -d. -f1 | sed 's/\./_/g' )
+  _err=$?
+  if [ ${_err} -eq 0 ] && [ ${macversion1} -gt 0 ] ;  then
+  {
+    local -i testnumber=0
+    testnumber=$(( macversion1 + 1 ))
+    testnumber=$(( testnumber - 1 ))
+    if [ ${testnumber} -eq ${macversion1} ] ; then
+    {
+      macversion2=$(sw_vers | grep ProductVersion | cut -d: -f2 | xargs | cut -d. -f2 | sed 's/\./_/g' )
+      _err=$?
+      if [ ${_err} -eq 0 ] && [ ${macversion2} -gt 0 ] ;  then
+      {
+        local -i testnumber=0
+        testnumber=$(( macversion2 + 1 ))
+        testnumber=$(( testnumber - 1 ))
+        if [ ${testnumber} -eq ${macversion2} ] ; then
+        {
+          macversion="${macversion1}_${macversion2}"
+          _response=${macversion}
+          echo -n "_${_response}"
+          return 0
+        }
+        fi
+      }
+      fi
+    }
+    fi
+  }
+  fi
+
+  echo -n "${_response}"
+  return 1
+} # end _get_mac_style_version_number_maybe
+
+export ACTION=`basename "$0"`
+
+function determine_os_and_run_file() {
+  # Interface
+  # How to use
+  # First implement the target functions
+  #              _fedora__64(){ }
+  #              _fedora__32(){ }
+  #              _ubuntu__64(){ }
+  #              _ubuntu__32(){ }
+  #              _mingw__64(){ }
+  #              _mingw__32(){ }
+  #              _darwin__64(){ }
+  #              _darwin__32(){ }
+  # Then call this function
+  #              determine_os_and_run_file    """${*}"""
+  # remember to pass the  """${*}""" for the parameters to pass
+  # If will fail is the function has not been implemented with Error message
+  # of the function that is missing like _archlinux__64
+  local FILE_TO_CALL_WITH_VERSION=""
+  local FILE_TO_CALL=""
+  local PARAMETERS="${*:-}"
+  local -i DEBUG=0
+  local -i _err=0
+  # Check operating systems
+  # echo  ${@}
+  if [[ "$(uname)" == "Darwin" ]] ; then
+  {
+    if (( DEBUG )) ; then
+      echo "Darwin"
+    fi
+    # Do something under Mac OS X platform
+    # FILE_TO_CALL='_darwin__64'
+    # PARAMETERS="$@"
+    local target_name="darwin"
+    local _mac_style_version_number_maybe=$(_get_mac_style_version_number_maybe)
+    _err=$?
+    if [ ${_err} -eq 0 ] ; then
+    {
+      FILE_TO_CALL_WITH_VERSION=$(get_mac_architecture "${target_name}${_mac_style_version_number_maybe}")
+    }
+    fi
+    FILE_TO_CALL=$(get_mac_architecture "${target_name}")
+    PARAMETERS="$@"
+  }
+  elif [[ "$(expr substr $(uname -s) 1 5)" == "Linux" ]] ; then
+  {
+    if (( DEBUG )) ; then
+      echo "Linux"
+    fi
+    # Do something under GNU/Linux platform
+    # Determine OS platform
+    local UNAME=$(uname | tr "[:upper:]" "[:lower:]")
+    if (( DEBUG )) ; then
+      echo "UNAME: $UNAME"
+    fi
+    local DISTRO=""
+    local ID=""
+    local VERSION_ID=""
+    # If Linux, try to determine specific distribution
+    if [[ "$UNAME" == "linux" ]]; then
+    {
+      # If available, use LSB to identify distribution
+      if [ -f /etc/lsb-release -o -d /etc/lsb-release.d ]; then
+      {
+        if ( command -v lsb_release >/dev/null 2>&1; ); then
+        {
+          if (( DEBUG )) ; then
+            echo "RELEASE Option: 1"
+          fi
+          DISTRO=$(lsb_release -i | cut -d: -f2 | sed s/'^\t'// | head -1)
+        }
+        else
+        {
+          if (( DEBUG )) ; then
+            echo "RELEASE Option: 2"
+          fi
+          DISTRO=$(ls -d /etc/[A-Za-z]*[_-][rv]e[lr]* | grep -v "lsb" | cut -d'/' -f3 | cut -d'-' -f1 | cut -d'_' -f1 | head -1)
+        }
+        fi
+      }
+      else # Otherwise, use release info file
+      {
+        if (( DEBUG )) ; then
+          echo "RELEASE Option: 3"
+        fi
+        DISTRO=$(ls -d /etc/[A-Za-z]*[_-][rv]e[lr]* | grep -v "lsb" | cut -d'/' -f3 | cut -d'-' -f1 | cut -d'_' -f1 | head -1)
+      }
+      fi
+    }
+    fi
+    if (( DEBUG )) ; then
+      echo "DISTRO:$DISTRO"
+    fi
+    if [[ -z "$DISTRO" ]]; then  # if empty
+    {
+      if (( DEBUG )) ; then
+        echo "DISTRO empty"
+      fi
+      # If available, use /etc/os-release to identify distribution
+        if [ -f /etc/os-release ]; then
+        {
+          source /etc/os-release
+          # file_exists "/etc/os-release"
+          _assure_success
+          # source /etc/os-release
+          # $ echo $ID
+          # fedora
+          # $ echo $VERSION_ID
+          # 17
+          # $ echo $VERSION
+          # 17 (Beefy Miracle)
+          DISTRO=$ID
+        }
+        fi
+    }
+    fi
+    if [[ -z "$DISTRO" ]] ; then  # if empty
+    {
+      echo -e "${RED} ERROR - ${YELLOW220} to determine DISTRO for this linux. uname -a, cat /etc/os-release, lsb_release -i ${RESET}"
+      unset ACTION
+      unset FILE_TO_CALL_WITH_VERSION
+      unset FILE_TO_CALL
+      unset PARAMETERS
+      exit 1
+    }
+    fi
+
+    if [[ "$DISTRO" == *"edora"* ]]; then
+    {
+      local target_name="fedora"
+      local _redhat_style_version_number_maybe=$(_get_redhat_style_version_number_maybe)
+      _err=$?
+      if [ ${_err} -eq 0 ] ; then
+      {
+        FILE_TO_CALL_WITH_VERSION=$(get_linux_architecture "${target_name}${_redhat_style_version_number_maybe}")
+      }
+      fi
+      FILE_TO_CALL=$(get_linux_architecture "${target_name}")
+      PARAMETERS="$@"
+    }
+    elif [[ "$DISTRO" == *"untu"* ]]; then
+    {
+      # ubuntu lsb_release -i | sed 's/Distributor\ ID://g' = \tUbuntu\n
+      local target_name="ubuntu"
+      local _debian_style_version_number_maybe=$(_get_debian_style_version_number_maybe)
+      _err=$?
+      if [ ${_err} -eq 0 ] ; then
+      {
+        FILE_TO_CALL_WITH_VERSION=$(get_linux_architecture "${target_name}${_debian_style_version_number_maybe}")
+      }
+      fi
+      FILE_TO_CALL=$(get_linux_architecture "${target_name}")
+      PARAMETERS="$@"
+    }
+    elif [[ "$DISTRO" == *"bian"* ]]; then
+    {
+      local target_name="debian"
+      local _debian_style_version_number_maybe=$(_get_debian_style_version_number_maybe)
+      _err=$?
+      if [ ${_err} -eq 0 ] ; then
+      {
+        FILE_TO_CALL_WITH_VERSION=$(get_linux_architecture "${target_name}${_debian_style_version_number_maybe}")
+      }
+      fi
+      FILE_TO_CALL=$(get_linux_architecture "${target_name}")
+      PARAMETERS="$@"
+    }
+    else
+    {
+      local target_name="${DISTRO}"
+      local _redhat_style_version_number_maybe=$(_get_redhat_style_version_number_maybe)
+      _err=$?
+      if [ ${_err} -eq 0 ] ; then
+      {
+        FILE_TO_CALL_WITH_VERSION=$(get_linux_architecture "${target_name}${_redhat_style_version_number_maybe}")
+      }
+      fi
+      FILE_TO_CALL=$(get_linux_architecture "${target_name}")
+      PARAMETERS="$@"
+    }
+    fi
+    if (( DEBUG )) ; then
+      echo "FILE_TO_CALL: $FILE_TO_CALL"
+      echo "uname -i: $(uname -i)"
+    fi
+    # For everything else (or if above failed), just use generic identifier
+    unset UNAME
+    unset DISTRO
+    unset ID
+  }
+  elif [[ "$(expr substr $(uname -s) 1 10)" == "MINGW32_NT" ]] ; then
+  {
+    # Do something under Windows NT platform
+    if [[ "$(uname -i)" == "x86_64" ]] ; then
+    {
+      # local target_name="${DISTRO}"
+      # local _redhat_style_version_number_maybe=$(_get_redhat_style_version_number_maybe)
+      # FILE_TO_CALL_WITH_VERSION=$(get_linux_architecture "${target_name}${_redhat_style_version_number_maybe}")
+      # FILE_TO_CALL=$(get_linux_architecture "${target_name}")
+      FILE_TO_CALL='_mingw__64.exe'
+      PARAMETERS="$*"
+    }
+    elif [[ "$(uname -i)" == "i686"   ]] ; then
+    {
+      # local target_name="${DISTRO}"
+      # local _redhat_style_version_number_maybe=$(_get_redhat_style_version_number_maybe)
+      # FILE_TO_CALL_WITH_VERSION=$(get_linux_architecture "${target_name}${_redhat_style_version_number_maybe}")
+      # FILE_TO_CALL=$(get_linux_architecture "${target_name}")
+      FILE_TO_CALL='_mingw__32.exe'
+      PARAMETERS="$*"
+    }
+    fi
+    # nothing here
+  }
+  elif [[ "$(expr substr $(uname -s) 1 10)" == "MINGW64_NT" ]] ; then
+  {
+    # Do something under Windows NT platform
+    if [[ "$(uname -i)" == "x86_64" ]] ; then
+    {
+      # local target_name="${DISTRO}"
+      # local _redhat_style_version_number_maybe=$(_get_redhat_style_version_number_maybe)
+      # FILE_TO_CALL_WITH_VERSION=$(get_linux_architecture "${target_name}${_redhat_style_version_number_maybe}")
+      # FILE_TO_CALL=$(get_linux_architecture "${target_name}")
+      FILE_TO_CALL='_mingw__64.exe'
+      PARAMETERS="$*"
+    }
+    elif [[ "$(uname -i)" == "i686"   ]] ; then
+    {
+      # local target_name="${DISTRO}"
+      # local _redhat_style_version_number_maybe=$(_get_redhat_style_version_number_maybe)
+      # FILE_TO_CALL_WITH_VERSION=$(get_linux_architecture "${target_name}${_redhat_style_version_number_maybe}")
+      # FILE_TO_CALL=$(get_linux_architecture "${target_name}")
+      FILE_TO_CALL='_mingw__32.exe'
+      PARAMETERS="$*"
+    }
+    fi
+    # nothing here
+  }
+  else
+  {
+    echo -e "${RED} ERROR - ${YELLOW220} system not recognized ${RESET}"
+    unset ACTION
+    unset FILE_TO_CALL_WITH_VERSION
+    unset FILE_TO_CALL
+    unset PARAMETERS
+    exit 1
+  }
+  fi
+  if [[ -z "${FILE_TO_CALL}" ]]; then  # if empty
+  {
+    echo -e "${RED} ERROR - ${YELLOW220} The following branches failed  to determine FILE_TO_CALL for this OS. uname -a, cat /etc/os-release, lsb_release -i <${FILE_TO_CALL}> ${RESET}"
+    unset ACTION
+    unset FILE_TO_CALL_WITH_VERSION
+    unset FILE_TO_CALL
+    unset PARAMETERS
+    exit 1
+  }
+  else
+  {
+    # Found
+    local FILE_ACTION_VERSION="${ACTION}_${FILE_TO_CALL_WITH_VERSION}"
+    local FILE_ACTION="${ACTION}_${FILE_TO_CALL}"
+    if command -v "${FILE_ACTION_VERSION}" >/dev/null 2>&1; then
+    {
+      # passed "${FILE_ACTION_VERSION}" "${PARAMETERS:-THISSCRIPTPARAMS}"
+      "${FILE_ACTION_VERSION}" "${PARAMETERS:-THISSCRIPTPARAMS}"
+      # _assure_success
+    }
+    else
+    {
+
+      if command -v "${FILE_ACTION}" >/dev/null 2>&1; then
+      {
+        # passed "${FILE_ACTION}" "${PARAMETERS:-THISSCRIPTPARAMS}"
+        "${FILE_ACTION}" "${PARAMETERS:-THISSCRIPTPARAMS}"
+        # _assure_success
+      }
+      else
+      {
+        echo -e "${YELLOW220} warning - ${YELLOW220} warning could not find filename with version for this OS or DISTRO: ${FILE_ACTION_VERSION}
+        adding  would look at adding this:
+        ${FILE_ACTION_VERSION}
+
+        Checked if we can find a nonversion function: ${FILE_ACTION}
+        warning could not find function for this OS or DISTRO: ${FILE_ACTION}
+
+        ${RED} ERROR - ${YELLOW220} to find function for this OS or DISTRO: ${FILE_ACTION} ${PARAMETERS:-THISSCRIPTPARAMS}
+        Cannot proceed until you add this function above missing
+        ${RESET}"
+        unset ACTION
+        unset FILE_TO_CALL_WITH_VERSION
+        unset FILE_ACTION_VERSION
+        unset FILE_ACTION
+        unset FILE_TO_CALL
+        unset PARAMETERS
+        exit 1
+      }
+      fi
+
+    }
+    fi
+
+  }
+  fi
+  unset ACTION
+  unset FILE_TO_CALL_WITH_VERSION
+  unset FILE_TO_CALL
+  unset PARAMETERS
+} # end determine_os_and_run_file
+
+# determine_os_and_run_file "${*}"
+
+# # check operation systems
+# (
+#   if [[ "$(uname)" == "Darwin" ]] ; then
+#     UNAMEM="$(uname -m)"
+#     # Do something under Mac OS X platform
+#     case "${UNAMEM}" in
+#         # echo "err_buff1=$?"
+#         (x86_64*)  sift_mac_64 "$@" ;;
+#         # echo "err_buff2=$?"
+#         (i686*)  sift_mac_32 "$@" ;;
+#         (arm64*) sift_mac_arm64 "$@" ;;
+#         (*) echo "bash_intuivo_cli/sift Platform $(uname) ${UNAMEM} not yet implemented"
+#         return 1 ;;
+#     esac
+#   elif [[ "$(expr substr $(uname -s) 1 5)" == "Linux" ]] ; then
+#     # Do something under GNU/Linux platform
+#     # ubuntu lsb_release -i | sed 's/Distributor\ ID://g' = \tUbuntu\n
+#       if [[ "$(uname -i)" == "x86_64" ]] ; then
+#         sift_linux_64 "$@"
+#       elif [[ "$(uname -i)" == "i686"   ]] ; then
+#         sift_linux_32 "$@"
+#       fi
+#   elif [[ "$(expr substr $(uname -s) 1 10)" == "MINGW32_NT" ]] ; then
+#     # Do something under Windows NT platform
+#     sift_win_32 "$*"
+#     # nothing here
+#   elif [[ "$(expr substr $(uname -s) 1 10)" == "MINGW64_NT" ]] ; then
+#     # Do something under Windows NT platform
+#     sift_win_64 "$*"
+#     # nothing here
+#   fi
+# )
+
 
 # check operation systems
 (
   if [[ "$(uname)" == "Darwin" ]] ; then
-    UNAMEM="$(uname -m)"
-    # Do something under Mac OS X platform    
-    case "${UNAMEM}" in 
-        # echo "err_buff1=$?"
-        (x86_64*)  sift_mac_64 "$@" ;;
-        # echo "err_buff2=$?"
-        (i686*)  sift_mac_32 "$@" ;;
-        (arm64*) sift_mac_arm64 "$@" ;;
-        (*) echo "bash_intuivo_cli/sift Platform $(uname) ${UNAMEM} not yet implemented"
-        return 1 ;;
-    esac
-  elif [[ "$(expr substr $(uname -s) 1 5)" == "Linux" ]] ; then
-    # Do something under GNU/Linux platform
-    # ubuntu lsb_release -i | sed 's/Distributor\ ID://g' = \tUbuntu\n
-      if [[ "$(uname -i)" == "x86_64" ]] ; then
-        sift_linux_64 "$@"
-      elif [[ "$(uname -i)" == "i686"   ]] ; then
-        sift_linux_32 "$@"
+  {
+    if (( DEBUG )) ; then
+      echo "Darwin"
+    fi
+    # echo $(get_mac_architecture)
+    # Do something under Mac OS X platform
+    # FILE_TO_CALL='_darwin__64'
+    # PARAMETERS="$@"
+    target_name="mac"
+    _mac_style_version_number_maybe=$(_get_mac_style_version_number_maybe)
+    _err=$?
+    # echo ${_mac_style_version_number_maybe}
+    if [ ${_err} -eq 0 ] ; then
+    {
+      FILE_TO_CALL_WITH_VERSION=$(get_mac_architecture "${target_name}${_mac_style_version_number_maybe}")
+      FILE_TO_CALL=$(get_mac_architecture "${target_name}")
+      # echo ${FILE_TO_CALL_WITH_VERSION}
+      if command -v ${ACTION}${FILE_TO_CALL_WITH_VERSION}  >/dev/null 2>&1; then
+      {
+        ${ACTION}${FILE_TO_CALL_WITH_VERSION} "$@"
+      }
+      elif command -v ${ACTION}${FILE_TO_CALL}  >/dev/null 2>&1; then
+      {
+        ${ACTION}${FILE_TO_CALL} "$@"
+      }
+      else
+      {
+        echo "bash_intuivo_cli/${ACTION} Platform $(uname -a) -- not found/not yet implemented
+${ACTION}${FILE_TO_CALL_WITH_VERSION}
+${ACTION}${FILE_TO_CALL}
+
+        "
+        exit 1
+      }
       fi
+    }
+    fi
+  }
+  elif [[ "$(expr substr $(uname -s) 1 5)" == "Linux" ]] ; then
+  {
+    if (( DEBUG )) ; then
+      echo "Linux"
+    fi
+    # Do something under GNU/Linux platform
+    # Determine OS platform
+    # local
+     UNAME=$(uname | tr "[:upper:]" "[:lower:]")
+    if (( DEBUG )) ; then
+      echo "UNAME: $UNAME"
+    fi
+    # local
+     DISTRO=""
+    # local
+     ID=""
+    # local
+     VERSION_ID=""
+    # If Linux, try to determine specific distribution
+    if [[ "$UNAME" == "linux" ]]; then
+    {
+      # If available, use LSB to identify distribution
+      if [ -f /etc/lsb-release -o -d /etc/lsb-release.d ]; then
+      {
+        if ( command -v lsb_release >/dev/null 2>&1; ); then
+        {
+          if (( DEBUG )) ; then
+            echo "RELEASE Option: 1"
+          fi
+          DISTRO=$(lsb_release -i | cut -d: -f2 | sed s/'^\t'// | head -1)
+        }
+        else
+        {
+          if (( DEBUG )) ; then
+            echo "RELEASE Option: 2"
+          fi
+          DISTRO=$(ls -d /etc/[A-Za-z]*[_-][rv]e[lr]* | grep -v "lsb" | cut -d'/' -f3 | cut -d'-' -f1 | cut -d'_' -f1 | head -1)
+        }
+        fi
+      }
+      else # Otherwise, use release info file
+      {
+        if (( DEBUG )) ; then
+          echo "RELEASE Option: 3"
+        fi
+        DISTRO=$(ls -d /etc/[A-Za-z]*[_-][rv]e[lr]* | grep -v "lsb" | cut -d'/' -f3 | cut -d'-' -f1 | cut -d'_' -f1 | head -1)
+      }
+      fi
+    }
+    fi
+    if (( DEBUG )) ; then
+      echo "DISTRO:$DISTRO"
+    fi
+    if [[ -z "$DISTRO" ]]; then  # if empty
+    {
+      if (( DEBUG )) ; then
+        echo "DISTRO empty"
+      fi
+      # If available, use /etc/os-release to identify distribution
+        if [ -f /etc/os-release ]; then
+        {
+          source /etc/os-release
+          # file_exists "/etc/os-release"
+          # _assure_success
+          # source /etc/os-release
+          # $ echo $ID
+          # fedora
+          # $ echo $VERSION_ID
+          # 17
+          # $ echo $VERSION
+          # 17 (Beefy Miracle)
+          DISTRO=$ID
+        }
+        fi
+    }
+    fi
+    if [[ -z "$DISTRO" ]] ; then  # if empty
+    {
+      echo -e "${RED} ERROR - ${YELLOW220} to determine DISTRO for this linux. uname -a, cat /etc/os-release, lsb_release -i ${RESET}"
+      unset ACTION
+      unset FILE_TO_CALL_WITH_VERSION
+      unset FILE_TO_CALL
+      unset PARAMETERS
+      exit 1
+    }
+    fi
+
+    if [[ "$DISTRO" == *"edora"* ]]; then
+    {
+      # local
+       target_name="fedora"
+      # local
+       _redhat_style_version_number_maybe=$(_get_redhat_style_version_number_maybe)
+      _err=$?
+      # echo ${_redhat_style_version_number_maybe}
+      if [ ${_err} -eq 0 ] ; then
+      {
+        FILE_TO_CALL_WITH_VERSION=$(get_mac_architecture "${target_name}${_redhat_style_version_number_maybe}")
+        FILE_TO_CALL=$(get_mac_architecture "${target_name}")
+        # echo ${FILE_TO_CALL_WITH_VERSION}
+        if command -v ${ACTION}${FILE_TO_CALL_WITH_VERSION}  >/dev/null 2>&1; then
+        {
+          ${ACTION}${FILE_TO_CALL_WITH_VERSION} "$@"
+        }
+        elif command -v ${ACTION}${FILE_TO_CALL}  >/dev/null 2>&1; then
+        {
+          ${ACTION}${FILE_TO_CALL} "$@"
+        }
+        else
+        {
+          echo "bash_intuivo_cli/${ACTION} Platform $(uname -a) -- not found/not yet implemented
+  ${ACTION}${FILE_TO_CALL_WITH_VERSION}
+  ${ACTION}${FILE_TO_CALL}
+
+          "
+          exit 1
+        }
+        fi
+      }
+      fi
+    }
+    elif [[ "$DISTRO" == *"untu"* ]]; then
+    {
+      # ubuntu lsb_release -i | sed 's/Distributor\ ID://g' = \tUbuntu\n
+      # local
+       target_name="ubuntu"
+      # local
+       _debian_style_version_number_maybe=$(_get_debian_style_version_number_maybe)
+      _err=$?
+      # echo ${_debian_style_version_number_maybe}
+      if [ ${_err} -eq 0 ] ; then
+      {
+        FILE_TO_CALL_WITH_VERSION=$(get_mac_architecture "${target_name}${_debian_style_version_number_maybe}")
+        FILE_TO_CALL=$(get_mac_architecture "${target_name}")
+        # echo ${FILE_TO_CALL_WITH_VERSION}
+        if command -v ${ACTION}${FILE_TO_CALL_WITH_VERSION}  >/dev/null 2>&1; then
+        {
+          ${ACTION}${FILE_TO_CALL_WITH_VERSION} "$@"
+        }
+        elif command -v ${ACTION}${FILE_TO_CALL}  >/dev/null 2>&1; then
+        {
+          ${ACTION}${FILE_TO_CALL} "$@"
+        }
+        else
+        {
+          echo "bash_intuivo_cli/${ACTION} Platform $(uname -a) -- not found/not yet implemented
+  ${ACTION}${FILE_TO_CALL_WITH_VERSION}
+  ${ACTION}${FILE_TO_CALL}
+
+          "
+          exit 1
+        }
+        fi
+      }
+      fi
+    }
+    elif [[ "$DISTRO" == *"bian"* ]]; then
+    {
+      # local
+       target_name="debian"
+      # local
+       _debian_style_version_number_maybe=$(_get_debian_style_version_number_maybe)
+      _err=$?
+      # echo ${_debian_style_version_number_maybe}
+      if [ ${_err} -eq 0 ] ; then
+      {
+        FILE_TO_CALL_WITH_VERSION=$(get_mac_architecture "${target_name}${_debian_style_version_number_maybe}")
+        FILE_TO_CALL=$(get_mac_architecture "${target_name}")
+        # echo ${FILE_TO_CALL_WITH_VERSION}
+        if command -v ${ACTION}${FILE_TO_CALL_WITH_VERSION}  >/dev/null 2>&1; then
+        {
+          ${ACTION}${FILE_TO_CALL_WITH_VERSION} "$@"
+        }
+        elif command -v ${ACTION}${FILE_TO_CALL}  >/dev/null 2>&1; then
+        {
+          ${ACTION}${FILE_TO_CALL} "$@"
+        }
+        else
+        {
+          echo "bash_intuivo_cli/${ACTION} Platform $(uname -a) -- not found/not yet implemented
+  ${ACTION}${FILE_TO_CALL_WITH_VERSION}
+  ${ACTION}${FILE_TO_CALL}
+
+          "
+          exit 1
+        }
+        fi
+      }
+      fi
+    }
+    else
+    {
+      # local
+       target_name="${DISTRO}"
+          echo "bash_intuivo_cli/${ACTION} Platform ${target_name} $(uname -a) -- not found/not yet implemented
+
+          "
+          exit 1
+    }
+    fi
+    if (( DEBUG )) ; then
+      echo "FILE_TO_CALL: $FILE_TO_CALL"
+      echo "uname -i: $(uname -i)"
+    fi
+    # For everything else (or if above failed), just use generic identifier
+    unset UNAME
+    unset DISTRO
+    unset ID
+  }
+  # elif [[ "$(expr substr $(uname -s) 1 5)" == "Linux" ]] ; then
+  #   # Do something under GNU/Linux platform
+  #   # ubuntu lsb_release -i | sed 's/Distributor\ ID://g' = \tUbuntu\n
+  #     if [[ "$(uname -i)" == "x86_64" ]] ; then
+  #       pt_linux_64 "$@"
+  #     elif [[ "$(uname -i)" == "i686"   ]] ; then
+  #       pt_linux_32 "$@"
+  #     elif [[ "$(uname -i)" == "arm64"   ]] ; then
+  #       pt_linux_arm64 "$@"
+  #     fi
   elif [[ "$(expr substr $(uname -s) 1 10)" == "MINGW32_NT" ]] ; then
     # Do something under Windows NT platform
-    sift_win_32 "$*"
+    pt_win_32 "$*"
     # nothing here
   elif [[ "$(expr substr $(uname -s) 1 10)" == "MINGW64_NT" ]] ; then
     # Do something under Windows NT platform
-    sift_win_64 "$*"
+    pt_win_64 "$*"
     # nothing here
   fi
 )
-
