@@ -6,7 +6,7 @@ function run_fedora_update() {
   local -i _cron_running=1
   function exit_updateSelf() {
   	echo "${0} ${FUNCNAME[0]} EXIT"
-  	if [ ${_cron_running} -ne 0 ] ; then
+  	if [ ${_cron_running-} -ne 0 ] ; then
   	{
       exec 1>&3 2>&4 # How to redirect output  REF: https://stackoverflow.com/questions/314675/how-to-redirect-output-of-an-entire-shell-script-within-the-script-itself
     }
@@ -44,15 +44,19 @@ function run_fedora_update() {
     done <<< "${_snaps}"
 
   } # end update_snaps
+	git -C "$(rbenv root)"/plugins/ruby-build pull
+	git -C "$(pyenv root)"/plugins/ruby-build pull
   echo "snaps"
   update_snaps &
   sudo dnf update -vy &
   flatpak update -y &
   # snap refresh
   brew unlink php &
-	git checkout /home/zeus/.config/composer/vendor/nesbot/carbon
+	cd  /home/zeus/.config/composer/vendor/nesbot/carbon
+	git checkout bin/carbon
   yes | composer global update &
-	git checkout /home/zeus/.config/composer/vendor/nesbot/carbon &
+	cd  /home/zeus/.config/composer/vendor/nesbot/carbon 
+	git checkout bin/carbon
 	yes | composer global update &
   brew update
   wait

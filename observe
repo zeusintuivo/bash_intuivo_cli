@@ -433,6 +433,15 @@ elif [[ "${extension_to_observe-}" == "java"  ]] ; then
   extension_to_observe="java"
 	extra_args_to_run=""
 }
+elif [[ "${extension_to_observe-}" == "bash"  ]] ; then
+{
+  # bash
+  # bash  project_file
+  prefix_to_run="[[ -n \\\"\$(ps aux | grep '${file_to_observe-}' | grep -v 'grep'  | head -1 | xargs)\\\"  ]] || kill \\\"\$(ps aux | grep '${file_to_observe-}' | grep -v 'grep'  | head -1 | xargs | cut -d' ' -f2 )\\\" || bash \\\"$(pwd)/${file_to_observe-}\\\" && bash "
+  file_to_watch="$(pwd)/"
+  extension_to_observe="bash"
+	extra_args_to_run=""
+}
 elif [[ "${extension_to_observe-}" == "py"  ]] ; then
 {
   # python
