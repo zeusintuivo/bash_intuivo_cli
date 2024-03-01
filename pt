@@ -7,11 +7,13 @@
 # check operation systems
 (
   if [[ "$(uname)" == "Darwin" ]] ; then
-    UNAMEM="$(uname -m)"
+    UNAMEM=$(uname -m)
+    VERM=$(uname -r | cut -d. -f1)
+    FILENAM="pt_mac_${VERM}_${UNAMEM}"
     # Do something under Mac OS X platform    
     case "${UNAMEM}" in 
         # echo "err_buff1=$?"
-        (x86_64*)  pt_mac_64 "$@" ;;
+        (x86_64*)  ${FILENAM} "$@" ;;
         # echo "err_buff2=$?"
         (i686*)  pt_mac_32 "$@" ;;
         (arm64*) pt_mac_arm64 "$@" ;;
