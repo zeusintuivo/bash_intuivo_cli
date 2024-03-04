@@ -1,0 +1,52 @@
+#!/usr/bin/env bash
+
+( # Subprocess
+
+ARGSPARAMS=${*-}
+ARGSPARAMS=$(sed "s/['][__]/_/g"  <<< $( sed 's/[\$|\,|\.|\ |-|\*|\"|\(|\||\)|\}|\{|\\|\/]/_/g' <<< "${ARGSPARAMS}" ) )
+ARGSPARAMS=${ARGSPARAMS,,}
+FILESFOUND=$(ls -ctr1 *__notes.md 2>/dev/null  |  head -1 >/dev/null 2>&1;)
+_err=$?
+if [ ${_err} -gt 0 ] ; then
+{
+	echo "Not found"
+}
+else
+{
+	echo FILESFOUND=$FILESFOUND
+}
+fi
+
+
+DATUMTIMEUM=`date +%Y%m%d`_`date +%H%M`
+FILENAMENOTE=${DATUMTIMEUM}_${PWD##*/}_${ARGSPARAMS:-}_notes.md
+if [[ -n "${FILESFOUND:-}" ]] ; then
+{
+  FILENAMENOTE="${FILESFOUND}"
+}
+else
+{
+	echo "*New"
+  echo FILENAMENOTE=$FILENAMENOTE
+	echo -n "" > "${FILENAMENOTE}"
+}
+fi
+
+echo "$(pwd)" >> "${FILENAMENOTE}"
+echo "${DATUMTIMEUM:-}" >> "${FILENAMENOTE}"
+echo "${ARGSPARAMS:-}" >> "${FILENAMENOTE}"
+if ( command -v nvim >/dev/null 2>&1; ) ; then
+{
+  nvim "${FILENAMENOTE}"
+}
+elif ( command -v nano >/dev/null 2>&1; ) ; then
+{
+  nano "${FILENAMENOTE}"
+}
+elif ( command -v vim >/dev/null 2>&1; ) ; then
+{
+  vim "${FILENAMENOTE}"
+}
+fi
+)
+

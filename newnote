@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+
+ARGSPARAMS=${*-}
+ARGSPARAMS=$(sed "s/['][__]/_/g"  <<< $( sed 's/[\$|\,|\.|\ |-|\*|\"|\(|\||\)|\}|\{|\\|\/]/_/g' <<< "${ARGSPARAMS}" ) )
+ARGSPARAMS=${ARGSPARAMS,,}
+
+DATUMTIMEUM=`date +%Y%m%d`_`date +%H%M`
+FILENAMENOTE=${DATUMTIMEUM}_${PWD##*/}_${ARGSPARAMS:-}_notes.md
+
+echo "$(pwd)" > "${FILENAMENOTE}"
+echo "${DATUMTIMEUM:-}" >> "${FILENAMENOTE}"
+echo "${ARGSPARAMS:-}" >> "${FILENAMENOTE}"
+if ( command -v nvim >/dev/null 2>&1; ) ; then
+{
+  nvim "${FILENAMENOTE}"
+}
+elif ( command -v nano >/dev/null 2>&1; ) ; then
+{
+  nano "${FILENAMENOTE}"
+}
+elif ( command -v vim >/dev/null 2>&1; ) ; then
+{
+  vim "${FILENAMENOTE}"
+}
+fi
+
+
