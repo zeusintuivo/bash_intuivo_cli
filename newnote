@@ -10,17 +10,18 @@ FILENAMENOTE=${DATUMTIMEUM}_${PWD##*/}_${ARGSPARAMS:-}_notes.md
 echo "$(pwd)" > "${FILENAMENOTE}"
 echo "${DATUMTIMEUM:-}" >> "${FILENAMENOTE}"
 echo "${ARGSPARAMS:-}" >> "${FILENAMENOTE}"
+counted_lines=$(wc -l < "${FILENAMENOTE}")
 if ( command -v nvim >/dev/null 2>&1; ) ; then
 {
-  nvim "${FILENAMENOTE}"
+  nvim +${counted_lines} "${FILENAMENOTE}"
 }
 elif ( command -v nano >/dev/null 2>&1; ) ; then
 {
-  nano "${FILENAMENOTE}"
+  nano +${counted_lines} "${FILENAMENOTE}"
 }
 elif ( command -v vim >/dev/null 2>&1; ) ; then
 {
-  vim "${FILENAMENOTE}"
+  vim +${counted_lines} "${FILENAMENOTE}"
 }
 fi
 
