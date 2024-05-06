@@ -132,10 +132,10 @@ get_current_folder_path_and_name
 anounce Re-linking now
 
 if [ ! -d "/usr/local" ] || [ ! -d "/usr/local/bin" ]; then
-  {
-    sudo mkdir -p /usr/local/bin
-    sudo chown -R $USER:$USER /usr/local/bin
-  }
+{
+  sudo mkdir -p /usr/local/bin
+  sudo chown -R $USER:$USER /usr/local/bin
+}
 fi
 
 BLANK_SPACE="${lightpurple} +-- ${lightblue} "
@@ -197,13 +197,13 @@ patch_utf_names(){
 
 } # end patch_utf_names
 if [[ "${PWD}" == *"bash_intuivo_cli"* ]] ; then
-{  
-  if [ -d "${PWD}/"  ] ; then 
-  { 
+{
+  if [ -d "${PWD}/"  ] ; then
+  {
     patch_utf_names "${USER}" "/_/clis/bash_intuivo_cli"
   }
-  fi 
-} 
+  fi
+}
 fi
 
 
