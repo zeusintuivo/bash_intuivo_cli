@@ -47,15 +47,15 @@ function get_linux_architecture(){
   local return_file_to_call=""
   if [[ "$(uname -i)" == "x86_64" ]] ; then
   {
-    return_file_to_call="_${system_nick}__64"
+    return_file_to_call="_${system_nick}_64"
   }
   elif [[ "$(uname -i)" == "i686"   ]] ; then
   {
-    return_file_to_call="_${system_nick}__32"
+    return_file_to_call="_${system_nick}_32"
   }
   elif [[ "$(uname -i)" == "arm64"   ]] ; then
   {
-    return_file_to_call="_${system_nick}__arm64"
+    return_file_to_call="_${system_nick}_arm64"
   }
   else
   {
@@ -67,17 +67,17 @@ function get_linux_architecture(){
   {
     if [[ "$(uname -a)" =~  'x86_64' ]] ; then
     {
-      return_file_to_call="_${system_nick}__64"
+      return_file_to_call="_${system_nick}_64"
     }
     fi
     if [[ "$(uname -a)" =~  'i686' ]] ; then
     {
-      return_file_to_call="_${system_nick}__32"
+      return_file_to_call="_${system_nick}_32"
     }
     fi
     if [[ "$(uname -a)" =~  'arm64' ]] ; then
     {
-      return_file_to_call="_${system_nick}__arm64"
+      return_file_to_call="_${system_nick}_arm64"
     }
     fi
   }
@@ -97,15 +97,15 @@ function get_mac_architecture(){
   local return_file_to_call=""
   if [[ "$(uname -m)" == "x86_64" ]] ; then
   {
-    return_file_to_call="_${system_nick}__64"
+    return_file_to_call="_${system_nick}_64"
   }
   elif [[ "$(uname -m)" == "i686"   ]] ; then
   {
-    return_file_to_call="_${system_nick}__32"
+    return_file_to_call="_${system_nick}_32"
   }
   elif [[ "$(uname -m)" == "arm64"   ]] ; then
   {
-    return_file_to_call="_${system_nick}__arm64"
+    return_file_to_call="_${system_nick}_arm64"
   }
   else
   {
@@ -117,17 +117,17 @@ function get_mac_architecture(){
   {
      if [[ "$(uname -a)" =~  'x86_64' ]] ; then
      {
-       return_file_to_call="_${system_nick}__64"
+       return_file_to_call="_${system_nick}_64"
      }
      fi
      if [[ "$(uname -a)" =~  'i686' ]] ; then
      {
-       return_file_to_call="_${system_nick}__32"
+       return_file_to_call="_${system_nick}_32"
      }
      fi
      if [[ "$(uname -a)" =~  'arm64' ]] ; then
      {
-       return_file_to_call="_${system_nick}__arm64"
+       return_file_to_call="_${system_nick}_arm64"
      }
      fi
   }
