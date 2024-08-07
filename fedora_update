@@ -48,7 +48,7 @@ function run_fedora_update() {
 #	git -C "$(pyenv root)"/plugins/ruby-build pull
  # echo "snaps"
  # update_snaps &
-  sudo dnf update -vy   &
+  sudo dnf update -vy &
  # flatpak update -y &
   # snap refresh
   brew unlink php &
