@@ -44,12 +44,12 @@ function run_fedora_update() {
     done <<< "${_snaps}"
 
   } # end update_snaps
-	git -C "$(rbenv root)"/plugins/ruby-build pull
-	git -C "$(pyenv root)"/plugins/ruby-build pull
-  echo "snaps"
-  update_snaps &
-  sudo dnf update -vy &
-  flatpak update -y &
+#	git -C "$(rbenv root)"/plugins/ruby-build pull
+#	git -C "$(pyenv root)"/plugins/ruby-build pull
+ # echo "snaps"
+ # update_snaps &
+  sudo dnf update -vy   &
+ # flatpak update -y &
   # snap refresh
   brew unlink php &
 	cd  /home/zeus/.config/composer/vendor/nesbot/carbon
