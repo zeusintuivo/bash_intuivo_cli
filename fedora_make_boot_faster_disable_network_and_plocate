@@ -2,7 +2,8 @@
 sudo systemd-analyze
 sudo systemctl list-dependencies --reverse network-online.target
 sudo systemctl list-dependencies  network-online.target
-sudo systemctl disable NetworkManager-wait-online.service
+sudo systemctl mask systemd-networkd-wait-online.service
+# sudo systemctl disable NetworkManager-wait-online.service
 sudo systemctl disable dnf-makecache.service
 sudo systemctl disable dnf-makecache.timer
 sudo systemctl disable plocate-updatedb.timer
