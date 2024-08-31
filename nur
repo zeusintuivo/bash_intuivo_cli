@@ -1214,7 +1214,9 @@ IGNORELIST=""
 # COLORS - Output - Start
 #
         # RESET_PROMPT="[38;5;231m"
-        RESET_PROMPT="[0m"
+[[ -z "${RESET}" ]] && RESET="\\033[0m"
+[[ -z "${RESET_PROMPT}" ]] && RESET_PROMPT="[0m"
+
 #
 # COLORS - Output - end
 #
@@ -1945,7 +1947,7 @@ else
     else
     {
       msg_red "${RED} SORRY NO OCCURRENCES FOUND !"
-      echo "    ";
+      echo -e "${RESET}    ";
       exit 1;
     }
     fi
