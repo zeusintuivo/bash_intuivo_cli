@@ -1282,7 +1282,7 @@ elif [[ "${PROCESSOR_ERROR}" == *"MAC"* ]] && [ $err_buff == 0 ]; then
 else
 {
     msg_red "${red} SORRY NO FOUND OCCURENCES !"
-    echo "    ";
+    echo -e "${RESET}    ";
     FOUND=0
     exit 1;
 }

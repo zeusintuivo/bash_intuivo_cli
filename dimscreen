@@ -177,6 +177,8 @@ function _set_brightness(){
     fi
     echo brightnessctl set "${_bright_percentage}%"
     brightnessctl set "${_bright_percentage}%"
+    brightnessctl --device='tpacpi::kbd_backlight' set 2
+
   }
   done <<< "${monitors}"
   return 0
