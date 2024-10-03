@@ -9,18 +9,21 @@ BRIGHTNESS=.7
 #echo "Scann all connected monitors,   get the first word ls HMD1 -list, then apply brightness to each word passwed from the list"
 #echo "xrandr --current --verbose | grep \" connected\" | cut -d\" \" -f1 | xargs -I {} xrandr --output {}   --brightness \"${BRIGHTNESS}\""
 function _get_current_brightnessctl_percentage() {
-  local -i _cb=$(brightnessctl | grep "Current" | cut -d'(' -f2 | cut -d')' -f1 | cut -d'%' -f1)
+  local -i _cb=0
+  _cb=$(brightnessctl | grep "Current" | cut -d'(' -f2 | cut -d')' -f1 | cut -d'%' -f1)
   echo ${_cb}
   return 0
 }
 function _get_all_active_monitors(){
-  local monitors=$(xrandr --current --verbose | grep " connected"  | cut -d" " -f1)
+  local monitors=""
+  monitors=$(xrandr --current --verbose | grep " connected"  | cut -d" " -f1)
   echo "${monitors}"
   return 0
 } # end _get_all_active_monitors
 
 function _get_percentage_conversion(){
-  local -i _b=$(echo "${1}" | sed 's/\.//g')
+  local -i _b=0
+  _b=$(sed 's/\.//g' <<< "${1}")
   # echo $_b
   if [ ${_b} -gt 10 ] && [ ${_b} -lt 100 ]  ; then
   {
@@ -52,14 +55,17 @@ function _get_percentage_conversion(){
   return 0
 } # end _get_percentage_conversion
 function test_get_percentage_conversion(){
-  local _bright_percentage="$(_get_percentage_conversion ${BRIGHTNESS})"
+  local _bright_percentage=""
+  _bright_percentage="$(_get_percentage_conversion "${BRIGHTNESS}")"
   echo "_bright_percentage:${_bright_percentage}%"
 } # end test_get_percentage_conversion
 test_get_percentage_conversion
 # exit 0
+
 function _get_day_or_night(){
   # REF: https://unix.stackexchange.com/questions/395933/how-to-check-if-the-current-time-is-between-2300-and-0630
-  local currenttime=$(date +%H:%M)
+  local currenttime=""
+  currenttime=$(date +%H:%M)
   if [[ "${currenttime}" > "06:00" ]] \
   && [[ "${currenttime}" < "11:30" ]]; then
   {
@@ -89,7 +95,8 @@ function _get_day_or_night(){
   return 0
 } # end _get_day_or_night
 function test_get_day_or_night(){
-  local _day_or_night="$(_get_day_or_night)"
+  local _day_or_night=""
+  _day_or_night="$(_get_day_or_night)"
   echo "_day_or_night:${_day_or_night}"
 } # end test_get_percentage_conversion
 test_get_day_or_night
@@ -97,13 +104,17 @@ test_get_day_or_night
 function _set_brightness(){
   # xrandr --current --verbose | grep " connected" \
   #     | cut -d" " -f1 | xargs -I {} xrandr --output {}   --brightness "${BRIGHTNESS}"
-  local monitors="$(_get_all_active_monitors)"
-  local _bright_percentage="$(_get_percentage_conversion ${BRIGHTNESS})"
-  local _day_or_night="$(_get_day_or_night)"
-  local _current_brightness_percentage="$(_get_current_brightnessctl_percentage)"
+  local monitors=""
+  monitors="$(_get_all_active_monitors)"
+  local _bright_percentage=""
+  _bright_percentage="$(_get_percentage_conversion "${BRIGHTNESS}")"
+  local _day_or_night=""
+  _day_or_night="$(_get_day_or_night)"
+  local _current_brightness_percentage=""
+  _current_brightness_percentage="$(_get_current_brightnessctl_percentage)"
   echo "_instruction_called:${BRIGHTNESS}"
   echo "_current_brightness_percentag:${_current_brightness_percentage}"
-  if (echo ${BRIGHTNESS} | grep "+" >/dev/null 2>&1; )  ; then
+  if (echo "${BRIGHTNESS}" | grep "+" >/dev/null 2>&1; )  ; then
   {
     if [[ "${BRIGHTNESS}" == "+.01" ]] ; then
     {
@@ -123,7 +134,7 @@ function _set_brightness(){
     echo "_plus_new_brightness:${_bright_percentage}"
   }
   fi
-  if (echo ${BRIGHTNESS} | grep "-" >/dev/null 2>&1; )  ; then
+  if (echo "${BRIGHTNESS}" | grep "-" >/dev/null 2>&1; )  ; then
   {
     if [[ "${BRIGHTNESS}" == "-.01" ]] ; then
     {
@@ -164,8 +175,10 @@ function _set_brightness(){
       xrandr --output "${monitor}" --gamma 1.0:0.88:0.76  --brightness "${BRIGHTNESS}"
     }
     fi
-    echo brightnessctl set ${_bright_percentage}%
-    brightnessctl set ${_bright_percentage}%
+    echo brightnessctl set "${_bright_percentage}%"
+    brightnessctl set "${_bright_percentage}%"
+    brightnessctl --device='tpacpi::kbd_backlight' set 2
+
   }
   done <<< "${monitors}"
   return 0

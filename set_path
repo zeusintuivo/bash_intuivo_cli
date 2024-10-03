@@ -1,0 +1,22 @@
+set_path(){
+    [ ${#} -eq 0 ] && return
+    # Check if user id is 1000 or higher
+    [ "$(id -u)" -ge 1000 ] || return
+
+    for i in "$@";
+    do
+        # Check if the directory exists
+        [ -d "$i" ] || continue
+
+        # Check if it is not already in your $PATH.
+        echo "$PATH" | grep -Eq "(^|:)$i(:|$)" && continue
+
+        # Then append it to $PATH and export it
+        export PATH="${PATH}:$i"
+    done
+}
+# REF: https://wiki.archlinux.org/title/Environment_variables
+# usage
+# set_path ~/bin ~/scripts
+
+set_path ${*-}
