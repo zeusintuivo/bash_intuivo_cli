@@ -44,8 +44,8 @@ function run_fedora_update() {
     done <<< "${_snaps}"
 
   } # end update_snaps
-#	git -C "$(rbenv root)"/plugins/ruby-build pull
-#	git -C "$(pyenv root)"/plugins/ruby-build pull
+	git -C "$(rbenv root)"/plugins/ruby-build pull
+	git -C "$(pyenv root)" pull
  # echo "snaps"
  # update_snaps &
   sudo dnf update -vy &
@@ -55,7 +55,7 @@ function run_fedora_update() {
 	cd  /home/zeus/.config/composer/vendor/nesbot/carbon
 	git checkout bin/carbon
   yes | composer global update &
-	cd  /home/zeus/.config/composer/vendor/nesbot/carbon 
+	cd  /home/zeus/.config/composer/vendor/nesbot/carbon
 	git checkout bin/carbon
 	yes | composer global update &
   brew update
@@ -71,4 +71,3 @@ function run_fedora_update() {
 }
 
 run_fedora_update
-

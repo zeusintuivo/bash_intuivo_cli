@@ -435,9 +435,9 @@ fi
 
 # one more check for gsed from brew in macs
 if [[ $REPLACERGNU == "NO" ]] ; then
-{  
-  if command -v gsed >/dev/null 2>&1 ; then 
-  { 
+{
+  if command -v gsed >/dev/null 2>&1 ; then
+  {
     REPLACERGNU="YES"
     REPLACER="gsed"
   }
@@ -530,19 +530,19 @@ if command -v pt >/dev/null 2>&1; then
   # -N, --nonumbers           Omit Line number. (default: false)
           if [ -z "$PIPED" ] ; then
           {
-              SEEKER=" pt --hidden  --numbers  "
+              SEEKER=" pt --skip-vcs-ignores --hidden  --numbers  "
           }
           fi
           #  PIPED then hide line numbers
           if [[ -n "$PIPED" ]] ; then
           {
-              SEEKER=" pt --hidden  --nonumbers "
+              SEEKER=" pt --skip-vcs-ignores --hidden  --nonumbers "
           }
           fi
   # NOT Colored
   if [[ -n "$COLORED" ]] ; then
   {
-    SEEKER="${SEEKER} --nocolor ";
+    SEEKER="${SEEKER} --skip-vcs-ignores --nocolor ";
   }
   fi
   #  -l, --files-with-matches  Only print filenames that contain matches
@@ -989,7 +989,7 @@ if command -v "${DEFAULTSEEKER}" >/dev/null 2>&1; then
             {
                 SEEKER="ack  -Q ";
             }
-            fi
+						fi
             #  PIPED then hide line numbers
             if [[ -n "$PIPED" ]] ; then
             {
@@ -1014,19 +1014,19 @@ if command -v "${DEFAULTSEEKER}" >/dev/null 2>&1; then
             # -N, --nonumbers           Omit Line number. (default: false)
             if [ -z "$PIPED" ] ; then
             {
-                SEEKER=" pt --hidden  --numbers  "
+                SEEKER=" pt --skip-vcs-ignores --hidden  --numbers  "
             }
             fi
             #  PIPED then hide line numbers
             if [[ -n "$PIPED" ]] ; then
             {
-                SEEKER=" pt --hidden  --nonumbers "
+                SEEKER=" pt --skip-vcs-ignores --hidden  --nonumbers "
             }
             fi
             # NOT Colored
             if [[ -n "$COLORED" ]] ; then
             {
-                SEEKER="${SEEKER} --nocolor ";
+                SEEKER="${SEEKER} --skip-vcs-ignores --nocolor ";
             }
             fi
             IGNORE_DIR="ignore";
@@ -1962,6 +1962,3 @@ if [ -z "$PIPED" ]; then
   echo "   ";
 }
 fi
-
-
-
