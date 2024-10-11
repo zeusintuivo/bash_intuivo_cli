@@ -1,0 +1,2 @@
+sudo systemctl --user mask tracker-xdg-portal-3.service tracker-writeback-3.service tracker-miner-rss-3.service tracker-miner-fs-control-3.service tracker-miner-fs-3.service
+sudo systemctl mask tracker-xdg-portal-3.service tracker-writeback-3.service tracker-miner-rss-3.service tracker-miner-fs-control-3.service tracker-miner-fs-3.service

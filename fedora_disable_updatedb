@@ -1,0 +1,4 @@
+sudo systemctl list-timers
+sudo systemctl disable plocate-updatedb.timer
+sudo systemctl stop plocate-updatedb.timer
+sudo systemctl list-timers
