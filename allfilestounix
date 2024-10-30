@@ -1,0 +1,128 @@
+#!/bin/bash
+# @author Zeus Intuivo <zeus@intuivo.com>
+#
+
+#
+.each() {
+  # Sample usage:
+  # ALL_REMOTE_BRANCHES_BRANCHES=$(git branch -r --no-color | sed '1d' | sed 's/[*]//g' | sed 's/\ //g' )
+  # ACTIONS="git checkout {#}
+  # pull
+  # "
+  # .each  "${ACTIONS}" "${ALL_REMOTE_BRANCHES_BRANCHES_WITHOUT_ORIGIN}"
+
+  local local_actions="${1}"
+  local local_items="${2}"
+  local one_item
+  local one_action
+  local action
+
+  while read -r one_item; do                                                  # Get longest file name
+  {
+    if [ -n "${one_item}" ] ; then  # if not empty
+    {
+      while read -r one_action; do                                                  # Get longest file name
+      {
+        if [ -n "${one_action}" ] ; then  # if not empty
+        {
+          action="${one_action/\{\#\}/$one_item}"  # replace value inside string substitution expresion bash
+          eval ${action}
+        }
+        fi
+      }
+      done <<< "${local_actions}"
+    }
+    fi
+  }
+  done <<< "${local_items}"
+}
+
+THISSCRIPTNAME=`basename "$0"`
+                          function trim_start_space() {
+                              sed -e 's/^[[:space:]]*//' | sed 's/^\ //g' | sed 's/^\t//g'
+                          }
+#bash shell script check input argument
+SEEKING="all";
+if [ -n "$1" ] ; then
+{
+  SEEKING="$1";
+}
+fi
+PARAMS="";
+if [ -z "$2" ]
+  then
+  {
+  	PARAMS="$2";
+  }
+fi
+#echo $0=./replace
+#echo -e "\033[38;5;147m "
+#echo " "
+#echo " "
+#echo " ";
+#echo -e "\033[38;5;214m === find . | ag --nocolor \"/.*${SEEKING}[^/]*$\" | sed 's/../  /' ===\n \033[38;5;189m";
+#echo " ";
+## SED REF: http://www.theunixschool.com/2014/08/sed-examples-remove-delete-chars-from-line-file.html
+#                                           # remove 1st character in every line:
+# echo "err_buff3=$?"
+
+
+MOREIGNORE_FILES=""
+[ -f .oeignore_files ] && MOREIGNORE_FILES=$(<.oeignore_files)
+MOREIGNORE_DIRS=""
+[ -f .oeignore_dirs ] && MOREIGNORE_DIRS=$(<.oeignore_dirs)
+
+# echo "MOREIGNORE_FILES:${MOREIGNORE_FILES}"
+# echo "MOREIGNORE_DIRS:${MOREIGNORE_DIRS}"
+# exit 0
+
+FILESTOEXCLUDE="${MOREIGNORE_FILES}"
+
+DIRSTOEXCLUDE="${MOREIGNORE_DIRS}"
+# echo "FILESTOEXCLUDE:${FILESTOEXCLUDE}"
+# echo "DIRSTOEXCLUDE:${DIRSTOEXCLUDE}"
+# exit 0
+
+IGNORELIST=""
+EXCLUDEPREFIX='-e'
+    while read -r ONE_FILENAME; do
+      # if not empty
+      if [[ -n "${ONE_FILENAME}" ]] ; then
+        IGNORELIST="${IGNORELIST} ${EXCLUDEPREFIX} ${ONE_FILENAME}"
+      fi
+    done <<< "${FILESTOEXCLUDE}"
+    while read -r ONE_DIRNAME; do
+      # if not empty
+      if [[ -n "${ONE_DIRNAME}" ]] ; then
+        IGNORELIST="${IGNORELIST} ${EXCLUDEPREFIX} ${ONE_DIRNAME}"
+      fi
+    done <<< "${DIRSTOEXCLUDE}"
+
+
+if  [[ "${SEEKING}" == "all" ]] ; then
+{
+	find . -type f | xargs dos2unix
+	exit
+}
+fi
+
+findings=$(find . | ag --nocolor "/.*${SEEKING}[^/]*$" | trim_start_space | sed 's/^\../  /g' | grep -v "${IGNORELIST}")
+# echo "err_buff4=$?"
+if [[ -n "${findings}" ]] ; then
+{
+  # echo "err_buff5=$?"
+  #ACTIONS="echo -e \"{#}\\033[38;5;232m:1\\033[0m\""
+  ACTIONS="dos2unix \"{#}\""
+  # echo "err_buff6=$?"
+  if [ -d .idea/ ] && [ -f Gemfile ] && [ -d app/ ] && [ -d db/ ] && [ -d config/ ] && [ -d "test/" ] ; then
+    ACTIONS="$(echo -n "echo -e \"\033[38;5;202m{#}\033[38;5;232m:1\033[0\"")"
+    ACTIONS="$(echo -n "echo -e \"{#}:0 \"")"
+    ACTIONS="echo -en \"\\\033[38;5;202m{#}\033[38;5;232m:1\" \\\\n"
+  fi
+  # echo "err_buff7=$?"
+  .each  "${ACTIONS}"  "${findings}"
+  # echo "err_buff8=$?"
+}
+fi
+
+# echo -en "\\033[0 "
