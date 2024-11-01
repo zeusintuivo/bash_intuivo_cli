@@ -15,7 +15,7 @@
 function _any_zombies() {
   local -i _err=0
   local _zombies
-  _zombies=$(ps aux | egrep "Z|defunct"  | grep -v "grep" | grep -v "%MEM" | cut -d\  -f8)
+  _zombies="$(_retrieve_all_zombies)"
   _err=$?
   if [[ -z "${_zombies}" ]] || [ ${_err} -gt 0 ] ; then
   {
@@ -26,7 +26,7 @@ function _any_zombies() {
 } # end _any_zombies
 
 function _test_any_zombies() {
-  echo $0
+  echo "${0}:${LINENO}"
   if _any_zombies ; then
   {
     echo "Yes there are zombies"
@@ -38,13 +38,18 @@ function _test_any_zombies() {
 } # end _test_any_zombies
 
 function _retrieve_all_zombies() {
-   ps aux | egrep "Z|defunct"  | grep -v "grep" | grep -v "%MEM" | cut -d\  -f8
+  ps aux | grep -E "Z|defunct"  | grep -v "grep" | grep -v "%MEM" | xargs | cut -d\  -f2
+} # end
+
+
+function _retrieve_all_zombies_with_scripts() {
+  ps aux | grep -E "Z|defunct"  | grep -v "grep" | grep -v "%MEM" | xargs | cut -d\  -f2,11
 } # end
 
 function _find_all_zombies() {
   local -i _err=0
   local _zombies
-  _zombies=$(_retrieve_all_zombies)
+  _zombies="$(_retrieve_all_zombies)"
   _err=$?
   if [[ -z "${_zombies}" ]] || [ ${_err} -gt 0 ] ; then
   {
@@ -55,8 +60,32 @@ function _find_all_zombies() {
   return 0
 } # end _find_all_zombies
 
+function _test_retrieve_parents() {
+  echo "${0}:${LINENO}"
+  local one parent parentname results="zombies:"
+	local all="$(_retrieve_all_zombies_with_scripts)"
+  while read -r one; do
+  {
+    [[ -z "${one}" ]] && continue
+    # find parent PIDs
+    # ps -o ppid= -p 4192
+    parent="$(ps -o ppid= -p "${one}" |  xargs)"
+    one="$( grep "^${one}" <<< "${all}")"
+		# find who the PID is
+    # ps -e | grep 4016
+    parentname="$(ps -e | grep "${parent}" |  xargs)"
+    results="${results}
+parent:
+${parent} ${parentname}
+  \\____ child: ${one}"
+  }
+  done <<< "$(_retrieve_all_zombies)"
+  echo "${results}"
+} # end _test_retrieve_parents
+
+
 function _test_find_all_zombies() {
-  echo $0
+  echo "${0}:${LINENO}"
   local _zombies
   if _any_zombies ; then
   {
@@ -85,9 +114,11 @@ function main() {
 } # end main
 
 function _running_tests() {
-  echo $0 $1 Running Tests
-  local _this_script_absolute_path="$(realpath $0)"
-  local _all_tests="$(echo "$(grep "^function\ _test" < "${_this_script_absolute_path}" )" | cut -d\  -f2 | cut -d"(" -f1)"
+  echo "$0 $1 Running Tests"
+  local _this_script_absolute_path=""
+  _this_script_absolute_path="$(realpath "${0}")"
+  local _all_tests=""
+  _all_tests="$(grep "^function._test"  "${_this_script_absolute_path}" | cut -d\  -f2 | cut -d"(" -f1)"
   if [[ -z "${_all_tests}" ]] ; then
   {
     echo "ERROR No tests found"
@@ -97,14 +128,15 @@ function _running_tests() {
   local _one_test
   while read -r _one_test; do
   {
+    echo "${_one_test}"
     ${_one_test}
   }
-  done <<< "${_this_script_absolute_path}"
+  done <<< "${_all_tests}"
 } # end _tests
 
 if [[ "${*}" == "-t" ]] ; then
 {
-  _running_tests
+  _running_tests "${*-}"
 }
 elif [[ "${*}" == "-h" ]] ; then
 {

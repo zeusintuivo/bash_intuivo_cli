@@ -53,11 +53,12 @@ function run_update() {
     }
     done <<< "${_snaps}"
   } # end update_snaps
+
   echo "$0:$LINENO snaps"
   update_snaps
   # tail -f update.log &
   # sudo snap refresh
 
-}
+} # end run_update
 
 run_update
