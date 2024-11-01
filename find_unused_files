@@ -9,7 +9,7 @@ function main() {
   local red="\\033[38;5;1m"
   local reset="\\033[0m"
   function msg_error() {
-    echo -e "${red} ERROR ! ${*-} ${reset}"
+  	echo -e "${red} ERROR ! ${*-} ${reset}"
   }
 
   local PACKAGE_JSON=""
@@ -58,9 +58,9 @@ function main() {
     else
     {
         msg_error "jq dependency missing ! Attempting to install."
-        (( command -v dnf >/dev/null 2>&1; )) && sudo dnf install jq
-        (( command -v brew >/dev/null 2>&1; )) && brew install jq
-        (( command -v apt >/dev/null 2>&1; )) && sudo apt install jq
+				(( command -v dnf >/dev/null 2>&1; )) && sudo dnf install jq
+				(( command -v brew >/dev/null 2>&1; )) && brew install jq
+				(( command -v apt >/dev/null 2>&1; )) && sudo apt install jq
         wait
         if command -v jq >/dev/null 2>&1; then
         {
@@ -93,18 +93,18 @@ function main() {
   if [[ "$(uname)" == "Darwin" ]] ; then
     # Do something under Mac OS X platform
     local DEPS=""
-    DEPS=$(echo """${PACKAGE_JSON}""" | jq -r '.dependencies | keys | .[]' 2> /dev/null ) #  capture all stout sderr ignored
+		DEPS=$(echo """${PACKAGE_JSON}""" | jq -r '.dependencies | keys | .[]' 2> /dev/null ) #  capture all stout sderr ignored
     local DEVDEPS=""
-    DEVDEPS=$(echo """${PACKAGE_JSON}""" | jq -r '.devDependencies | keys | .[]' 2> /dev/null ) #  capture all stout sderr ignored
+		DEVDEPS=$(echo """${PACKAGE_JSON}""" | jq -r '.devDependencies | keys | .[]' 2> /dev/null ) #  capture all stout sderr ignored
     local OPTDEPS=""
-    OPTDEPS=$(echo """${PACKAGE_JSON}""" | jq -r '.optionalDependencies | keys | .[]' 2> /dev/null) #  capture all stout sderr ignored
+		OPTDEPS=$(echo """${PACKAGE_JSON}""" | jq -r '.optionalDependencies | keys | .[]' 2> /dev/null) #  capture all stout sderr ignored
     local ALLDEPS=""
-    ALLDEPS=$(echo -e "${DEPS}\n${DEVDEPS}\n${OPTDEPS}" 2> /dev/null ) #  capture all stout sderr ignored
+		ALLDEPS=$(echo -e "${DEPS}\n${DEVDEPS}\n${OPTDEPS}" 2> /dev/null ) #  capture all stout sderr ignored
     local USED=""
     local NOTUSED=""
     local TESTREQUIRE=""
     local TESTIMPORT=""
-    local dep=""
+		local dep=""
     for dep in ${ALLDEPS}; do
       if [[ -n "${dep}" ]] ; then
       {
@@ -146,21 +146,21 @@ function main() {
       fi
     done
 
-  elif [[ "$(expr substr "$(uname -s)" 1 5)" == "Linux" ]] ; then
+	elif [[ "$(expr substr "$(uname -s)" 1 5)" == "Linux" ]] ; then
     # Do something under GNU/Linux platform
      local DEPS=""
-    DEPS=$(echo """${PACKAGE_JSON}""" | jq -r '.dependencies | keys | .[]' 2> /dev/null ) #  capture all stout sderr ignored
+		DEPS=$(echo """${PACKAGE_JSON}""" | jq -r '.dependencies | keys | .[]' 2> /dev/null ) #  capture all stout sderr ignored
     local DEVDEPS=""
-    DEVDEPS=$(echo """${PACKAGE_JSON}""" | jq -r '.devDependencies | keys | .[]' 2> /dev/null ) #  capture all stout sderr ignored
+		DEVDEPS=$(echo """${PACKAGE_JSON}""" | jq -r '.devDependencies | keys | .[]' 2> /dev/null ) #  capture all stout sderr ignored
     local OPTDEPS=""
-    OPTDEPS=$(echo """${PACKAGE_JSON}""" | jq -r '.optionalDependencies | keys | .[]' 2> /dev/null) #  capture all stout sderr ignored
+		OPTDEPS=$(echo """${PACKAGE_JSON}""" | jq -r '.optionalDependencies | keys | .[]' 2> /dev/null) #  capture all stout sderr ignored
     local ALLDEPS=""
-    ALLDEPS=$(echo -e "${DEPS}\n${DEVDEPS}\n${OPTDEPS}" 2> /dev/null ) #  capture all stout sderr ignored
+		ALLDEPS=$(echo -e "${DEPS}\n${DEVDEPS}\n${OPTDEPS}" 2> /dev/null ) #  capture all stout sderr ignored
     local USED=""
     local NOTUSED=""
     local TESTREQUIRE=""
     local TESTIMPORT=""
-    local dep=""
+		local dep=""
     for dep in ${ALLDEPS}; do
       if [[ -n "${dep}" ]] ; then
       {
@@ -207,10 +207,7 @@ function main() {
     echo "nothing to do sed 's/'"""${SEEKING-}"""'//g' ;"
     # nothing here
   fi
-  echo "Used:"
-  echo "$USED"
-  echo "Not Used"
-  echo "$NOTUSED"
+
 } # end main
 
 main "${*-}"
