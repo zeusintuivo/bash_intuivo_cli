@@ -4,9 +4,12 @@
 #
 #
 
-# set -xu -E
+set -xu -E
 set -u -E
 export USER_HOME
+export _no_typesetg
+typeset -i _no_typesetg=0
+export _err
 typeset -i _err=0
 if ( ! command -v getent >/dev/null 2>&1; ) ; then
 {
@@ -40,6 +43,7 @@ if [ ${_err} -eq 0 ] && ( command -v cut >/dev/null 2>&1; ) ; then
   _err=$?
   if [ ${_err} -ne 0 ] ; then
   {
+    _no_typesetg=1
     typeset -r USER_HOME=$(getent passwd "${USER-}" | cut -d: -f6)
     _err=$?
   }
@@ -107,7 +111,24 @@ fi
 
 
 export DEBUG
-typeset -rg DEBUG=0
+if (( _no_typesetg )) ; then 
+{
+  typeset -rg DEBUG=0
+  _err=$?
+  if [ ${_err} -ne 0 ] ; then
+  {
+    typeset -r DEBUG=0
+    _err=$?
+    _no_typesetg=1 
+  }
+  fi
+}
+else
+{
+  typeset -r DEBUG=0
+  _err=$?
+}
+fi
 load_execute_command(){
     # : Execute "${@}"
     #
