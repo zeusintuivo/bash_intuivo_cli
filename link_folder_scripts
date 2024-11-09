@@ -4,7 +4,7 @@
 #
 #
 
-set -xu -E
+# set -xu -E
 set -u -E
 export USER_HOME
 export _no_typesetg
