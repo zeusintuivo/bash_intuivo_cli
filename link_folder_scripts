@@ -7,7 +7,105 @@
 # set -xu -E
 set -u -E
 export USER_HOME
-typeset -rg USER_HOME=$(getent passwd $USER | cut -d: -f6)
+typeset -i _err=0
+if ( ! command -v getent >/dev/null 2>&1; ) ; then
+{
+  function getent () {
+    if [[ -n "${1-}" ]] && [[ -n "${2-}" ]] ; then
+    { 
+      if [[ "${1}" == hosts ]] ; then
+      {
+        sed 's/#.*//' "/etc/${1}" | grep -w "${2}"
+      }
+      elif [[ "${2-}" == *"-"* ]] ; then
+      {
+        grep ":$2:[^:]*$" "/etc/${1}"
+      }
+      else
+      {
+        grep "^$2:" "/etc/${1}"
+      }
+      fi
+    }
+    fi
+  } # end getent
+}
+fi
+# set -x
+getent passwd "${USER-}"
+_err=$?
+if [ ${_err} -eq 0 ] && ( command -v cut >/dev/null 2>&1; ) ; then
+{
+  typeset -rg USER_HOME=$(getent passwd "${USER-}" | cut -d: -f6)
+  _err=$?
+  if [ ${_err} -ne 0 ] ; then
+  {
+    typeset -r USER_HOME=$(getent passwd "${USER-}" | cut -d: -f6)
+    _err=$?
+  }
+  fi
+}
+fi
+
+if [ ${_err} -ne 0 ] ; then
+{
+  if [[ -n "${HOME-}" ]] ; then
+  {
+    typeset -r USER_HOME="${HOME}"
+    _err=$?
+  }
+  elif [[ -n "${USER-}" ]] ; then
+  {
+    if [[ -d "/Users/${USER}" ]] ; then
+    {
+      typeset -r USER_HOME="/Users/${USER}" 
+      _err=$?
+    }
+    elif [[ -d "/home/${USER}" ]] ; then
+    {
+      typeset -r USER_HOME="/home/${USER}" 
+      _err=$?
+    } 
+    else
+    {
+      _err=1
+    }
+    fi
+  }
+  else
+  {
+    _err=1
+  }
+  fi
+
+}
+fi
+
+if [ ${_err} -ne 0 ] ; then
+{
+  echo "ERROR Cannot assign HOME or USER"
+}
+fi
+
+if [[ -z "${USER_HOME-}"  ]] ; then
+{
+  echo "ERROR Cannot empty USER_HOME"
+  exit 1
+}
+fi
+
+
+ls "${USER_HOME-}"
+_err=$?
+if [ ${_err} -ne 0 ] ; then
+{
+  echo "ERROR Cannot find valid USER_HOME"
+  exit 1
+}
+fi
+
+
+
 export DEBUG
 typeset -rg DEBUG=0
 load_execute_command(){
