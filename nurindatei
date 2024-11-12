@@ -98,13 +98,12 @@ fi
 # CURRENT SCRIPT EXECUTING
 THISSCRIPTNAME=`basename "$0"`
 
-
 if [ -z "$1" ] && [ -z "$PIPED" ]
   then
     echo " "
     echo "Missing 1st argument "
     echo " "
-    echo "Sample Usage:    - expects two arguments  *required"
+    echo "Sample Usage:    - expects first argument  *required"
     echo " "
     echo "    ${THISSCRIPTNAME}   filename   seek-this "
     echo "    ";
@@ -112,7 +111,7 @@ if [ -z "$1" ] && [ -z "$PIPED" ]
 
     echo "Missing 2nd argument "
     echo " "
-    echo "Sample Usage:    - expects two arguments  *required"
+    echo "Sample Usage:    - expects            second argument  *required"
     echo " "
     echo "    ${THISSCRIPTNAME}   filename    seek-this     "
     echo "    ";
@@ -407,7 +406,7 @@ check_replacer () {
     #stdout UND stderr -capture  REF: https://www.thomas-krenn.com/de/wiki/Bash_stdout_und_stderr_umleiten
     ${REPLACER}  --version &> /tmp/ersetze_test_${REPLACER}.txt
     # shellcheck disable=SC2155
-    local PROPERLYWORKING=$(cat /tmp/ersetze_test_${REPLACER}.txt)
+    local PROPERLYWORKING="$(cat /tmp/ersetze_test_${REPLACER}.txt)"
 
     if [[ "$PROPERLYWORKING" == *"dyld:"* ]]; then { echo "error"; return;} fi
     if [[ "$PROPERLYWORKING" == *"GNU"* ]]; then { echo "GNU"; return;} else { echo "MAC";return;} fi
@@ -1326,7 +1325,21 @@ function escape_squared_close_brackets() {
 # DEBUG echo "SEEKING:$SEEKING"
 
 INSEEKING=$(echo -n "${SEEKING}"|escape_backslashes_for_sed|escape_squared_open_brackets|escape_squared_close_brackets  | escape_quotes| escape_single_quotes )
+if [[ -z "$SEEKING" ]] ; then
+{
+  APPLIED_CHANGE=0
+  INSEEKING="${SEEKING}"
+}
+fi
+
 TESTERINSEEKING=$(echo -n "${INSEEKING}" | enter_escape_for_sed)
+if [[ -z "$TESTERINSEEKING" ]] ; then
+{
+  APPLIED_CHANGE=0
+  TESTERINSEEKING="${INSEEKING}"
+}
+fi
+
 # DEBUG echo "INSEEKING:$INSEEKING"
 
 
@@ -1360,7 +1373,7 @@ fi
 if [[ "${FOUND}" == "YES" ]] ; then
 {
 
-        echo  "${RESULT}" | sed s/"$SEEKING"/"$SEEKING"/g                                   
+        echo  "${RESULT}" | sed s/"$SEEKING"/"$SEEKING"/g
 }
 fi
 
@@ -1850,6 +1863,3 @@ if [[ -z "$PIPED" ]]; then
   echo "   ";
 }
 fi
-
-
-
