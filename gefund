@@ -148,7 +148,7 @@ ${MOREIGNORE_DIRS}"
 # echo "DIRSTOEXCLUDE:${DIRSTOEXCLUDE}"
 # exit 0
 
-IGNORELIST=""
+IGNORELIST="node_modules"
 EXCLUDEPREFIX='|'
     while read -r ONE_FILENAME; do
       # if not empty
