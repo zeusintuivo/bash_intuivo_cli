@@ -38,10 +38,11 @@
 }
 
 THISSCRIPTNAME=`basename "$0"`
-                          function trim_start_space() {
-                              sed -e 's/^[[:space:]]*//' | sed 's/^\ //g' | sed 's/^\t//g'
-                          }
-#bash shell script check input argument
+function trim_start_space() {
+ sed -e 's/^[[:space:]]*//' | sed 's/^\ //g' | sed 's/^\t//g'
+} # end trim_start_space
+
+# bash shell script check input argument
 if [ -z "$1" ] ; then
 {
     SEEKING="filename"
@@ -65,18 +66,19 @@ PARAMS="";
 if [ -z "$2" ]
   then
   {
-  	PARAMS="$2";
+    PARAMS="$2";
   }
 fi
-#echo $0=./replace
-#echo -e "\033[38;5;147m "
-#echo " "
-#echo " "
-#echo " ";
-#echo -e "\033[38;5;214m === find . | ag --nocolor \"/.*${SEEKING}[^/]*$\" | sed 's/../  /' ===\n \033[38;5;189m";
-#echo " ";
+# echo $0=./replace
+# echo -e "\033[38;5;147m "
+# echo " "
+# echo " "
+# echo " ";
+# echo -e "\033[38;5;214m === find . | ag --nocolor \"/.*${SEEKING}[^/]*$\" | sed 's/../  /' ===\n \033[38;5;189m";
+# echo " ";
 ## SED REF: http://www.theunixschool.com/2014/08/sed-examples-remove-delete-chars-from-line-file.html
-#                                           # remove 1st character in every line:
+#
+#                             # remove 1st character in every line:
 # echo "err_buff3=$?"
 
 
@@ -147,24 +149,27 @@ ${MOREIGNORE_DIRS}"
 # exit 0
 
 IGNORELIST=""
-EXCLUDEPREFIX='-e'
+EXCLUDEPREFIX='|'
     while read -r ONE_FILENAME; do
       # if not empty
       if [[ -n "${ONE_FILENAME}" ]] ; then
-        IGNORELIST="${IGNORELIST} ${EXCLUDEPREFIX} ${ONE_FILENAME}"
+        IGNORELIST="${IGNORELIST}${EXCLUDEPREFIX}${ONE_FILENAME}"
       fi
     done <<< "${FILESTOEXCLUDE}"
     while read -r ONE_DIRNAME; do
       # if not empty
       if [[ -n "${ONE_DIRNAME}" ]] ; then
-        IGNORELIST="${IGNORELIST} ${EXCLUDEPREFIX} ${ONE_DIRNAME}"
+        IGNORELIST="${IGNORELIST}${EXCLUDEPREFIX}${ONE_DIRNAME}"
       fi
     done <<< "${DIRSTOEXCLUDE}"
 
+# echo "${IGNORELIST}"
+# exit 0
 
-
-
-findings=$(find . | ag --nocolor "/.*${SEEKING}[^/]*$" | trim_start_space | sed 's/^\../  /g' | grep -v "${IGNORELIST}")
+# echo "find . | ag --nocolor \"/.*${SEEKING}[^/]*$\" | trim_start_space | sed 's/^\../  /g' | grep -v \"${IGNORELIST}\""
+# exit 0
+# findings=$(find . | ag --nocolor "/.*${SEEKING}[^/]*$" | trim_start_space | sed 's/^\../  /g' | grep -v "${IGNORELIST}")
+findings=$(find . | ag --nocolor "/.*${SEEKING}[^/]*$" | sed 's/^\..//g' | grep -Ev "${IGNORELIST}")
 # echo "err_buff4=$?"
 if [[ -n "${findings}" ]] ; then
 {
