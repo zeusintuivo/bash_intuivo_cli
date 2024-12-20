@@ -134,14 +134,17 @@ function _running_tests() {
   done <<< "${_all_tests}"
 } # end _tests
 
-if [[ "${*}" == "-t" ]] ; then
+if [[ "${*}" == "-t" ]] || [[ "${*}" == "--t" ]] || [[ "${*}" == "--show" ]]; then
 {
   _running_tests "${*-}"
 }
-elif [[ "${*}" == "-h" ]] ; then
+elif [[ "${*}" == "-h" ]] || [[ "${*}" == "--h" ]] || [[ "${*}" == "--h" ]] || [[ "${*}" == "--help" ]] || [[ "${*}" == "-?" ]] || [[ "${*}" == "/?" ]] || [[ "${*}" == "help" ]]; then
 {
-  echo "$0      kill left over zombies "
-  echo "$0  -t  run tests"
+  echo "$0 kills left over zombies "
+	echo ""
+  echo "$0  -help        show help "
+  echo "$0  -h           show help"
+  echo "$0  -t --show   run tests"
 }
 else
 {
