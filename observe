@@ -347,7 +347,7 @@ elif [[ "${extension_to_observe-}" == "toml" ]] && [[ "${file_to_observe-}" == "
 }
 elif [[ "${extension_to_observe-}" == "xml" ]] && [[ "${file_to_observe-}" == "pom.xml" ]] ; then
 {
-  # Java Spring Boot pom.xml 
+  # Java Spring Boot pom.xml
   # check operation systems
   local linuxy=0
 	local windowxy=0
@@ -356,7 +356,7 @@ elif [[ "${extension_to_observe-}" == "xml" ]] && [[ "${file_to_observe-}" == "p
   elif [[ "$(expr substr $(uname -s) 1 5)" == "Linux" ]] ; then
     linuxy=1
   elif [[ "$(expr substr $(uname -s) 1 10)" == "MINGW32_NT" ]]  || [[ "$(expr substr $(uname -s) 1 10)" == "MINGW64_NT" ]] ; then
-    windowxy=1 
+    windowxy=1
 		linuxy=0
   fi
 	local open_cmd
@@ -368,7 +368,7 @@ elif [[ "${extension_to_observe-}" == "xml" ]] && [[ "${file_to_observe-}" == "p
     (*) echo "Platform $OSTYPE / $(uname) / $(expr substr $(uname -s) 1 5) / $(expr substr $(uname -s) 1 10) /  not supported"
       return 1 ;;
   esac
-    
+
 		echo "compile using Javac like ActiveJ"
 		echo "javac -classpath path/to/activej/libs/*.jar YourMainClass.java"
 		echo "run activej"
@@ -401,12 +401,12 @@ elif [[ "${extension_to_observe-}" == "xml" ]] && [[ "${file_to_observe-}" == "p
 					if [ -e build.gradle.kts ] ; then
 						# kotlink ktor
             prefix_to_run="[[ -n \\\"\$(ps aux | grep '${file_to_observe-}' | grep -v 'grep' | grep -v 'nodemon'  | head -1 | xargs)\\\"  ]] && kill \\\"\$(ps aux | grep '${file_to_observe-}' | grep -v 'grep' | grep -v 'nodemon'  | head -1 | xargs | cut -d' ' -f2 )\\\" || ./gradlew run  \\\"$(pwd)/${file_to_observe-}\\\" && ./gradlew run  "
-					else 
+					else
 						# spring boot
             prefix_to_run="[[ -n \\\"\$(ps aux | grep '${file_to_observe-}' | grep -v 'grep' | grep -v 'nodemon'  | head -1 | xargs)\\\"  ]] && kill \\\"\$(ps aux | grep '${file_to_observe-}' | grep -v 'grep' | grep -v 'nodemon'  | head -1 | xargs | cut -d' ' -f2 )\\\" || ./gradlew bootRun  \\\"$(pwd)/${file_to_observe-}\\\" && ./gradlew bootRun  "
 					fi
 				fi
-			elif [ ${linuxy} -eq 1 ] && [ ${windowxy} -eq 0 ] ; then # cygwin or msys 
+			elif [ ${linuxy} -eq 1 ] && [ ${windowxy} -eq 0 ] ; then # cygwin or msys
 		    if ( command -v gradlew.bat  >/dev/null 2>&1; )  ; then
 					if [ -e build.gradle.kts ] ; then
             # kotlink ktor
@@ -416,10 +416,10 @@ elif [[ "${extension_to_observe-}" == "xml" ]] && [[ "${file_to_observe-}" == "p
 						prefix_to_run="[[ -n \\\"\$(ps aux | grep '${file_to_observe-}' | grep -v 'grep' | grep -v 'nodemon'  | head -1 | xargs)\\\"  ]] && kill \\\"\$(ps aux | grep '${file_to_observe-}' | grep -v 'grep' | grep -v 'nodemon'  | head -1 | xargs | cut -d' ' -f2 )\\\" || gradlew.bat bootRun  \\\"$(pwd)/${file_to_observe-}\\\" && gradlew.bat bootRun  "
 			    fi
 				fi
-			else 
+			else
        prefix_to_run="[[ -n \\\"\$(ps aux | grep '${file_to_observe-}' | grep -v 'grep' | grep -v 'nodemon'  | head -1 | xargs)\\\"  ]] && kill \\\"\$(ps aux | grep '${file_to_observe-}' | grep -v 'grep' | grep -v 'nodemon'  | head -1 | xargs | cut -d' ' -f2 )\\\" || gradlew.bat bootRun  \\\"$(pwd)/${file_to_observe-}\\\" && gradlew.bat bootRun  "
 			fi
-		fi	
+		fi
 
   file_to_watch="$(pwd)/"
   extension_to_observe="java"
@@ -547,7 +547,8 @@ ${one}"
           fi
 
           _found=0
-          local __all_passed_files="$( sed 's/\.rb\ /.rb\n/g' <<< "${*-}")"
+          local __all_passed_files=""
+					__all_passed_files="$( sed 's/\.rb\ /.rb\n/g' <<< "${*-}")"
           echo __all_passed_files:"${__all_passed_files}"
 
           while read -r one ; do
@@ -612,11 +613,11 @@ ${one}"
 
   replacer_colors_sufix2=$(cat <<-EOF
       | ${REPLACER} --unbuffered 's/"${_maybe_name-}"/\o033[38;5;178m"${_maybe_name-}"\o033[0m/g' \\
-      | ${REPLACER} --unbuffered 's/"${_maybe_name-}"/\o033[38;5;178m"${_maybe_name-}"\o033[0m/g' \\
+      | ${REPLACER} --unbuffered 's/"${_maybe_name-}"/\o033[38;5;178m"${_maybe_name-}"\o033[0m/g'
 
 EOF
 )
-   # | ${REPLACER} --unbuffered 's@/./@/@g' \\
+   # | ${REPLACER} --unbuffered 's@/./@/@g' \ #
 
         } # end [[ -n "${_possible_related_classes}" ]]
         fi
