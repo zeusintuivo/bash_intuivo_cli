@@ -256,17 +256,28 @@ get_current_folder_path_and_name
 
 anounce Re-linking now
 
-if [ ! -d "/usr/local" ] || [ ! -d "/usr/local/bin" ]; then
+if [[ ! -d "/usr/local" ]]; then
 {
-  sudo mkdir -p /usr/local/bin
+  sudo mkdir -p /usr/local
+}
+fi
+
+if [[ ! -d "/usr/local/bin" ]]; then
+{
   sudo chown -R $USER:$USER /usr/local/bin
+}
+fi
+
+if [[ ! -d "${USER_HOME}/bin/" ]] ; then
+{
+  sudo mkdir -p "${USER_HOME}/bin"
 }
 fi
 
 BLANK_SPACE="${lightpurple} +-- ${lightblue} "
 while read -r SCRIPT_NAME; do
 
-  if [ ! -z "${SCRIPT_NAME}" ]  && [ ! -d "${SCRIPT_NAME}/" ] ; then   # Not empty and is not a directory
+  if [[ -n "${SCRIPT_NAME}" ]]  && [[ ! -d "${SCRIPT_NAME}/" ]] ; then   # Not empty and is not a directory
     {
       anounce_command chmod +x "${CURRENT_PATH}/${SCRIPT_NAME}"
       target_link="/usr/local/bin/${SCRIPT_NAME}"
@@ -275,58 +286,69 @@ while read -r SCRIPT_NAME; do
           anounce_command sudo unlink "${target_link}"
         }
       fi
-      anounce_command sudo ln -sf "${CURRENT_PATH}/${SCRIPT_NAME}" "${target_link}"
+      new_target_link="${USER_HOME}/bin/${SCRIPT_NAME}"
+      if [[ -e "${new_target_link}" ]] && [[ -L "${new_target_link}" ]]; then # Symlink softlink exists REF: http://stackoverflow.com/questions/5767062/how-to-check-if-symlink-exists
+        {
+          anounce_command sudo unlink "${new_target_link}"
+        }
+      fi
+      anounce_command sudo ln -sf "${CURRENT_PATH}/${SCRIPT_NAME}" "${new_target_link}"
     }
   fi
 done <<< "${LIST_OF_BASH_SCRIPTS}"
+
+new_target_link="${USER_HOME}/bin"
 
 patch_utf_names(){
   # Sample use
   #       patch_utf_names "${PROVIDED_USER}" "${BASHCRMCLI}" >/dev/null 2>&1 # suppress output
   PROVIDED_USER="vagrant"
-  if [ ! -z "${1}" ] ;  then
+  if [[  -n "${1}" ]] ;  then
       PROVIDED_USER="${1}"
   fi
 
   TARGET_DIRECTORY="/_/clis"
-  if [ ! -z "${2}" ] ;  then
+  if [[ -n "${2}" ]] ;  then
       TARGET_DIRECTORY="${2}"
   fi
 
-  [ ! -d "${TARGET_DIRECTORY}/"   ] && return 0
-  [ ! -d "/usr/local/bin/"  ] && return 0
+  [[ ! -d "${TARGET_DIRECTORY}/"   ]] && return 0
+  [[ ! -d "/usr/local/bin/"  ]] && return 0
 
   anounce Patching UTF-8 Filenames
-  anounce_command sudo ln -sf  "${TARGET_DIRECTORY}/cuet" /usr/local/bin/cüt
-  anounce_command sudo ln -sf  "${TARGET_DIRECTORY}/loeschen_seo_nur_datei" /usr/local/bin/löschen_seo_nur_datei
-  anounce_command sudo ln -sf  "${TARGET_DIRECTORY}/aeoe" /usr/local/bin/äö
-  anounce_command sudo ln -sf  "${TARGET_DIRECTORY}/oe" /usr/local/bin/ö
-  anounce_command sudo ln -sf  "${TARGET_DIRECTORY}/oeue" /usr/local/bin/öü
-  anounce_command sudo ln -sf  "${TARGET_DIRECTORY}/crossedo" /usr/local/bin/ø
-  anounce_command sudo ln -sf  "${TARGET_DIRECTORY}/crossequal" /usr/local/bin/≠
-  anounce_command sudo ln -sf  "${TARGET_DIRECTORY}/middleminidot" /usr/local/bin/•
-  anounce_command sudo ln -sf  "${TARGET_DIRECTORY}/ue" /usr/local/bin/ü
-  anounce_command sudo ln -sf  "${TARGET_DIRECTORY}/dimscreen" /usr/local/bin/€
-  anounce_command sudo ln -sf  "${TARGET_DIRECTORY}/doe" /usr/local/bin/dö
+  anounce_command sudo ln -sf  "${TARGET_DIRECTORY}/loeschen_seo_nur_datei" "${new_target_link}/löschen_seo_nur_datei"
+  anounce_command sudo ln -sf  "${TARGET_DIRECTORY}/cuet"          "${new_target_link}/cüt"
+  anounce_command sudo ln -sf  "${TARGET_DIRECTORY}/aeoe"          "${new_target_link}/äö"
+  anounce_command sudo ln -sf  "${TARGET_DIRECTORY}/oe"            "${new_target_link}/ö"
+  anounce_command sudo ln -sf  "${TARGET_DIRECTORY}/oeue"          "${new_target_link}/öü"
+  anounce_command sudo ln -sf  "${TARGET_DIRECTORY}/crossedo"      "${new_target_link}/ø"
+  anounce_command sudo ln -sf  "${TARGET_DIRECTORY}/crossequal"    "${new_target_link}/≠"
+  anounce_command sudo ln -sf  "${TARGET_DIRECTORY}/middleminidot" "${new_target_link}/•"
+  anounce_command sudo ln -sf  "${TARGET_DIRECTORY}/ue"            "${new_target_link}/ü"
+  anounce_command sudo ln -sf  "${TARGET_DIRECTORY}/dimscreen"     "${new_target_link}/€"
+  anounce_command sudo ln -sf  "${TARGET_DIRECTORY}/doe"           "${new_target_link}/dö"
 
-  anounce_command sudo unlink  /usr/local/bin/cuet
-  anounce_command sudo unlink  /usr/local/bin/loeschen_seo_nur_datei
-  anounce_command sudo unlink  /usr/local/bin/aeoe
-  anounce_command sudo unlink  /usr/local/bin/oe
-  anounce_command sudo unlink  /usr/local/bin/oeue
-  anounce_command sudo unlink  /usr/local/bin/crossedo
-  anounce_command sudo unlink  /usr/local/bin/crossequal
-  anounce_command sudo unlink  /usr/local/bin/middleminidot
-  anounce_command sudo unlink  /usr/local/bin/ue
+  anounce_command sudo unlink  "${new_target_link}/loeschen_seo_nur_datei"
+  anounce_command sudo unlink  "${new_target_link}/cuet"
+  anounce_command sudo unlink  "${new_target_link}/aeoe"
+  anounce_command sudo unlink  "${new_target_link}/oe"
+  anounce_command sudo unlink  "${new_target_link}/oeue"
+  anounce_command sudo unlink  "${new_target_link}/crossedo"
+  anounce_command sudo unlink  "${new_target_link}/crossequal"
+  anounce_command sudo unlink  "${new_target_link}/middleminidot"
+  anounce_command sudo unlink  "${new_target_link}/ue"
 
 
 } # end patch_utf_names
 if [[ "${PWD}" == *"bash_intuivo_cli"* ]] ; then
 {
-  if [ -d "${PWD}/"  ] ; then
+  if [[ -d "${PWD}/"  ]] ; then
   {
     patch_utf_names "${USER}" "/_/clis/bash_intuivo_cli"
   }
   fi
 }
 fi
+
+
+
