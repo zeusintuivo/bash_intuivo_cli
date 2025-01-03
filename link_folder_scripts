@@ -4,8 +4,8 @@
 #
 #
 
-# set -xu -E
-set -u -E
+set -xu -E
+# set -u -E
 export USER_HOME
 export _no_typesetg
 typeset -i _no_typesetg=0
@@ -303,12 +303,12 @@ patch_utf_names(){
   # Sample use
   #       patch_utf_names "${PROVIDED_USER}" "${BASHCRMCLI}" >/dev/null 2>&1 # suppress output
   PROVIDED_USER="vagrant"
-  if [[  -n "${1}" ]] ;  then
+  if [[  -n "${1:-}" ]] ;  then
       PROVIDED_USER="${1}"
   fi
 
   TARGET_DIRECTORY="/_/clis"
-  if [[ -n "${2}" ]] ;  then
+  if [[ -n "${2:-}" ]] ;  then
       TARGET_DIRECTORY="${2}"
   fi
 
