@@ -173,7 +173,7 @@ function _rename_function() {
       # exit
       # check operation systems 
       (
-        if [[ "$(uname)" == "Darwin" ]] || [[ "$(expr substr $(uname -s) 1 5)" == "Linux" ]] ; then 
+        if [[ "$(uname)" == "Darwin" ]] || [[ "$(cut -c1-5 <<< "$(uname -s)")" == "Linux" ]] ; then 
           # Do something under Mac OS X platform    
           mv "${FROMESCAPED}" "${TOESCAPED}"
           if [ $? == 0 ]; then
@@ -189,13 +189,13 @@ function _rename_function() {
           fi
 
 
-        elif [[ "$(expr substr $(uname -s) 1 10)" == "MINGW32_NT" ]] ; then 
+        elif [[ "$(cut -c1-10 <<< "$(uname -s)")" == "MINGW32_NT" ]] ; then 
           # Do something under Windows NT platform
           ren "${FROMESCAPED}" "${TOESCAPED}"
           ersetze "${FROMNAME}" "${TONAME}"
           ö "${TONAME}"
 
-        elif [[ "$(expr substr $(uname -s) 1 10)" == "MINGW64_NT" ]] ; then 
+        elif [[ "$(cut -c1-10 <<< "$(uname -s)")" == "MINGW64_NT" ]] ; then 
           # Do something under Windows NT platform
           ren "${FROMESCAPED}" "${TOESCAPED}"
           ersetze "${FROMNAME}" "${TONAME}"

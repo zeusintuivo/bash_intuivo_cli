@@ -353,9 +353,9 @@ elif [[ "${extension_to_observe-}" == "xml" ]] && [[ "${file_to_observe-}" == "p
 	local windowxy=0
 	if [[ "$(uname)" == "Darwin" ]] ; then
     linuxy=1
-  elif [[ "$(expr substr $(uname -s) 1 5)" == "Linux" ]] ; then
+  elif [[ "$(cut -c1-5 <<< "$(uname -s)")" == "Linux" ]] ; then
     linuxy=1
-  elif [[ "$(expr substr $(uname -s) 1 10)" == "MINGW32_NT" ]]  || [[ "$(expr substr $(uname -s) 1 10)" == "MINGW64_NT" ]] ; then
+  elif [[ "$(cut -c1-10 <<< "$(uname -s)")" == "MINGW32_NT" ]]  || [[ "$(cut -c1-10 <<< "$(uname -s)")" == "MINGW64_NT" ]] ; then
     windowxy=1
 		linuxy=0
   fi
@@ -365,7 +365,7 @@ elif [[ "${extension_to_observe-}" == "xml" ]] && [[ "${file_to_observe-}" == "p
     (cygwin*) windowxy=1 ; linuxy=1 ;;
     (linux*) linuxy=1  ;;
     (msys*) windowxy=1 ; linuxy=1  ;;
-    (*) echo "Platform $OSTYPE / $(uname) / $(expr substr $(uname -s) 1 5) / $(expr substr $(uname -s) 1 10) /  not supported"
+    (*) echo "Platform $OSTYPE / $(uname) / $(cut -c1-5 <<< "$(uname -s)") / $(cut -c1-10 <<< "$(uname -s)") /  not supported"
       return 1 ;;
   esac
 

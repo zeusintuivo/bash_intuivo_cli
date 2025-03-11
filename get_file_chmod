@@ -185,7 +185,7 @@ fi
       fi
     done <<< "${FILENAME}"
 
-  elif [[ "$(expr substr $(uname -s) 1 5)" == "Linux" ]] ; then
+  elif [[ "$(cut -c1-5 <<< "$(uname -s)")" == "Linux" ]] ; then
     # Do something under GNU/Linux platform
     while read -r ONE_FILENAME; do
       # if not empty
@@ -205,7 +205,7 @@ fi
       fi
     done <<< "${FILENAME}"
 
-  elif [[ "$(expr substr $(uname -s) 1 10)" == "MINGW32_NT" ]] || [[ "$(expr substr $(uname -s) 1 10)" == "MINGW64_NT" ]] ; then
+  elif [[ "$(cut -c1-10 <<< "$(uname -s)")" == "MINGW32_NT" ]] || [[ "$(cut -c1-10 <<< "$(uname -s)")" == "MINGW64_NT" ]] ; then
     # Do something under Windows NT platform
      echo "Not learned yet. nothing"
     # nothing here
