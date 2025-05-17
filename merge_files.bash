@@ -1,4 +1,7 @@
-#!/bin/bash
+#!/usr/bin/env bash
+
+set -xuEe
+
 
 # Validate input
 if [ "$#" -lt 3 ]; then
