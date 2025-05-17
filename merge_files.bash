@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Validate input
-if [ "$#" -ne 3 ]; then
+if [ "$#" -lt 3 ]; then
   echo "Usage: $0 <source_dir> <target_dir> <topic> <extensions>"
   echo "$0 . chatgipity \"adding feature\" \"rs toml\" "
   echo "$0 . chatgipity \"adding feature\" \"php inc\" "
