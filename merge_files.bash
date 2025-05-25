@@ -60,16 +60,22 @@ function _merge_files(){
     [[ -z "${ALLFILES}" ]] && continue
     while read -r FILE; do
     {
-      RELATIVE_PATH="./${SRC_DIR}/${FILE}"
+      RELATIVE_PATH="${FILE}"
 
       # Add start marker
       # shellcheck disable=SC2129
       echo "# file: ${RELATIVE_PATH}   // --- start" >> "${OUTPUT_FILE}"
 
       # Remove comments and write cleaned content
-      sed -e 's/\/\/.*//' \
-        -e 's/#.*//' \
+      # sed -e 's/\/\/.*//' \
+      #  -e 's/#.*//' \
+      #  -e '/\/\*/,/\*\//d' \
+      #  "${RELATIVE_PATH}" >> "${OUTPUT_FILE}"
+
+      sed -E \
         -e '/\/\*/,/\*\//d' \
+        -e 's/(^|[^:])\/\/.*$/\1/' \
+        -e 's/#.*//' \
         "${RELATIVE_PATH}" >> "${OUTPUT_FILE}"
 
         # Add end marker
