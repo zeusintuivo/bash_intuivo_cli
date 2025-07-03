@@ -55,7 +55,7 @@ function _get_percentage_conversion(){
   return 0
 } # end _get_percentage_conversion
 function test_get_percentage_conversion(){
-  local _bright_percentage=""
+  local -i _bright_percentage=""
   _bright_percentage="$(_get_percentage_conversion "${BRIGHTNESS}")"
   echo "_bright_percentage:${_bright_percentage}%"
 } # end test_get_percentage_conversion
@@ -106,7 +106,7 @@ function _set_brightness(){
   #     | cut -d" " -f1 | xargs -I {} xrandr --output {}   --brightness "${BRIGHTNESS}"
   local monitors=""
   monitors="$(_get_all_active_monitors)"
-  local _bright_percentage=""
+  local -i  _bright_percentage=""
   _bright_percentage="$(_get_percentage_conversion "${BRIGHTNESS}")"
   local _day_or_night=""
   _day_or_night="$(_get_day_or_night)"
@@ -175,10 +175,23 @@ function _set_brightness(){
       xrandr --output "${monitor}" --gamma 1.0:0.88:0.76  --brightness "${BRIGHTNESS}"
     }
     fi
-    echo brightnessctl set "${_bright_percentage}%"
-    brightnessctl set "${_bright_percentage}%"
-    brightnessctl --device='tpacpi::kbd_backlight' set 0
+    if [ ${BRIGHTNESS} -lt 10 ] ; then
+    {
+      brightnessctl s 0
+    }
+    else
+    {
+      echo brightnessctl set "${_bright_percentage}%"
+      # brightnessctl set "${_bright_percentage}%"
+      brightnessctl --device='tpacpi::kbd_backlight' set 0
+      _bright_percentage=$(( _bright_percentage + 30 ))
+      _bright_percentage=$(( _bright_percentage * 10 ))
 
+      # brightnessctl s 500
+      # brightnessctl s 700
+      brightnessctl s ${_bright_percentage}
+    }
+    fi
   }
   done <<< "${monitors}"
   return 0

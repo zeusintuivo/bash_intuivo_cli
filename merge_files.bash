@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
 
-set -xuEe
 
 
 # Validate input
@@ -14,6 +13,7 @@ if [ "$#" -lt 3 ]; then
   exit 1
 fi
 
+set -xuEe
 function _merge_files(){
 
   local SRC_DIR="${1}"
