@@ -1,191 +1,182 @@
 #!/bin/bash
 # @author Zeus Intuivo <zeus@intuivo.com>
 #
+#!/usr/bin/env bash
+set -euo pipefail
 
-#
-.each() {
-  # Sample usage:
-  # ALL_REMOTE_BRANCHES_BRANCHES=$(git branch -r --no-color | sed '1d' | sed 's/[*]//g' | sed 's/\ //g' )
-  # ACTIONS="git checkout {#}
-  # pull
-  # "
-  # .each  "${ACTIONS}" "${ALL_REMOTE_BRANCHES_BRANCHES_WITHOUT_ORIGIN}"
 
-  local local_actions="${1}"
-  local local_items="${2}"
-  local one_item
-  local one_action
-  local action
+function do_gefund() {
 
-  while read -r one_item; do                                                  # Get longest file name
+
+  trim_start_space() {
+    sed -e 's/^[[:space:]]*//' \
+      -e 's/^\ //g' \
+      -e 's/^\t//g'
+  } # end trim_start_space
+
+  trim_first_dot_from_find_style_list() {
+    sed 's/^\..//g'
+  } # end trim_first_dot_from_find_style_list
+
+  # local ACTIONS=""
+  local ACTIONS=('echo "{#}"')
+  # if you detect a Rails-ish project, use colours
+  if [[ -d .idea && -f Gemfile && -d app && -d db && -d config && -d test ]]; then
   {
-    if [ -n "${one_item}" ] ; then  # if not empty
-    {
-      while read -r one_action; do                                                  # Get longest file name
-      {
-        if [ -n "${one_action}" ] ; then  # if not empty
-        {
-          action="${one_action/\{\#\}/$one_item}"  # replace value inside string substitution expresion bash
-          eval ${action}
-        }
-        fi
-      }
-      done <<< "${local_actions}"
-    }
-    fi
+    ACTIONS=('echo -e "\033[38;5;202m{#}\033[38;5;232m:1\033[0m"')
   }
-  done <<< "${local_items}"
-}
-
-THISSCRIPTNAME=`basename "$0"`
-function trim_start_space() {
- sed -e 's/^[[:space:]]*//' | sed 's/^\ //g' | sed 's/^\t//g'
-} # end trim_start_space
-
-# bash shell script check input argument
-if [ -z "$1" ] ; then
-{
-    SEEKING="filename"
-    echo " "
-    echo "${THISSCRIPTNAME}. Finds a filename using 'find' from linux/mac and 'ag' "
-    echo " "
-    echo "Command used locating: \"${SEEKING}\" "
-    echo -e "\033[38;5;214m === find . | ag --nocolor \"/.*${SEEKING}[^/]*$\" | sed 's/../  /' ===\n \033[38;5;189m";
-    echo " "
-    echo "Missing 1st argument "
-    echo " "
-    echo "Sample Usage:    - expects one argument "
-    echo " "
-    echo "    ${THISSCRIPTNAME}  this "
-    echo "    ";
-    exit
-}
-fi
-SEEKING="$1";
-PARAMS="";
-if [ -z "$2" ]
-  then
-  {
-    PARAMS="$2";
-  }
-fi
-# echo $0=./replace
-# echo -e "\033[38;5;147m "
-# echo " "
-# echo " "
-# echo " ";
-# echo -e "\033[38;5;214m === find . | ag --nocolor \"/.*${SEEKING}[^/]*$\" | sed 's/../  /' ===\n \033[38;5;189m";
-# echo " ";
-## SED REF: http://www.theunixschool.com/2014/08/sed-examples-remove-delete-chars-from-line-file.html
-#
-#                             # remove 1st character in every line:
-# echo "err_buff3=$?"
-
-
-MOREIGNORE_FILES=""
-[ -f .oeignore_files ] && MOREIGNORE_FILES=$(<.oeignore_files)
-MOREIGNORE_DIRS=""
-[ -f .oeignore_dirs ] && MOREIGNORE_DIRS=$(<.oeignore_dirs)
-
-# echo "MOREIGNORE_FILES:${MOREIGNORE_FILES}"
-# echo "MOREIGNORE_DIRS:${MOREIGNORE_DIRS}"
-# exit 0
-
-FILESTOEXCLUDE=".dir_bash_history
-.gitignore
-.ersetzeignore_dirs
-.ersetzeignore_files
-.nurignore_dirs
-.nurignore_files
-.tutorial
-ack
-bootstrap.php.cache
-conflicts
-composer.phar
-countalltables
-dBug.php
-generateinserts
-generatelocations
-generateparams
-load_insert
-phpunit
-${MOREIGNORE_FILES}"
-
-DIRSTOEXCLUDE=".cargo
-.nyc_output
-.serverless
-.tmp
-.ecryptfs
-.gvfs
-.git
-.idea
-.vagrant
-.servo
-coverage
-AbsoluteUrlBundle
-app/Stubs
-bower_components
-cache
-.cache
-dist
-node_modules
-python
-storage/debugbar
-storage/logs
-target
-tmp
-log
-ports
-app/Stubs
-var/cache
-var/logs
-var/session
-app/cache
-app/logs
-app/session
-${MOREIGNORE_DIRS}"
-# echo "FILESTOEXCLUDE:${FILESTOEXCLUDE}"
-# echo "DIRSTOEXCLUDE:${DIRSTOEXCLUDE}"
-# exit 0
-
-IGNORELIST="node_modules"
-EXCLUDEPREFIX='|'
-    while read -r ONE_FILENAME; do
-      # if not empty
-      if [[ -n "${ONE_FILENAME}" ]] ; then
-        IGNORELIST="${IGNORELIST}${EXCLUDEPREFIX}${ONE_FILENAME}"
-      fi
-    done <<< "${FILESTOEXCLUDE}"
-    while read -r ONE_DIRNAME; do
-      # if not empty
-      if [[ -n "${ONE_DIRNAME}" ]] ; then
-        IGNORELIST="${IGNORELIST}${EXCLUDEPREFIX}${ONE_DIRNAME}"
-      fi
-    done <<< "${DIRSTOEXCLUDE}"
-
-# echo "${IGNORELIST}"
-# exit 0
-
-# echo "find . | ag --nocolor \"/.*${SEEKING}[^/]*$\" | trim_start_space | sed 's/^\../  /g' | grep -v \"${IGNORELIST}\""
-# exit 0
-# findings=$(find . | ag --nocolor "/.*${SEEKING}[^/]*$" | trim_start_space | sed 's/^\../  /g' | grep -v "${IGNORELIST}")
-findings=$(find . | ag --nocolor "/.*${SEEKING}[^/]*$" | sed 's/^\..//g' | grep -Ev "${IGNORELIST}")
-# echo "err_buff4=$?"
-if [[ -n "${findings}" ]] ; then
-{
-  # echo "err_buff5=$?"
-  #ACTIONS="echo -e \"{#}\\033[38;5;232m:1\\033[0m\""
-  ACTIONS="echo \"{#}\""
-  # echo "err_buff6=$?"
-  if [ -d .idea/ ] && [ -f Gemfile ] && [ -d app/ ] && [ -d db/ ] && [ -d config/ ] && [ -d "test/" ] ; then
-    ACTIONS="$(echo -n "echo -e \"\033[38;5;202m{#}\033[38;5;232m:1\033[0\"")"
-    ACTIONS="$(echo -n "echo -e \"{#}:0 \"")"
-    ACTIONS="echo -en \"\\\033[38;5;202m{#}\033[38;5;232m:1\" \\\\n"
   fi
-  # echo "err_buff7=$?"
-  .each  "${ACTIONS}"  "${findings}"
-  # echo "err_buff8=$?"
+
+  .each() {
+      local one_item=""
+      local act=""
+      local cmd=""
+      while IFS= read -r one_item; do
+        {
+          [[ -z "${one_item}" ]] && continue
+          for act in "${ACTIONS[@]}"; do
+            {
+              cmd="${act//\{\#\}/"${one_item}"}"
+                eval "${cmd}"
+              }
+          done
+        }
+    done
+  } # end .each
+
+  local SEEKING="${*}"
+
+  local MOREIGNORE_FILES=""
+  local MOREIGNORE_DIRS=""
+  # your per-item action(s)
+
+
+
+  MOREIGNORE_FILES=""
+  [ -f .oeignore_files ] && MOREIGNORE_FILES=$(<.oeignore_files)
+  MOREIGNORE_DIRS=""
+  [ -f .oeignore_dirs ] && MOREIGNORE_DIRS=$(<.oeignore_dirs)
+
+  # echo "MOREIGNORE_FILES:${MOREIGNORE_FILES}"
+  # echo "MOREIGNORE_DIRS:${MOREIGNORE_DIRS}"
+  # exit 0
+
+  FILESTOEXCLUDE=".dir_bash_history
+  .gitignore
+  .ersetzeignore_dirs
+  .ersetzeignore_files
+  .nurignore_dirs
+  .nurignore_files
+  .tutorial
+  ack
+  bootstrap.php.cache
+  conflicts
+  composer.phar
+  countalltables
+  dBug.php
+  generateinserts
+  generatelocations
+  generateparams
+  load_insert
+  phpunit
+  ${MOREIGNORE_FILES}"
+
+  DIRSTOEXCLUDE=".cargo
+  .nyc_output
+  .serverless
+  .tmp
+  .ecryptfs
+  .gvfs
+  .git
+  .idea
+  .vagrant
+  .servo
+  coverage
+  AbsoluteUrlBundle
+  app/Stubs
+  bower_components
+  cache
+  .cache
+  dist
+  node_modules
+  python
+  storage/debugbar
+  storage/logs
+  target
+  tmp
+  log
+  ports
+  app/Stubs
+  var/cache
+  var/logs
+  var/session
+  app/cache
+  app/logs
+  app/session
+  ${MOREIGNORE_DIRS}"
+  # echo "FILESTOEXCLUDE:${FILESTOEXCLUDE}"
+  # echo "DIRSTOEXCLUDE:${DIRSTOEXCLUDE}"
+  # exit 0
+
+  IGNORELIST="node_modules"
+  EXCLUDEPREFIX='|'
+  while read -r ONE_FILENAME; do
+    # if not empty
+    if [[ -n "${ONE_FILENAME}" ]] ; then
+      IGNORELIST="${IGNORELIST}${EXCLUDEPREFIX}${ONE_FILENAME}"
+    fi
+  done <<< "${FILESTOEXCLUDE}"
+  while read -r ONE_DIRNAME; do
+    # if not empty
+    if [[ -n "${ONE_DIRNAME}" ]] ; then
+      IGNORELIST="${IGNORELIST}${EXCLUDEPREFIX}${ONE_DIRNAME}"
+    fi
+  done <<< "${DIRSTOEXCLUDE}"
+   #  echo "$IGNORELIST"
+
+   #   main loop:  stream find + ag + sed + grep  →  while read; do …; done
+   #
+   find . \
+       | ag --nocolor "/.*${SEEKING}[^/]*$" \
+       | trim_first_dot_from_find_style_list \
+       | grep -Ev "${IGNORELIST}" \
+       | trim_start_space \
+       | .each
+
+} # en do_gefund
+
+THISSCRIPTNAME="$(basename "$0")"
+
+
+# usage
+if [[ $# -lt 1 ]]; then
+{
+
+    cat <<EOF
+
+    ${THISSCRIPTNAME} v2 -- stream-find
+
+    Command used locating: ${SEEKING}
+    \033[38;5;214m === find . | ag --nocolor "/.*${SEEKING}[^/]*$" | sed 's/../  /' ===\n \033[38;5;189m
+
+    Missing 1st argument
+
+    Sample Usage:
+
+    Usage:
+      ${THISSCRIPTNAME} <pattern>
+
+    Example:
+      ${THISSCRIPTNAME} foo
+
+EOF
+    exit 1
 }
 fi
 
-# echo -en "\\033[0 "
+
+
+do_gefund ${*}
+
+
+# end
