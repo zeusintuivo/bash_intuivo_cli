@@ -226,14 +226,14 @@ FILES_ALL_EXECUTABLE=$(find * -maxdepth 0 -perm +111  -type f)   # version inclu
 LIST_OF_BASH_SCRIPTS="${LIST_OF_BASH_SCRIPTS}
 ${FILES_ALL_EXECUTABLE}"                                                                 #Find All executable files
 
-elif [[ "$(expr substr $(uname -s) 1 5)" == "Linux" ]] ; then
+elif [[ "$(cut -c1-5 <<< "$(uname -s)")" == "Linux" ]] ; then
   # Do something under GNU/Linux platform
   # ubuntu lsb_release -i | sed 's/Distributor\ ID://g' = \tUbuntu\n
 FILES_ALL_EXECUTABLE=$(find * -maxdepth 0 -executable -type f)
 LIST_OF_BASH_SCRIPTS="${LIST_OF_BASH_SCRIPTS}
 ${FILES_ALL_EXECUTABLE}"                                                                 #Find All executable files
 
-elif [[ "$(expr substr $(uname -s) 1 10)" == "MINGW32_NT" ]] ; then
+elif [[ "$(cut -c1-10 <<< "$(uname -s)")" == "MINGW32_NT" ]] ; then
   # Do something under Windows NT platform
 FILES_ALL_EXECUTABLE=$(find * -maxdepth 0 -executable -type f)
 LIST_OF_BASH_SCRIPTS="${LIST_OF_BASH_SCRIPTS}

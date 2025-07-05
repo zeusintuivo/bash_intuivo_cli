@@ -41,12 +41,12 @@ PATHTODO="*"
     #find $1 -type f -exec stat -f "%m%t%Sm %N" "{}" \; | sort -n | cut -d: -f2- | head
     find "$PATHTODO"  -type f | xargs -I {} stat -f "%m%t%Sm %N" "{}"  | sort -n  | cut -c12-
 
-  elif [[ "$(expr substr $(uname -s) 1 5)" == "Linux" ]] ; then
+  elif [[ "$(cut -c1-5 <<< "$(uname -s)")" == "Linux" ]] ; then
     # Do something under GNU/Linux platform
     #find $1 -type f -exec stat --format '%Y :%y %n' "{}" \; | sort -nr | cut -d: -f2- | head
     find "$PATHTODO"  -type f -exec stat --format '%Y :%y %n' "{}" \; | sort -n | cut -c12-
 
-  elif [[ "$(expr substr $(uname -s) 1 10)" == "MINGW32_NT" ]]  || [[ "$(expr substr $(uname -s) 1 10)" == "MINGW64_NT" ]]; then
+  elif [[ "$(cut -c1-10 <<< "$(uname -s)")" == "MINGW32_NT" ]]  || [[ "$(cut -c1-10 <<< "$(uname -s)")" == "MINGW64_NT" ]]; then
     # Do something under Windows NT platform
      echo "WINDOWS NEEDS TO LEARN"
 

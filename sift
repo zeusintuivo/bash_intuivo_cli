@@ -290,7 +290,7 @@ function determine_os_and_run_file() {
     FILE_TO_CALL=$(get_mac_architecture "${target_name}")
     PARAMETERS="$@"
   }
-  elif [[ "$(expr substr $(uname -s) 1 5)" == "Linux" ]] ; then
+  elif [[ "$(cut -c1-5 <<< "$(uname -s)")" == "Linux" ]] ; then
   {
     if (( DEBUG )) ; then
       echo "Linux"
@@ -436,7 +436,7 @@ function determine_os_and_run_file() {
     unset DISTRO
     unset ID
   }
-  elif [[ "$(expr substr $(uname -s) 1 10)" == "MINGW32_NT" ]] ; then
+  elif [[ "$(cut -c1-10 <<< "$(uname -s)")" == "MINGW32_NT" ]] ; then
   {
     # Do something under Windows NT platform
     if [[ "$(uname -i)" == "x86_64" ]] ; then
@@ -460,7 +460,7 @@ function determine_os_and_run_file() {
     fi
     # nothing here
   }
-  elif [[ "$(expr substr $(uname -s) 1 10)" == "MINGW64_NT" ]] ; then
+  elif [[ "$(cut -c1-10 <<< "$(uname -s)")" == "MINGW64_NT" ]] ; then
   {
     # Do something under Windows NT platform
     if [[ "$(uname -i)" == "x86_64" ]] ; then
@@ -572,7 +572,7 @@ function determine_os_and_run_file() {
 #         (*) echo "bash_intuivo_cli/sift Platform $(uname) ${UNAMEM} not yet implemented"
 #         return 1 ;;
 #     esac
-#   elif [[ "$(expr substr $(uname -s) 1 5)" == "Linux" ]] ; then
+#   elif [[ "$(cut -c1-5 <<< "$(uname -s)")" == "Linux" ]] ; then
 #     # Do something under GNU/Linux platform
 #     # ubuntu lsb_release -i | sed 's/Distributor\ ID://g' = \tUbuntu\n
 #       if [[ "$(uname -i)" == "x86_64" ]] ; then
@@ -580,11 +580,11 @@ function determine_os_and_run_file() {
 #       elif [[ "$(uname -i)" == "i686"   ]] ; then
 #         sift_linux_32 "$@"
 #       fi
-#   elif [[ "$(expr substr $(uname -s) 1 10)" == "MINGW32_NT" ]] ; then
+#   elif [[ "$(cut -c1-10 <<< "$(uname -s)")" == "MINGW32_NT" ]] ; then
 #     # Do something under Windows NT platform
 #     sift_win_32 "$*"
 #     # nothing here
-#   elif [[ "$(expr substr $(uname -s) 1 10)" == "MINGW64_NT" ]] ; then
+#   elif [[ "$(cut -c1-10 <<< "$(uname -s)")" == "MINGW64_NT" ]] ; then
 #     # Do something under Windows NT platform
 #     sift_win_64 "$*"
 #     # nothing here
@@ -633,7 +633,7 @@ ${ACTION}${FILE_TO_CALL}
     }
     fi
   }
-  elif [[ "$(expr substr $(uname -s) 1 5)" == "Linux" ]] ; then
+  elif [[ "$(cut -c1-5 <<< "$(uname -s)")" == "Linux" ]] ; then
   {
     if (( DEBUG )) ; then
       echo "Linux"
@@ -842,7 +842,7 @@ ${ACTION}${FILE_TO_CALL}
     unset DISTRO
     unset ID
   }
-  # elif [[ "$(expr substr $(uname -s) 1 5)" == "Linux" ]] ; then
+  # elif [[ "$(cut -c1-5 <<< "$(uname -s)")" == "Linux" ]] ; then
   #   # Do something under GNU/Linux platform
   #   # ubuntu lsb_release -i | sed 's/Distributor\ ID://g' = \tUbuntu\n
   #     if [[ "$(uname -i)" == "x86_64" ]] ; then
@@ -852,11 +852,11 @@ ${ACTION}${FILE_TO_CALL}
   #     elif [[ "$(uname -i)" == "arm64"   ]] ; then
   #       pt_linux_arm64 "$@"
   #     fi
-  elif [[ "$(expr substr $(uname -s) 1 10)" == "MINGW32_NT" ]] ; then
+  elif [[ "$(cut -c1-10 <<< "$(uname -s)")" == "MINGW32_NT" ]] ; then
     # Do something under Windows NT platform
     pt_win_32 "$*"
     # nothing here
-  elif [[ "$(expr substr $(uname -s) 1 10)" == "MINGW64_NT" ]] ; then
+  elif [[ "$(cut -c1-10 <<< "$(uname -s)")" == "MINGW64_NT" ]] ; then
     # Do something under Windows NT platform
     pt_win_64 "$*"
     # nothing here

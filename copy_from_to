@@ -85,10 +85,10 @@ function slashes_to_newlines {
 	  if [[ "$(uname)" == "Darwin" ]] ; then
 	    # Do something under Mac OS X platform
 	    sed -e 's/'"\/"'/\'$'\n/g' #BSD-way 'Mac' splits slashed into enters with newlines divides slashes
-	  elif [[ "$(expr substr $(uname -s) 1 5)" == "Linux" ]] ; then
+	  elif [[ "$(cut -c1-5 <<< "$(uname -s)")" == "Linux" ]] ; then
 	    # Do something under GNU/Linux platform
 	    sed -e 's/'"\/"'/'"\n"'/g' #Linux way splits slashed into enters with newlines divides slashes
-	  elif [[ "$(expr substr $(uname -s) 1 10)" == "MINGW32_NT" ]] ; then
+	  elif [[ "$(cut -c1-10 <<< "$(uname -s)")" == "MINGW32_NT" ]] ; then
 	    # Do something under Windows NT platform
 	    sed -e 's/'"\/"'/'"\n"'/g' #Windows way -Not implemented, Windows-GNU splits slashed into enters with newlines divides slashes
 	  fi
@@ -313,7 +313,7 @@ function main_copy_loop() {
             comment  "rsync -avzP "${filename}" "${TOPATH}" & 2>&1 "
             echo  "comment rsync -avzP \"${filename}\" \"${TOPATH}\" & 2>&1 " >> copy_from_MacintoshHD.bash
             echo  "rsync -avzP \"${filename}\" \"${TOPATH}\" & 2>&1 " >> copy_from_MacintoshHD.bash
-            # rsync -avzP "${filename}"  "${TOPATH}" & 2>&1 
+            # rsync -avzP "${filename}"  "${TOPATH}" & 2>&1
         }
         fi
     }
@@ -327,5 +327,3 @@ main_copy_loop "${1}" "${2}" "${3}"
 #
 # To Debug
 # copy_from_to zipper-desktop zipper_mirror 1
-
-

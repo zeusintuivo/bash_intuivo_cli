@@ -59,10 +59,10 @@ function get_linux_architecture(){
   else
   {
     return_file_to_call="_${system_nick}__$(uname -i)"
-    warning "ERROR to determine "$(uname -a)" architecture (uname -i)  for: <${return_file_to_call}>"
+    warning "ERROR to determine $(uname -a) architecture (uname -i)  for: <${return_file_to_call}>"
   }
   fi
-  if [ -z ${return_file_to_call} ] || [[ "${return_file_to_call}" =~ 'nknown' ]] ; then
+  if [[ -z "${return_file_to_call}" ]] || [[ "${return_file_to_call}" =~ 'nknown' ]] ; then
   {
     if [[ "$(uname -a)" =~  'x86_64' ]] ; then
     {
@@ -81,7 +81,7 @@ function get_linux_architecture(){
     fi
   }
   fi
-  echo -n ${return_file_to_call}
+  echo -n "${return_file_to_call}"
   return 0
 } # end get_linux_architecture
 
@@ -109,10 +109,10 @@ function get_mac_architecture(){
   else
   {
     return_file_to_call="_${system_nick}__$(uname -m)"
-    warning "ERROR to determine "$(uname -a)" architecture (uname -m)  for: <${return_file_to_call}>"
+    warning "ERROR to determine $(uname -a) architecture (uname -m)  for: <${return_file_to_call}>"
   }
   fi
-  if [ -z ${return_file_to_call} ] || [[ "${return_file_to_call}" =~ 'nknown' ]] ; then
+  if [[ -z ${return_file_to_call} ]] || [[ "${return_file_to_call}" =~ 'nknown' ]] ; then
   {
      if [[ "$(uname -a)" =~  'x86_64' ]] ; then
      {
@@ -131,7 +131,7 @@ function get_mac_architecture(){
      fi
   }
   fi
-  echo -n ${return_file_to_call}
+  echo -n "${return_file_to_call}"
   return 0
 } # end get_mac_architecture
 
@@ -145,7 +145,7 @@ function _get_debian_style_version_number_maybe(){
   local -i _err=0
   local _response=""
   local -i linuxversion=0
-  linuxversion=$(cut -d. -f1 <<< $(cut -d'"' -f2 <<< $(grep VERSION_ID= <<< $(cat /etc/*-release) ) ) )
+  linuxversion="$(cut -d. -f1 <<< "$(cut -d'"' -f2 <<< "$(grep VERSION_ID= <<< "$(< /etc/*-release)" )" )" )"
   _err=$?
   if [ ${_err} -eq 0 ] && [ ${linuxversion} -gt 0 ] ;  then
   {
@@ -176,7 +176,7 @@ function _get_redhat_style_version_number_maybe(){
   local -i _err=0
   local _response=""
   local -i linuxversion=0
-  linuxversion=$(cut -d= -f2 <<< $(grep VERSION_ID= <<< $(cat /etc/*-release) ) )
+  linuxversion="$(cut -d= -f2 <<< S"$(grep VERSION_ID= <<< "$(< /etc/*-release)" )" )"
   _err=$?
   if [ ${_err} -eq 0 ] && [ ${linuxversion} -gt 0 ] ;  then
   {
@@ -245,7 +245,8 @@ function _get_mac_style_version_number_maybe(){
   return 1
 } # end _get_mac_style_version_number_maybe
 
-export ACTION=`basename "$0"`
+export ACTION=""
+ACTION="$(basename "$0")"
 
 function determine_os_and_run_file() {
   # Interface
@@ -280,7 +281,8 @@ function determine_os_and_run_file() {
     # FILE_TO_CALL='_darwin__64'
     # PARAMETERS="$@"
     local target_name="darwin"
-    local _mac_style_version_number_maybe=$(_get_mac_style_version_number_maybe)
+    local _mac_style_version_number_maybe=""
+    _mac_style_version_number_maybe=$(_get_mac_style_version_number_maybe)
     _err=$?
     if [ ${_err} -eq 0 ] ; then
     {
@@ -288,16 +290,17 @@ function determine_os_and_run_file() {
     }
     fi
     FILE_TO_CALL=$(get_mac_architecture "${target_name}")
-    PARAMETERS="$@"
+    PARAMETERS="$*"
   }
-  elif [[ "$(expr substr $(uname -s) 1 5)" == "Linux" ]] ; then
+  elif [[ "$(cut -c1-5 <<< "$(uname -s)")" == "Linux" ]] ; then
   {
     if (( DEBUG )) ; then
       echo "Linux"
     fi
     # Do something under GNU/Linux platform
     # Determine OS platform
-    local UNAME=$(uname | tr "[:upper:]" "[:lower:]")
+    local UNAME=""
+    UNAME=$(uname | tr "[:upper:]" "[:lower:]")
     if (( DEBUG )) ; then
       echo "UNAME: $UNAME"
     fi
@@ -436,7 +439,7 @@ function determine_os_and_run_file() {
     unset DISTRO
     unset ID
   }
-  elif [[ "$(expr substr $(uname -s) 1 10)" == "MINGW32_NT" ]] ; then
+  elif [[ "$(cut -c1-10 <<< "$(uname -s)")" == "MINGW32_NT" ]] ; then
   {
     # Do something under Windows NT platform
     if [[ "$(uname -i)" == "x86_64" ]] ; then
@@ -460,7 +463,7 @@ function determine_os_and_run_file() {
     fi
     # nothing here
   }
-  elif [[ "$(expr substr $(uname -s) 1 10)" == "MINGW64_NT" ]] ; then
+  elif [[ "$(cut -c1-10 <<< "$(uname -s)")" == "MINGW64_NT" ]] ; then
   {
     # Do something under Windows NT platform
     if [[ "$(uname -i)" == "x86_64" ]] ; then
@@ -599,7 +602,7 @@ ${ACTION}${FILE_TO_CALL}
     }
     fi
   }
-  elif [[ "$(expr substr $(uname -s) 1 5)" == "Linux" ]] ; then
+  elif [[ "$(cut -c1-5 <<< "$(uname -s)")" == "Linux" ]] ; then
   {
     if (( DEBUG )) ; then
       echo "Linux"
@@ -808,7 +811,7 @@ ${ACTION}${FILE_TO_CALL}
     unset DISTRO
     unset ID
   }
-  # elif [[ "$(expr substr $(uname -s) 1 5)" == "Linux" ]] ; then
+  # elif [[ "$(cut -c1-5 <<< "$(uname -s)")" == "Linux" ]] ; then
   #   # Do something under GNU/Linux platform
   #   # ubuntu lsb_release -i | sed 's/Distributor\ ID://g' = \tUbuntu\n
   #     if [[ "$(uname -i)" == "x86_64" ]] ; then
@@ -818,14 +821,13 @@ ${ACTION}${FILE_TO_CALL}
   #     elif [[ "$(uname -i)" == "arm64"   ]] ; then
   #       pt_linux_arm64 "$@"
   #     fi
-  elif [[ "$(expr substr $(uname -s) 1 10)" == "MINGW32_NT" ]] ; then
+  elif [[ "$(cut -c1-10 <<< "$(uname -s)")" == "MINGW32_NT" ]] ; then
     # Do something under Windows NT platform
     pt_win_32 "$*"
     # nothing here
-  elif [[ "$(expr substr $(uname -s) 1 10)" == "MINGW64_NT" ]] ; then
+  elif [[ "$(cut -c1-10 <<< "$(uname -s)")" == "MINGW64_NT" ]] ; then
     # Do something under Windows NT platform
     pt_win_64 "$*"
     # nothing here
   fi
 )
-

@@ -2,7 +2,7 @@
 #!/bin/bash
 # @author Zeus Intuivo <zeus@intuivo.com>
 #
-THISSCRIPTNAME=`basename "$0"`
+THISSCRIPTNAME=$(basename "$0")
 #bash shell script check input argument
 if [ -z "$1" ]
   then
@@ -35,14 +35,14 @@ function escape_doublequotes {
 
 
 continue_y_n() {
-  read -p "CONTINUE Y/[N]: CONTROL C to STOP " reply
+  read -rp "CONTINUE Y/[N]: CONTROL C to STOP " reply
   reply=${reply:-N}
-  echo $reply
+  echo "$reply"
 } # end continue_y_n
 echo "remove all files called *${SEEKING}* in subfolders recursively !!!?  "
   echo "You are pointing to this folder $(pwd)"
 THE_ANSWER=$(continue_y_n)
-echo THE_ANSWER:${THE_ANSWER}
+echo "THE_ANSWER:${THE_ANSWER}"
 if [[ "${THE_ANSWER}" == "y" ||  "${THE_ANSWER}" == "Y" ]]  ; then
 {
   echo "..remove !!"
@@ -65,20 +65,21 @@ check_version_data () {
     # msg_green " ${1} INSTALLED."
 
     #stdout UND stderr -capture  REF: https://www.thomas-krenn.com/de/wiki/Bash_stdout_und_stderr_umleiten
-    ${REPLACER}  --version &> /tmp/cp_or_sed_command_test_${REPLACER}.txt
+    ${REPLACER}  --version &> "/tmp/cp_or_sed_command_test_${REPLACER}.txt"
     _err=$?
-    local PROPERLYWORKING=$(cat /tmp/cp_or_sed_command_test_${REPLACER}.txt)
+    local PROPERLYWORKING=""
+    PROPERLYWORKING="$(< "/tmp/cp_or_sed_command_test_${REPLACER}.txt")"
 
 
     if [[ "$(uname)" == "Darwin" ]] ; then
       # Do something under Mac OS X platform
       if [ ${_err} -eq 64 ] && [[ "$PROPERLYWORKING" == *"illegal option -- -"* ]]; then { echo "MAC"; return;} fi
 
-    elif [[ "$(expr substr $(uname -s) 1 5)" == "Linux" ]] ; then
+    elif [[ "$(cut -c1-5 <<< "$(uname -s)")" == "Linux" ]] ; then
       # Do something under GNU/Linux platform
       echo " ";
 
-    elif [[ "$(expr substr $(uname -s) 1 10)" == "MINGW32_NT" ]] ; then
+    elif [[ "$(cut -c1-10 <<< "$(uname -s)")" == "MINGW32_NT" ]] ; then
       # Do something under Windows NT platform
       echo " ";
 
@@ -86,9 +87,9 @@ check_version_data () {
     fi
     if [[ "$PROPERLYWORKING" == *"dyld:"* ]]; then { echo "error"; return;} fi
     if [[ $PROPERLYWORKING == *"GNU"* ]]; then { echo "GNU"; return;} else { echo "MAC";return;} fi
-    if  [ ${_err} -ne 0 ] ; then { echo "error"; return;} fi
-    echo "checked";
-    return;
+    # if  [ ${_err} -ne 0 ] ; then { echo "error"; return;} fi
+    # echo "checked";
+    # return;
   else
     # msg_red "${green} ${red} CANNOT REPLACE ...${1} IS MISSING ";
     # msg_red " NEED TO INSTALL ${1}.       Linux:    sudo apt-get install ${1}         Mac:     brew install ${1}   "
@@ -97,7 +98,7 @@ check_version_data () {
   fi
 }
 msg_install () {
-  msg_red "${green} ${red} CANNOT REPLACE ...${1} IS MISSING ";
+  msg_red " CANNOT REPLACE ...${1} IS MISSING ";
   msg_red " NEED TO INSTALL ${1}.       Linux:    sudo apt-get install ${1}         Mac:     brew install ${1}   "
 }
 # REPLACER="sed";
@@ -179,7 +180,7 @@ function removal_with_subdirectories() {
     REPLACERGNU="${1}"
     local SEEKING
     SEEKING="${*:2}"
-    [ -z ${SEEKING} ] && return;
+    [[ -z "${SEEKING}" ]] && return;
     CURCOMMAND="find . -name \"*${SEEKING}*\" -print0  | xargs -0 -I {} mv {} /tmp/ "
     # dotglob:
     #      If set, Bash includes filenames beginning with a ‘.’ in the results of filename expansion.
@@ -190,25 +191,25 @@ function removal_with_subdirectories() {
     #      it outputs only this    ====    CURCOMMAND  ==== "
     #
     CURCOMMAND="find . -name \"${SEEKING}\" -print0  | xargs -0 -I {} mv {} /tmp/ "
-    echo -e "\033[38;5;27m ====   \033[38;5;214m $(echo "${CURCOMMAND}")           \033[38;5;27m     ====";
+    echo -e "\033[38;5;27m ====   \033[38;5;214m ${CURCOMMAND}           \033[38;5;27m     ====";
     FILESFOUND1="$(find . -name "${SEEKING}")"
 
     CURCOMMAND="find . -name \"${SEEKING}*\" -print0  | xargs -0 -I {} mv {} /tmp/ "
-    echo -e "\033[38;5;27m   ====   \033[38;5;214m $(echo "${CURCOMMAND}")        \033[38;5;27m   ====";
+    echo -e "\033[38;5;27m   ====   \033[38;5;214m ${CURCOMMAND}        \033[38;5;27m   ====";
     FILESFOUND2="$(find . -name "${SEEKING}*")"
 
     CURCOMMAND="find . -name \"*${SEEKING}\" -print0  | xargs -0 -I {} mv {} /tmp/ "
-    echo -e "\033[38;5;27m     ====   \033[38;5;214m $(echo "${CURCOMMAND}")    \033[38;5;27m   ====";
+    echo -e "\033[38;5;27m     ====   \033[38;5;214m ${CURCOMMAND}    \033[38;5;27m   ====";
     FILESFOUND3="$(find . -name "*${SEEKING}")"
 
     CURCOMMAND="find . -name \"*${SEEKING}*\" -print0  | xargs -0 -I {} mv {} /tmp/ "
-    echo -e "\033[38;5;27m       ====   \033[38;5;214m $(echo "${CURCOMMAND}")\033[38;5;27m  ====";
+    echo -e "\033[38;5;27m       ====   \033[38;5;214m ${CURCOMMAND}\033[38;5;27m  ====";
     FILESFOUND4="$(find . -name "*${SEEKING}*")"
     FILESFOUND="${FILESFOUND1}
 ${FILESFOUND2}
 ${FILESFOUND3}
 ${FILESFOUND4}"
-    [ -z ${FILESFOUND} ] && echo -e "\033[38;5;27m         ====   \033[38;5;214m Nothing found !\033[38;5;27m  ====" && return;
+    [[ -z "${FILESFOUND}" ]] && echo -e "\033[38;5;27m         ====   \033[38;5;214m Nothing found !\033[38;5;27m  ====" && return;
     echo -e "\033[38;5;147m "
     echo "${FILESFOUND} "
     echo -e "\n"
@@ -216,23 +217,23 @@ ${FILESFOUND4}"
     local ONE_FULLPATH_FILENAME ONE_FULLPATH_FILENAME JUST_FILENAME
     while read -r ONE_FULLPATH_FILENAME; do
       # if not empty
-      [ -z ${ONE_FULLPATH_FILENAME} ] && continue
-      JUST_FILENAME=$(basename "${ONE_FULLPATH_FILENAME}")
-      echo -e "\033[38;5;27m ..copying...  \033[38;5;214m $(echo "cp -Rrf ${ONE_FULLPATH_FILENAME} /tmp/")       \033[38;5;27m      ";
+      [[ -z "${ONE_FULLPATH_FILENAME}" ]] && continue
+      JUST_FILENAME="$(basename "${ONE_FULLPATH_FILENAME}")"
+      echo -e "\033[38;5;27m ..copying... ${JUST_FILENAME}  \033[38;5;214m cp -Rrf ${ONE_FULLPATH_FILENAME} /tmp/       \033[38;5;27m      ";
       if [[ "${REPLACERGNU}" == "YES" ]] ; then
       # cp GNU
       {
-        echo "${yellow} cp GNU ";
+        echo -e "\033[38;5;226m cp GNU ";
         cp -Rrf "${ONE_FULLPATH_FILENAME}" /tmp/
       }
       else
       # cp mac
       {
-        echo "${yellow} cp MAC ";
+        echo -e "\033[38;5;226m cp MAC ";
         cp -rf "${ONE_FULLPATH_FILENAME}" /tmp/
       }
       fi
-      echo -e "\033[38;5;27m ..cleaning..  \033[38;5;214m $(echo "rm -rf ${ONE_FULLPATH_FILENAME} ")       \033[38;5;27m      ";
+      echo -e "\033[38;5;27m ..cleaning..  \033[38;5;214m rm -rf ${ONE_FULLPATH_FILENAME}     \033[38;5;27m      ";
       rm -rf "${ONE_FULLPATH_FILENAME}"
       #echo -e "\033[38;5;27m ..removing..   \033[38;5;214m $(echo "rm -rf ${ONE_FULLPATH_FILENAME}")       \033[38;5;27m      ";
       #rm -rf """${ONE_FULLPATH_FILENAME}"""
@@ -250,11 +251,11 @@ removal_with_subdirectories "${REPLACERGNU}"  "${SEEKING}"
 #     # Do something under Mac OS X platform
 #     echo " ";
 
-#   elif [[ "$(expr substr $(uname -s) 1 5)" == "Linux" ]] ; then
+#   elif [[ "$(cut -c1-5 <<< "$(uname -s)")" == "Linux" ]] ; then
 #     # Do something under GNU/Linux platform
 #     echo " ";
 
-#   elif [[ "$(expr substr $(uname -s) 1 10)" == "MINGW32_NT" ]]  || [[ "$(expr substr $(uname -s) 1 10)" == "MINGW64_NT" ]] ; then
+#   elif [[ "$(cut -c1-10 <<< "$(uname -s)")" == "MINGW32_NT" ]]  || [[ "$(cut -c1-10 <<< "$(uname -s)")" == "MINGW64_NT" ]] ; then
 #     # Do something under Windows NT platform
 #     echo " ";
 

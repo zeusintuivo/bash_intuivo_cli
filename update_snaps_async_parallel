@@ -1,0 +1,82 @@
+#!/usr/bin/env bash
+#!/bin/bash
+set -u
+
+SNAP_UPDATE_LOCK_FILE="$HOME/.update_snaps_running"
+
+function run_update() {
+  # Check for existing lock file and its age
+  if [ -e "${SNAP_UPDATE_LOCK_FILE}" ]; then
+  {
+    if [ "$(find "${SNAP_UPDATE_LOCK_FILE}" -mmin -15)" ]; then
+    {
+      echo "$0:${LINENO} Update already running within the last 15 minutes. Exiting."
+      exit 1
+    }
+    else
+    {
+      echo "$0:${LINENO} Old lock file found. Removing it."
+      rm -f "${SNAP_UPDATE_LOCK_FILE}"
+    }
+    fi
+  }
+  fi
+
+  # Create a new lock file
+  touch "${SNAP_UPDATE_LOCK_FILE}"
+
+  # Redirect output to custom file descriptors for logging
+  # exec 3>&1 4>&2
+  # exec 1>>update.log 2>&1
+
+  function exit_updateSelf() {
+    echo "$0:${LINENO} ${0} ${FUNCNAME[0]} EXIT"
+    # exec 1>&3 2>&4 # Restore original output
+    rm -f "${SNAP_UPDATE_LOCK_FILE}"
+  }
+
+  trap exit_updateSelf EXIT
+
+  function update_snaps() {
+    local _snaps=""
+    echo "$0:${LINENO}  Snaps: ${_snaps}"
+    _snaps=$(sudo snap list | awk 'NR > 1 {print $1}')
+    # _snaps="$(sudo snap list | grep -v 'Name' | cut -d' '  -f1)"
+    wait
+    echo "$0:${LINENO} snaps: ${_snaps}"
+    local _one=""
+    local -i counter=0
+
+    while read -r _one ; do
+    {
+      (( counter ++ ))
+      if [ ${counter} -gt 5000 ] ; then # avoid eternal loop
+      {
+        notify-send "update_snaps" "WARN: snaps list too long :${0}:${LINENO}" &
+        break
+      }
+      fi
+      [[ -z "${_one}" ]] && continue  # skips empty ones
+      (
+        echo "$0:${LINENO} Checking  ${_one}"
+        echo "$0:${LINENO} sudo pkill ${_one}"
+        sudo pkill "${_one}"
+        wait # locks the process
+        (
+          echo "$0:${LINENO} sudo  snap refresh ${_one}"
+          sudo snap refresh "${_one}"
+        ) & # run in parallel
+        wait # locks the process
+     ) & # run in parallel
+    }
+    done <<< "${_snaps}" &  # run in parallel
+  } # end update_snaps
+
+  echo "$0:${LINENO} snaps"
+  update_snaps & # run in parallel
+  # tail -f update.log &
+  # sudo snap refresh
+
+} # end run_update
+
+run_update
