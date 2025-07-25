@@ -8,6 +8,12 @@ BRIGHTNESS=.7
 
 #echo "Scann all connected monitors,   get the first word ls HMD1 -list, then apply brightness to each word passwed from the list"
 #echo "xrandr --current --verbose | grep \" connected\" | cut -d\" \" -f1 | xargs -I {} xrandr --output {}   --brightness \"${BRIGHTNESS}\""
+function _get_current_brightnesctl_keyboard_device() {
+  local  _cb=""
+  _cb=$(brightnessctl --list | grep "kbd_backlight" | cut -d\' -f2)
+  echo ${_cb}
+  return 0
+}
 function _get_current_brightnessctl_percentage() {
   local -i _cb=0
   _cb=$(brightnessctl | grep "Current" | cut -d'(' -f2 | cut -d')' -f1 | cut -d'%' -f1)
@@ -112,6 +118,7 @@ function _set_brightness(){
   _day_or_night="$(_get_day_or_night)"
   local _current_brightness_percentage=""
   _current_brightness_percentage="$(_get_current_brightnessctl_percentage)"
+  _keyboard="$(_get_current_brightnesctl_keyboard_device)"
   echo "_instruction_called:${BRIGHTNESS}"
   echo "_current_brightness_percentag:${_current_brightness_percentage}"
   if (echo "${BRIGHTNESS}" | grep "+" >/dev/null 2>&1; )  ; then
@@ -175,20 +182,86 @@ function _set_brightness(){
       xrandr --output "${monitor}" --gamma 1.0:0.88:0.76  --brightness "${BRIGHTNESS}"
     }
     fi
-    if [ ${BRIGHTNESS} -lt 10 ] ; then
+    local -i brightness_nummber=0
+    brightness_nummber=$(cut -d\. -f2 <<<"${BRIGHTNESS}")
+    echo "brightness_nummber=${BRIGHTNESS}/${brightness_nummber}"
+    if [[ -z "${BRIGHTNESS}" ]] ; then
     {
+      echo "RETURN 0"
+      return 0
+    }
+    fi
+    if [ ${brightness_nummber} -lt 1 ] ; then
+    {
+      echo "RAN: brightnessctl s 0"
       brightnessctl s 0
+      brightnessctl "--device=${_keyboard}" set 0
+    }
+    elif [ ${brightness_nummber} -ge 1 ] && [ ${brightness_nummber} -lt 10 ] ; then
+    {
+      echo "RAN: brightnessctl s 750"
+      brightnessctl s 750
+      brightnessctl "--device=${_keyboard}" set 10%
+    }
+    elif [ ${brightness_nummber} -ge 10 ] && [ ${brightness_nummber} -lt 20 ] ; then
+    {
+      echo "ran: brightnessctl s 1425"
+      brightnessctl s 1425
+      brightnessctl "--device=${_keyboard}" set 20%
+    }
+    elif [ ${brightness_nummber} -ge 20 ] && [ ${brightness_nummber} -lt 30 ] ; then
+    {
+      echo "ran: brightnessctl s ${brightness_nummber}%"
+      brightnessctl s ${brightness_nummber}%
+      brightnessctl "--device=${_keyboard}" set 20%
+    }
+    elif [ ${brightness_nummber} -ge 30 ] && [ ${brightness_nummber} -lt 40 ] ; then
+    {
+      echo "ran: brightnessctl s ${brightness_nummber}%"
+      brightnessctl s ${brightness_nummber}%
+      brightnessctl "--device=${_keyboard}" set 40%
+    }
+    elif [ ${brightness_nummber} -ge 40 ] && [ ${brightness_nummber} -lt 50 ] ; then
+    {
+      echo "ran: brightnessctl s ${brightness_nummber}%"
+      brightnessctl s ${brightness_nummber}%
+      brightnessctl "--device=${_keyboard}" set 50%
+    }
+    elif [ ${brightness_nummber} -ge 50 ] && [ ${brightness_nummber} -lt 60 ] ; then
+    {
+      echo "ran: brightnessctl s 1425"
+      brightnessctl s 1425
+      brightnessctl "--device=${_keyboard}" set 50%
+    }
+    elif [ ${brightness_nummber} -ge 60 ] && [ ${brightness_nummber} -lt 70 ] ; then
+    {
+      echo "ran: brightnessctl s ${brightness_nummber}%"
+      brightnessctl s ${brightness_nummber}%
+      brightnessctl "--device=${_keyboard}" set 0%
+    }
+    elif [ ${brightness_nummber} -ge 70 ] && [ ${brightness_nummber} -lt 100 ] ; then
+    {
+      echo "ran: brightnessctl s ${brightness_nummber}%"
+      brightnessctl s ${brightness_nummber}%
+      brightnessctl "--device=${_keyboard}" set 0%
+    }
+    elif [ ${brightness_nummber} -ge 100 ] ; then
+    {
+      echo "ran: brightnessctl s 100%"
+      brightnessctl s 100%
+      brightnessctl "--device=${_keyboard}" set 0%
     }
     else
     {
       echo brightnessctl set "${_bright_percentage}%"
+      brightnessctl "--device=${_keyboard}" set 0%
       # brightnessctl set "${_bright_percentage}%"
-      brightnessctl --device='tpacpi::kbd_backlight' set 0
       _bright_percentage=$(( _bright_percentage + 30 ))
       _bright_percentage=$(( _bright_percentage * 10 ))
 
       # brightnessctl s 500
       # brightnessctl s 700
+      echo "RAN: brightnessctl s ${_bright_percentage}"
       brightnessctl s ${_bright_percentage}
     }
     fi

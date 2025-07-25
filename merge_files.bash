@@ -23,6 +23,7 @@ function _merge_files(){
 
   local CWD=""
   CWD="$(pwd)"
+
   # Convert topic to snake_case filename
   local FILENAME=""
   FILENAME="$(echo "${TOPIC}" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9]/_/g').txt"
@@ -39,6 +40,10 @@ function _merge_files(){
     EXTENSIONS="$(sed 's/ /\n/g' <<< "${_EXTENSIONS}")"
   }
   fi
+
+  delete_empty_lines() {
+   sed '/^\s*$/d'
+  }
   # Create target directory if needed
   mkdir -p "${TARGET_DIR}"
 
@@ -54,6 +59,7 @@ function _merge_files(){
   # Find and process files
   local RELATIVE_PATH=""
   local _extension=""
+  local one_line=""
   while read -r _extension ;  do
   {
     ALLFILES="$(oe "\\.${_extension}$")"
@@ -72,11 +78,12 @@ function _merge_files(){
       #  -e '/\/\*/,/\*\//d' \
       #  "${RELATIVE_PATH}" >> "${OUTPUT_FILE}"
 
-      sed -E \
+
+      delete_empty_lines >> "${OUTPUT_FILE}" <<< "$(sed -E \
         -e '/\/\*/,/\*\//d' \
         -e 's/(^|[^:])\/\/.*$/\1/' \
         -e 's/#.*//' \
-        "${RELATIVE_PATH}" >> "${OUTPUT_FILE}"
+        "${RELATIVE_PATH}")"
 
         # Add end marker
         echo "# file: ${RELATIVE_PATH}   // --- end" >> "${OUTPUT_FILE}"

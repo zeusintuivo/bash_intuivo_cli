@@ -1,0 +1,187 @@
+#!/bin/bash
+set -euo pipefail
+
+# === CONFIGURATION ===
+RAMDISK_PATH="/tmp/ramdisk-cargo"
+RAMDISK_SIZE="6G"
+MIN_RAM_MB=2000
+KEEP_RAMDISK=true
+CARGO_TARGET="debug"
+
+
+
+# === exit strategies ===
+keepramdisk() {
+  echo "[INFO] RAM disk preserved at $RAMDISK_PATH"
+}
+
+PROJECT_PATH=$(realpath ".")
+PROJECT_NAME=$(basename "$PROJECT_PATH")
+
+
+cleanup() {
+  echo "[INFO] Cleaning up RAM disk..."
+  cd "$PROJECT_PATH"
+  [[ -L target ]] && unlink target
+  cd ~
+  sudo umount "$RAMDISK_PATH" 2>/dev/null || true
+  sudo rm -rf "$RAMDISK_PATH"
+
+}
+
+
+# === PARSE ARGS ===
+CARGO_MODE=""
+for arg in "$@"; do
+  case $arg in
+    --help)
+      echo "$0 -- runs cargo build in ramdisk
+      --clean remove ramdisk but not run cargo build
+
+      --release run cargo run release instead of debug
+      --debug run cargo run  ... default is debug anyways
+
+      --remove run cargo build and remove ramdisk on exit
+      --keep run cargo build and keep ramdisk on exit
+      --help show this help
+
+      $0                     # builds target/debug and keeps ramdisk
+      $0 --debug             # builds target/debug and keeps ramdisk
+      $0 --release --remove  # build target/release and removes ramdisk
+      $0 --remove            # builds target/debug and removes ramdisk
+      $0 --release           # build target/release and keeps ramdisk
+      $0 --clean             # just remove ramdisk
+
+      "
+      shift 1
+      exit
+      ;;
+    --remove) KEEP_RAMDISK=false ; shift 1 ;;
+    --keep) KEEP_RAMDISK=true; shift 1 ;;
+    --release) CARGO_TARGET="release"; CARGO_MODE="--release"; shift 1 ;;
+    --test) CARGO_TARGET="test"; CARGO_MODE="--test"; shift 1 ;;
+    --debug) CARGO_MODE=""; shift 1 ;;
+    --clean)
+      shift 1
+      echo "[INFO] Cleaning RAM disk manually..."
+      cleanup
+      echo "[INFO] Done."
+      exit 0
+      ;;
+  esac
+
+done
+
+
+
+
+[[ "$KEEP_RAMDISK" = false ]] && echo "[INFO] removing RAM ON..."
+[[ "$CARGO_TARGET" = "release" ]] && echo "[INFO] ** release ..."
+[[ "$KEEP_RAMDISK" = false ]] && trap cleanup EXIT
+[[ "$KEEP_RAMDISK" = true ]] && trap keepramdisk EXIT
+
+
+# === RAM CHECK ===
+echo "[INFO] Checking available memory..."
+AVAILABLE_RAM=$(grep MemAvailable /proc/meminfo | awk '{print $2}')
+RAM_MB=$((AVAILABLE_RAM / 1024))
+if (( RAM_MB < MIN_RAM_MB )); then
+  echo "[WARN] Not enough RAM (${RAM_MB}MB available < ${MIN_RAM_MB}MB). Running on disk."
+  cd "$PROJECT_PATH"
+  cargo build $CARGO_MODE
+  exit $?
+fi
+
+
+
+
+# === RAMDISK CHECK ===
+if mountpoint -q "$RAMDISK_PATH"; then
+  {
+    echo "[INFO] RAM disk already mounted at $RAMDISK_PATH. Use --clean to remove it."
+    # exit 1
+  }
+else
+  {
+    # === RAMDISK SETUP ===
+    echo "[INFO] Creating RAM disk at $RAMDISK_PATH (${RAMDISK_SIZE})"
+    sudo mkdir -p "$RAMDISK_PATH"
+    sudo mount -t tmpfs -o size=$RAMDISK_SIZE tmpfs "$RAMDISK_PATH"
+    sudo chown "$USER":"$USER" "$RAMDISK_PATH"
+  }
+fi
+
+
+
+# === COPY PROJECT SOURCE FILES ===
+echo "[INFO] Copying source files to RAM..."
+mkdir -p "$RAMDISK_PATH/$PROJECT_NAME"
+cd "$PROJECT_PATH"
+
+cp Cargo.toml "$RAMDISK_PATH/$PROJECT_NAME/" 2>/dev/null || true
+cp Cargo.lock "$RAMDISK_PATH/$PROJECT_NAME/" 2>/dev/null || true
+cp -r src "$RAMDISK_PATH/$PROJECT_NAME/"
+mkdir -p "$RAMDISK_PATH/$PROJECT_NAME/target"
+[[ -d target ]] && rm -rf target
+[[ -L target ]] && unlink target
+ln -s "$RAMDISK_PATH/$PROJECT_NAME/target"
+[[ -f build.rs ]] && cp build.rs "$RAMDISK_PATH/$PROJECT_NAME/"
+
+
+
+
+# === SAVE STATE PROJECT SOURCE FILES ===
+BEFORE_BUILD=""
+if [[ -d "$RAMDISK_PATH/$PROJECT_NAME/target/$CARGO_TARGET" ]]; then
+  echo "[INFO] Capturing existing binary list before build..."
+  BEFORE_BUILD=$(find "$RAMDISK_PATH/$PROJECT_NAME/target/$CARGO_TARGET" -maxdepth 1 -type f)
+fi
+
+
+
+
+# === COMPILE IN RAM ===
+echo "[INFO] Compiling in RAM..."
+cd "$RAMDISK_PATH/$PROJECT_NAME"
+cargo build $CARGO_MODE
+
+
+
+# === COPY BINARIES BACK ===
+# BUILD_PATH="target/$CARGO_TARGET"
+DEST_PATH="$PROJECT_PATH/target/$CARGO_TARGET"
+echo "[INFO] Copying build output to: $DEST_PATH"
+mkdir -p "$DEST_PATH"
+# cp -a target/* "$PROJECT_PATH/target/" 2>/dev/null || true
+
+# === COMPARE STATE PROJECT SOURCE FILES ===
+# echo "[INFO] Detecting newly built binaries..."
+# AFTER_BUILD=$(find "$RAMDISK_PATH/$PROJECT_NAME/target/$CARGO_TARGET"  -maxdepth 1 -type f)
+# for file in $AFTER_BUILD; do
+#   if [[ ! "$BEFORE_BUILD" =~ $file ]]; then
+#     echo "[INFO] Copying $(basename "$file") $DEST_PATH/"
+#     cp "$file" "$DEST_PATH/"
+#     echo "[INFO] Copying $(basename "$file") $PROJECT_PATH/ "
+#     cp "$file" "$PROJECT_PATH/"
+#   fi
+#
+# done
+#
+#
+# === COMPARE STATE PROJECT SOURCE FILES ===
+echo "[INFO] Detecting newly built binaries..."
+AFTER_BUILD=$(find "$RAMDISK_PATH/$PROJECT_NAME/target/$CARGO_TARGET" -maxdepth 1 -type f -perm /111)
+
+for file in $AFTER_BUILD; do
+    if [[ ! "$BEFORE_BUILD" =~ $file ]]; then
+        echo "[INFO] Copying $(basename "$file") to $DEST_PATH/"
+        cp "$file" "$DEST_PATH/"
+        echo "[INFO] Copying $(basename "$file") to $PROJECT_PATH/"
+        cp "$file" "$PROJECT_PATH/"
+    fi
+done
+
+
+# === CLEANUP ===
+
+echo "[✅ DONE] Executables are available in $PROJECT_PATH/target/"

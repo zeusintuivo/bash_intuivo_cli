@@ -10,6 +10,13 @@ function _get_current_size(){
   local gotsize=""
   local -i _err=0
   gotsize="$(xrandr --current | grep -B 0 -C 20  " connected primary" | grep "\*" | xargs | cut -d" " -f1 | head -1)"
+  if [[ -z "${gotsize}" ]] ; then
+  {
+    ## sometimes there is not "primary" label we will take the first item then
+    ## assuming that is the first monitor, like in a laptop
+    gotsize="$(xrandr --current | grep -B 0 -C 20  " connected" | grep "\*" | xargs | cut -d" " -f1 | head -1)"
+  }
+  fi
   #  xrandr --current | grep " connected" | cut -d' ' -f4 | cut -d'+' -f1 | head -1)"
   _err=$?
   SETSIZE="${gotsize}"
@@ -39,7 +46,7 @@ function _get_highest_resolution_for_monitor(){
   local monitor="${1}"
   local resolution=""
   # xrandr --current | grep -B 0 -C 20  "DP-1-3"  | xargs  -I {} echo {} | sort -n | tail -1 | cut -d" " -f1
-  resolution=$(xrandr --current | grep -B 0 -C 20  "${monitor}"  | xargs  -I {} echo {} | sort -n | tail -1 | cut -d" " -f1 )
+  resolution=$(xrandr --current | grep -B 0 -C 20  "${monitor}"  | xargs  -I {} echo {} | sort -n | tail -1 | cut -d" " -f1 | head -1 )
   _err=$?
   echo "${resolution}"
   return ${_err}
@@ -47,7 +54,14 @@ function _get_highest_resolution_for_monitor(){
 
 function _get_current_monitor(){
   local monitor=""
-  monitor=$(xrandr --current --verbose | grep " connected" | grep " primary"  | cut -d" " -f1)
+  monitor=$(xrandr --current --verbose | grep " connected" | grep " primary"  | cut -d" " -f1 | head -1)
+  if [[ -z "${gotsize}" ]] ; then
+  {
+    ## sometimes there is not "primary" label we will take the first item then
+    ## assuming that is the first monitor, like in a laptop
+    monitor="$(xrandr --current --verbose | grep " connected"  | cut -d" " -f1 | head -1)"
+  }
+  fi
   _err=$?
   echo "${monitor}"
   return ${_err}
