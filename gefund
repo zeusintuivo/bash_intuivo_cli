@@ -146,13 +146,13 @@ function do_gefund() {
 } # en do_gefund
 
 THISSCRIPTNAME="$(basename "$0")"
-
+SEEKING="${*}"
 
 # usage
 if [[ $# -lt 1 ]]; then
 {
 
-    cat <<EOF
+    echo -e "
 
     ${THISSCRIPTNAME} v2 -- stream-find
 
@@ -169,7 +169,7 @@ if [[ $# -lt 1 ]]; then
     Example:
       ${THISSCRIPTNAME} foo
 
-EOF
+    "
     exit 1
 }
 fi
