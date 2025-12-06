@@ -721,7 +721,43 @@ elif command -v rg >/dev/null 2>&1; then
   #  insensitively even when this flag is used.
   #
   #  This flag overrides the -i/--ignore-case and -S/--smart-case flags.
-
+  #
+  #  -0, --null
+  #  Whenever a file path is printed, follow it with a NUL byte. This
+  #  includes printing file paths before matches, and when printing a list
+  #  of matching files such as with -c/--count, -l/--files-with-matches and
+  #  --files. This option is useful for use with xargs.
+  #
+  #  -o, --only-matching
+  #  Print only the matched (non-empty) parts of a matching line, with each
+  #  such part on a separate output line.
+  #
+  #  --path-separator=SEPARATOR
+  #  Set the path separator to use when printing file paths. This defaults
+  #  to your platform's path separator, which is / on Unix and \ on Windows.
+  #  This flag is intended for overriding the default when the environment
+  #  demands it (e.g., cygwin). A path separator is limited to a single
+  #  byte.
+  #
+  #  Setting this flag to an empty string reverts it to its default
+  #  behavior. That is, the path separator is automatically chosen based on
+  #  the environment.
+  #
+  #  -l, --files-with-matches
+  #  Print only the paths with at least one match and suppress match
+  #  contents.
+  #
+  #  Note that it is possible for this flag to have results inconsistent
+  #  with the output of -c/--count. Notably, by default, ripgrep tries to
+  #  avoid searching files with binary data. With this flag, ripgrep might
+  #  stop searching before the binary data is observed. But with -c/--count,
+  #  ripgrep has to search the entire contents to determine the match count,
+  #  which means it might see binary data that causes it to skip searching
+  #  that file. To avoid this inconsistency without disabling binary
+  #  detection, use the --binary flag.
+  #
+  #  This overrides --files-without-match.
+  #
   if [ $VERBOSE -eq 1 ] ; then
   {
     #  NOT Colored
@@ -741,13 +777,13 @@ elif command -v rg >/dev/null 2>&1; then
   # WHEN not PIPED then show line numbers
           if [ -z "$PIPED" ] ; then
           {
-              SEEKER=" rg --no-ignore --line-number --hidden  "
+              SEEKER=" rg --no-messages --no-ignore --line-number --hidden  "
           }
           fi
           #  PIPED then hide line numbers
           if [[ -n "$PIPED" ]] ; then
           {
-              SEEKER=" rg --no-ignore --line-buffered --hidden --no-line-number "
+              SEEKER=" rg --no-messages --no-ignore --line-buffered --hidden --no-line-number "
           }
           fi
   # NOT Colored
@@ -758,7 +794,7 @@ elif command -v rg >/dev/null 2>&1; then
   fi
   IGNORE_DIR="ignore-file";
   IGNORE_FILE="ignore-file";
-  PRINTCOMMAND="--null-data";
+  PRINTCOMMAND="-l --null";
 }
 else # // sift not installed
 {
@@ -1225,13 +1261,13 @@ if command -v "${DEFAULTSEEKER}" >/dev/null 2>&1; then
             # WHEN not PIPED then show line numbers
             if [ -z "$PIPED" ] ; then
             {
-                SEEKER=" rg --no-ignore --line-number --hidden   "
+                SEEKER=" rg  --no-messages  --no-ignore --line-number --hidden   "
             }
             fi
             #  PIPED then hide line numbers
             if [[ -n "$PIPED" ]] ; then
             {
-                SEEKER=" rg --no-ignore --line-buffered --hidden --no-line-number "
+                SEEKER=" rg --no-messages  --no-ignore --line-buffered --hidden --no-line-number "
             }
             fi
             # NOT Colored
