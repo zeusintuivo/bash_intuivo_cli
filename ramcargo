@@ -172,16 +172,16 @@ mkdir -p "$DEST_PATH"
 echo "[INFO] Detecting newly built binaries..."
 AFTER_BUILD=$(find "$RAMDISK_PATH/$PROJECT_NAME/target/$CARGO_TARGET" -maxdepth 1 -type f -perm /111)
 
-for file in $AFTER_BUILD; do
-    if [[ ! "$BEFORE_BUILD" =~ $file ]]; then
-        echo "[INFO] Copying $(basename "$file") to $DEST_PATH/"
-        cp "$file" "$DEST_PATH/"
-        echo "[INFO] Copying $(basename "$file") to $PROJECT_PATH/"
-        cp "$file" "$PROJECT_PATH/"
-    fi
-done
+# for file in $AFTER_BUILD; do
+    # if [[ ! "$BEFORE_BUILD" =~ $file ]]; then
+        # echo "[INFO] Copying $(basename "$file") to $DEST_PATH/"
+        # cp "$file" "$DEST_PATH/"
+        # echo "[INFO] Copying $(basename "$file") to $PROJECT_PATH/"
+        # cp "$file" "$PROJECT_PATH/"
+    # fi
+# done
 
 
 # === CLEANUP ===
 
-echo "[✅ DONE] Executables are available in $PROJECT_PATH/target/"
+echo "[✅ DONE] Executables are available in $PROJECT_PATH/target/ ..  $AFTER_BUILD  "
