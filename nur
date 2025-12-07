@@ -491,9 +491,17 @@ if [ ${PTFOUND-} -eq 1 ] && [ ${TKFOUND-} -eq 1 ] ; then
   DEFAULTSEEKER=rg
 }
 fi
+if [ ${PTFOUND-} -eq 0 ] ; then
+{
+  SEEKER=rg
+  DEFAULTSEEKER=rg
+}
+fi
+# echo "PTFOUND: ${PTFOUND-}"
+# echo "TKFOUND: ${TKFOUND-}"
 # echo "${SEEKER-}"
 # exit 0
-if [[ "${SEEKER-}" == "pt" ]] ; then
+if ( command -v pt >/dev/null 2>&1; ) &&  [[ "${SEEKER-}" == "pt" ]] ; then
 {
   # pt --help
   # Usage:
