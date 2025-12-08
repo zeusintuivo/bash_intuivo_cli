@@ -851,7 +851,7 @@ elif command -v rg >/dev/null 2>&1; then
   IGNORE_DIR="ignore-file";
   IGNORE_FILE="ignore-file";
   PRINTCOMMAND="-l --null";
-  XARGSCOMMAD="-0"; 
+  XARGSCOMMAD="-0";
 }
 else # // sift not installed
 {
@@ -1879,7 +1879,7 @@ fi
     }
     fi
     # not PIPED
-jesu    if [[ -z "$PIPED" ]]; then
+    if [[ -z "$PIPED" ]]; then
     {
       if [[ "${REPLACERGNU}" == "YES" ]] ; then
       # sed GNU
