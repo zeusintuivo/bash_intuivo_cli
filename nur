@@ -132,7 +132,7 @@ if [[ "$1" == "-h" ]] && [[ -z "$PIPED" ]] ; then
   echo "                                   leveraging from other linux scrips like sift, ack, grep, ag, pt, rg   "
   echo "Usage: "
   echo " "
-  echo " ${THISSCRIPTNAME}   seek_this   --nocolor -v -f [rg, sift, pt, ack, grep, ag]"
+  echo " ${THISSCRIPTNAME}   seek_this   --nocolor -v -f [pt, rg, sift, ack, grep, ag]"
   echo " --nocolor   -v verbose -f Files on  "
   echo " "
   exit 0;
@@ -148,7 +148,7 @@ if [[ -n "$2" ]] ; then
   }
   fi
 
-  if [[ "$2" == "rg" ||  "$2" == "sift" || "$2" == "pt" || "$2" == "ack" || "$2" == "grep" || "$2" == "ag" || "$2" == "./ag" || "$2" == "./ack" || "$2" == "./sift" ]] ; then
+  if [[ "$2" == "rg" || "$2" == "sift" || "$2" == "pt" || "$2" == "ack" || "$2" == "grep" || "$2" == "ag" || "$2" == "./ag" || "$2" == "./ack" || "$2" == "./sift" ]] ; then
   {
     DEFAULTSEEKER="$2"
   }
@@ -289,19 +289,36 @@ fi
 #
 
 [[ -z "${RED}" ]] && RED="\\033[38;5;1m"
-
+red=`tput setaf 1`
 [[ -z "${CYAN}" ]] && CYAN="\\033[38;5;123m"
-
+cyan=`tput setaf 6`
 [[ -z "${GREEN}" ]] && GREEN="\\033[38;5;22m"
-
-
+green=`tput setaf 2`
+[[ -z "${RESET}" ]] && RESET="\\033[0m"
+[[ -z "${RESET_PROMPT}" ]] && RESET_PROMPT="[0m"
+reset=`tput sgr0`
 [[ -z "${BLACK}" ]] && BLACK="\\033[38;5;16m"
+black=$(tput setaf 0)
+[[ -z "${YELLOW226}" ]] && YELLOW226="\\033[38;5;226m"
+[[ -z "${YELLOW}" ]] && YELLOW="\\033[01;33m"
+yellow=$(tput setaf 3)
+LIME_YELLOW=$(tput setaf 190)
+POWDER_BLUE=$(tput setaf 153)
+BLUE=$(tput setaf 4)
 [[ -z "${PURPLE_BLUE}" ]] && PURPLE_BLUE="\\033[38;5;93m"
 [[ -z "${GRAY241}" ]] && GRAY241="\\033[38;5;241m"
 
 
 
 [[ -z "${BRIGHT_BLUE87}" ]] && BRIGHT_BLUE87="\\033[38;5;87m"
+MAGENTA=$(tput setaf 5)
+CYAN=$(tput setaf 6)
+WHITE=$(tput setaf 7)
+BRIGHT=$(tput bold)
+NORMAL=$(tput sgr0)
+BLINK=$(tput blink)
+REVERSE=$(tput smso)
+UNDERLINE=$(tput smul)
 
 #
 # COLORS - Output - end
@@ -312,6 +329,7 @@ SEEKER="pt";
 IGNORE_DIR="ignore";
 FILESCOMMAND="";
 PRINTCOMMAND="-l -0";
+FOUND=0
 
 msg_red () {
     echo -e "${RED}${*}"
@@ -359,6 +377,7 @@ PROCESSOR_ERROR=$(test_positives)
 # C H E C K   R E P L A C E   F U N C T I O N S   I N S T A L L E D  --Start
 #
 check_replacer () {
+  local -i  _err
   local REPLACER="$1"
   if command -v "${REPLACER}" >/dev/null 2>&1; then
     # It looks installed
@@ -367,11 +386,13 @@ check_replacer () {
 
     #stdout UND stderr -capture  REF: https://www.thomas-krenn.com/de/wiki/Bash_stdout_und_stderr_umleiten
     ${REPLACER}  --version &> /tmp/ersetze_test_${REPLACER}.txt
+    _err=$?
     # shellcheck disable=SC2155
     local PROPERLYWORKING=$(cat /tmp/ersetze_test_${REPLACER}.txt)
 
     if [[ "$PROPERLYWORKING" == *"dyld:"* ]]; then { echo "error"; return;} fi
     if [[ "$PROPERLYWORKING" == *"GNU"* ]]; then { echo "GNU"; return;} else { echo "MAC";return;} fi
+    if  [ ${_err} -ne 0 ] ; then { echo "error"; return;} fi
     echo "checked";
     return;
   else
@@ -445,6 +466,7 @@ if [[ $REPLACERGNU == "NO" ]] ; then
 }
 fi
 
+XARGSCOMMAD=""
 # Test
 # echo "REPLACERGNU: $REPLACERGNU"
 # echo "VALIDREPLACER: $VALIDREPLACER"
@@ -803,6 +825,7 @@ elif command -v rg >/dev/null 2>&1; then
   IGNORE_DIR="ignore-file";
   IGNORE_FILE="ignore-file";
   PRINTCOMMAND="-l --null";
+  XARGSCOMMAD="-0"; 
 }
 else # // sift not installed
 {
@@ -1128,6 +1151,7 @@ else # // sift not installed
             FILESCOMMAND=".";
             # PRINTCOMMAND="-l --print0";
             PRINTCOMMAND="-l --null";
+            XARGSCOMMAD="-0"; 
           }
           else # // grep not installed
           {
@@ -1602,13 +1626,13 @@ function escape_quotes() {
     sed 's/\"/\\\"/g'
 } # end escape_quotes
 function escape_single_quotes() {
-    sed "s/'/\\'/g"
+    sed "s/'/\\\'/g"
 } # end escape_single_quotes
 function escape_squared_open_brackets() {
-    sed "s/\[/\\[/g"
+    sed "s/\[/\\\[/g"
 } # end escape_squared_open_brackets
 function escape_squared_close_brackets() {
-    sed "s/\]/\\]/g"
+    sed "s/\]/\\\]/g"
 } # end escape_squared_close_brackets
 # DEBUG echo "SEEKING:$SEEKING"
 
