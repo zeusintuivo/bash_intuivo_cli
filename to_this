@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 #!/bin/bash
 #
-set -xeu
+# set -xeu
 DEBUG_VERB_READING_LOGIC=${DEBUG-} || 0
 LIGHTPINK="\033[1;204m"
 YELLOW_OVER_DARKBLUE="\033[38;5;220m\033[48;5;20m"
