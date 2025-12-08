@@ -154,7 +154,7 @@ if [[ -n "$2" ]] ; then
   }
   fi
 
-  if [[ "$2" == "rg" || "$2" == "sift" || "$2" == "pt" || "$2" == "sift" || "$2" == "ack" || "$2" == "grep" || "$2" == "ag" || "$2" == "./ag" || "$2" == "./ack" || "$2" == "./sift" ]] ; then
+  if [[ "$2" == "rg" || "$2" == "pt" || "$2" == "sift" || "$2" == "ack" || "$2" == "grep" || "$2" == "ag" || "$2" == "./ag" || "$2" == "./ack" || "$2" == "./sift" ]] ; then
   {
       DEFAULTSEEKER="$2"
   }
@@ -853,10 +853,8 @@ elif command -v rg >/dev/null 2>&1; then
   PRINTCOMMAND="-l --null";
   XARGSCOMMAD="-0";
 }
-else # // sift not installed
+elif command -v sift >/dev/null 2>&1; then
 {
-  if command -v sift >/dev/null 2>&1; then
-  {
   if [ $VERBOSE -eq 1 ] ; then
   {
     #  NOT Colored
