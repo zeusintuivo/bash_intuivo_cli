@@ -120,7 +120,7 @@ if [ -z "$1" ] && [ -z "$PIPED" ]
     echo " "
     echo "Can be used:    - with three arguments   -optional "
     echo " "
-    echo "    ${THISSCRIPTNAME}   filename  seek_this     [sift, ack, ./sift, grep, ag, ./ag, ./ack]  -v  for verbose  -h for help"
+    echo "    ${THISSCRIPTNAME}   filename  seek_this     [rg, pt, ./pt, sift, ./sift, ag, ./ag, ack, ./ack, grep, ./grep] -v  for verbose  -h for help"
     echo "    ";
     echo "    assuming order or use sift -> ag -> ack -> grep -> local ./ack"
     echo "    ";
@@ -138,7 +138,7 @@ if [[ "$1" == "-h" ]] && [[ -z "$PIPED" ]] ; then
     echo "                                   leveraging from other linux scrips like sift, ack, grep, ag   "
     echo "Usage: "
     echo " "
-    echo " ${THISSCRIPTNAME}   seek_this   --nocolor -v -f [sift, ack, grep, ag]"
+    echo " ${THISSCRIPTNAME}   seek_this   --nocolor -v -f [pt, rg, sift, ack, grep, ag]"
     echo " --nocolor   -v verbose -f Files on  "
     echo " "
     exit 0;
@@ -154,7 +154,7 @@ if [[ -n "$2" ]] ; then
   }
   fi
 
-  if [[ "$2" == "sift" || "$2" == "ack" || "$2" == "grep" || "$2" == "ag" || "$2" == "./ag" || "$2" == "./ack" || "$2" == "./sift" ]] ; then
+  if [[ "$2" == "rg" || "$2" == "sift" || "$2" == "pt" || "$2" == "sift" || "$2" == "ack" || "$2" == "grep" || "$2" == "ag" || "$2" == "./ag" || "$2" == "./ack" || "$2" == "./sift" ]] ; then
   {
       DEFAULTSEEKER="$2"
   }
@@ -193,10 +193,12 @@ if [[ -n "$4" ]] ; then
   fi
   if [[ "$4" == "-f" ]] && [ -z "$PIPED" ] ; then
   {
-    if [ $VERBOSE -eq 1 ] ; then
-      echo "Files on";
-    fi
-    FILENAMESONLY=1;
+      if [ $VERBOSE -eq 1 ] ; then
+      {
+        echo "Files on";
+      }
+      fi
+      FILENAMESONLY=1;
   }
   fi
 }
@@ -213,10 +215,6 @@ fi
 #               echo "[38;5;28mCOL[38;5;9mORED[0m"
 #             }
 #             fi
-
-
-
-
 #               #  NOT Piped
 #               if [ -z "$PIPED" ] ; then
 #               {
@@ -295,23 +293,31 @@ fi
 # COLORS - Ouput - Start
 #
 
+[[ -z "${RED}" ]] && RED="\\033[38;5;1m"
 red=`tput setaf 1`
-RED=`tput setaf 1`
-blue=$(tput setaf 4)
-BLUE=$(tput setaf 4)
+[[ -z "${CYAN}" ]] && CYAN="\\033[38;5;123m"
 cyan=`tput setaf 6`
-CYAN=$(tput setaf 6)
+[[ -z "${GREEN}" ]] && GREEN="\\033[38;5;22m"
 green=`tput setaf 2`
-GREEN=`tput setaf 2`
-RESET=`tput sgr0`
+[[ -z "${RESET}" ]] && RESET="\\033[0m"
+[[ -z "${RESET_PROMPT}" ]] && RESET_PROMPT="[0m"
 reset=`tput sgr0`
-BLACK=$(tput setaf 0)
+[[ -z "${BLACK}" ]] && BLACK="\\033[38;5;16m"
 black=$(tput setaf 0)
-YELLOW=$(tput setaf 3)
+[[ -z "${YELLOW226}" ]] && YELLOW226="\\033[38;5;226m"
+[[ -z "${YELLOW}" ]] && YELLOW="\\033[01;33m"
 yellow=$(tput setaf 3)
 LIME_YELLOW=$(tput setaf 190)
 POWDER_BLUE=$(tput setaf 153)
+BLUE=$(tput setaf 4)
+[[ -z "${PURPLE_BLUE}" ]] && PURPLE_BLUE="\\033[38;5;93m"
+[[ -z "${GRAY241}" ]] && GRAY241="\\033[38;5;241m"
+
+
+
+[[ -z "${BRIGHT_BLUE87}" ]] && BRIGHT_BLUE87="\\033[38;5;87m"
 MAGENTA=$(tput setaf 5)
+CYAN=$(tput setaf 6)
 WHITE=$(tput setaf 7)
 BRIGHT=$(tput bold)
 NORMAL=$(tput sgr0)
@@ -397,6 +403,7 @@ PROCESSOR_ERROR=$(test_positives)
 # C H E C K   R E P L A C E   F U N C T I O N S   I N S T A L L E D  --Start
 #
 check_replacer () {
+  local -i  _err
   local REPLACER="$1"
   if command -v "${REPLACER}" >/dev/null 2>&1; then
     # It looks installed
@@ -405,11 +412,13 @@ check_replacer () {
 
     #stdout UND stderr -capture  REF: https://www.thomas-krenn.com/de/wiki/Bash_stdout_und_stderr_umleiten
     ${REPLACER}  --version &> /tmp/ersetze_test_${REPLACER}.txt
+    _err=$?
     # shellcheck disable=SC2155
-    local PROPERLYWORKING="$(cat /tmp/ersetze_test_${REPLACER}.txt)"
+    local PROPERLYWORKING=$(cat /tmp/ersetze_test_${REPLACER}.txt)
 
     if [[ "$PROPERLYWORKING" == *"dyld:"* ]]; then { echo "error"; return;} fi
     if [[ "$PROPERLYWORKING" == *"GNU"* ]]; then { echo "GNU"; return;} else { echo "MAC";return;} fi
+    if  [ ${_err} -ne 0 ] ; then { echo "error"; return;} fi
     echo "checked";
     return;
   else
@@ -466,9 +475,24 @@ fi
 
 REPLACERGNU="NO"
 if [[ $VALIDREPLACER == "GNU" ]] ; then
+{
   REPLACERGNU="YES"
+}
 fi
 
+# one more check for gsed from brew in macs
+if [[ $REPLACERGNU == "NO" ]] ; then
+{
+  if command -v gsed >/dev/null 2>&1 ; then
+  {
+    REPLACERGNU="YES"
+    REPLACER="gsed"
+  }
+  fi
+}
+fi
+
+XARGSCOMMAD=""
 # Test
 # echo "REPLACERGNU: $REPLACERGNU"
 # echo "VALIDREPLACER: $VALIDREPLACER"
@@ -484,8 +508,355 @@ fi
 #
 # S E E K I N G   I N S T A L L    C H E C K  - Start
 #
-if command -v sift >/dev/null 2>&1; then
+typeset -i PTFOUND=0
+typeset -i TKFOUND=0
+if command -v pt >/dev/null 2>&1; then
 {
+  PTFOUND=1
+  if command -v paeth >/dev/null 2>&1; then
+  {
+    # check if it is not python /tcl-tk
+    typeset WHEREISPT="$(paeth pt)"
+    # echo "${WHEREISPT-}"
+    if [[ "${WHEREISPT-}" == *"tcl-tk"* ]] ; then
+    {
+      # echo FUCK WRONG
+      # this is not https://github.com/monochromegane/the_platinum_searcher
+      TKFOUND=1
+    }
+    fi
+  # }
+  # else
+  # {
+  #   echo PAETHNOTFOUND
+  }
+  fi
+}
+fi
+if [ ${PTFOUND-} -eq 1 ] && [ ${TKFOUND-} -eq 1 ] ; then
+{
+  SEEKER=rg
+  DEFAULTSEEKER=rg
+}
+fi
+if [ ${PTFOUND-} -eq 0 ] ; then
+{
+  SEEKER=rg
+  DEFAULTSEEKER=rg
+}
+fi
+# echo "PTFOUND: ${PTFOUND-}"
+# echo "TKFOUND: ${TKFOUND-}"
+# echo "${SEEKER-}"
+# exit 0
+if ( command -v pt >/dev/null 2>&1; ) &&  [[ "${SEEKER-}" == "pt" ]] ; then
+{
+  # pt --help
+  # Usage:
+  #  pt [OPTIONS] PATTERN [PATH]
+  #
+  # Application Options:
+  #      --version             Show version
+  #
+  # Output Options:
+  #      --color               Print color codes in results (default: true)
+  #      --nocolor             Don't print color codes in results (default: false)
+  #      --color-line-number=  Color codes for line numbers (default: 1;33)
+  #      --color-path=         Color codes for path names (default: 1;32)
+  #      --color-match=        Color codes for result matches (default: 30;43)
+  #      --group               Print file name at header (default: true)
+  #      --nogroup             Don't print file name at header (default: false)
+  #  -0, --null                Separate filenames with null (for 'xargs -0') (default: false)
+  #      --column              Print column (default: false)
+  #      --numbers             Print Line number. (default: true)
+  #  -N, --nonumbers           Omit Line number. (default: false)
+  #  -A, --after=              Print lines after match
+  #  -B, --before=             Print lines before match
+  #  -C, --context=            Print lines before and after match
+  #  -l, --files-with-matches  Only print filenames that contain matches
+  #  -c, --count               Only print the number of matching lines for each input file.
+  #  -o, --output-encode=      Specify output encoding (none, jis, sjis, euc)
+  #
+  # Search Options:
+  #  -e                        Parse PATTERN as a regular expression (default: false). Accepted syntax is the same
+  #                            as https://github.com/google/re2/wiki/Syntax except from \C
+  #  -i, --ignore-case         Match case insensitively
+  #  -S, --smart-case          Match case insensitively unless PATTERN contains uppercase characters
+  #  -w, --word-regexp         Only match whole words
+  #      --ignore=             Ignore files/directories matching pattern
+  #      --vcs-ignore=         VCS ignore files (default: .gitignore)
+  #      --global-gitignore    Use git's global gitignore file for ignore patterns
+  #      --home-ptignore       Use $Home/.ptignore file for ignore patterns
+  #  -U, --skip-vcs-ignores    Don't use VCS ignore file for ignore patterns
+  #  -g=                       Print filenames matching PATTERN
+  #  -G, --file-search-regexp= PATTERN Limit search to filenames matching PATTERN
+  #      --depth=              Search up to NUM directories deep (default: 25)
+  #  -f, --follow              Follow symlinks
+  #      --hidden              Search hidden files and directories
+  #
+  # Help Options:
+  #  -h, --help                Show this help message
+
+  if [ $VERBOSE -eq 1 ] ; then
+  {
+    #  NOT Colored
+    if [[ -n "$COLORED" ]] ; then
+    {
+      echo " pt INSTALLED."
+    }
+    else
+    {
+      msg_echo " pt INSTALLED."
+    }
+    fi
+  }
+  fi
+  # pt is            case sensitive by default
+  # -0, --null                Separate filenames with null (for 'xargs -0') (default: false)
+  #     --nocolor             Don't print color codes in results (default: false)
+  #
+  # WHEN not PIPED then show line numbers
+  # -N, --nonumbers           Omit Line number. (default: false)
+          if [ -z "$PIPED" ] ; then
+          {
+              SEEKER=" pt --skip-vcs-ignores --hidden  --numbers  "
+          }
+          fi
+          #  PIPED then hide line numbers
+          if [[ -n "$PIPED" ]] ; then
+          {
+              SEEKER=" pt --skip-vcs-ignores --hidden  --nonumbers "
+          }
+          fi
+  # NOT Colored
+  if [[ -n "$COLORED" ]] ; then
+  {
+    SEEKER="${SEEKER} --skip-vcs-ignores --nocolor ";
+  }
+  fi
+  #  -l, --files-with-matches  Only print filenames that contain matches
+  IGNORE_DIR="ignore";
+  IGNORE_FILE="ignore";
+  PRINTCOMMAND="-l --null";
+}
+elif command -v rg >/dev/null 2>&1; then
+{
+  # rg --help
+  # Usage:
+  #  rg [OPTIONS] PATTERN [PATH ...]
+  #  rg [OPTIONS] -e PATTERN ... [PATH ...]
+  #  rg [OPTIONS] -f PATTERNFILE ... [PATH ...]
+  #  rg [OPTIONS] --files [PATH ...]
+  #  rg [OPTIONS] --type-list
+  #  command | rg [OPTIONS] PATTERN
+  #  rg [OPTIONS] --help
+  #  rg [OPTIONS] --version
+  #
+  # Application Options:
+  #      --version             Show version
+  #
+  #  -n, --line-number
+  #  Show line numbers (1-based).
+  #
+  #  This is enabled by default when stdout is connected to a tty.
+  #
+  #  This flag can be disabled by -N/--no-line-number.
+  # --no-ignore-files
+  #  When set, any --ignore-file flags, even ones that come after this flag,
+  #  are ignored.
+  #
+  #  This flag can be disabled with --ignore-files.
+  #  -N, --no-line-number
+  #  Suppress line numbers.
+  #
+  #  Line numbers are off by default when stdout is not connected to a tty.
+  #
+  #  Line numbers can be forcefully turned on by -n/--line-number.
+  #  --line-buffered
+  #  When enabled, ripgrep will always use line buffering. That is, whenever
+  #  a matching line is found, it will be flushed to stdout immediately.
+  #  This is the default when ripgrep's stdout is connected to a tty, but
+  #  otherwise, ripgrep will use block buffering, which is typically faster.
+  #  This flag forces ripgrep to use line buffering even if it would
+  #  otherwise use block buffering. This is typically useful in shell
+  #  pipelines, for example:
+  #
+  #  tail -f something.log | rg foo --line-buffered | rg bar
+  #
+  #  This overrides the --block-buffered flag.
+  #
+  #  This flag can be disabled with --no-line-buffered.
+  # --color=WHEN
+  # This flag controls when to use colors. The default setting is auto,
+  # which means ripgrep will try to guess when to use colors. For example,
+  # if ripgrep is printing to a tty, then it will use colors, but if it is
+  # redirected to a file or a pipe, then it will suppress color output.
+  #
+  # ripgrep will suppress color output by default in some other
+  # circumstances as well. These include, but are not limited to:
+  #
+  # • When the TERM environment variable is not set or set to dumb.
+  #
+  # • When the NO_COLOR environment variable is set (regardless of value).
+  #
+  # • When flags that imply no use for colors are given. For example,
+  # --vimgrep and --json.
+  #
+  # The possible values for this flag are:
+  #
+  # never: Colors will never be used.
+  #
+  # auto: The default. ripgrep tries to be smart.
+  #
+  # always: Colors will always be used regardless of where output is sent.
+  #
+  # ansi: Like 'always', but emits ANSI escapes (even in a Windows
+  # console).
+  #  --ignore-file=PATH
+  #  Specifies a path to one or more gitignore formatted rules files. These
+  #  patterns are applied after the patterns found in .gitignore, .rgignore
+  #  and .ignore are applied and are matched relative to the current working
+  #  directory. That is, files specified via this flag have lower precedence
+  #  than files automatically found in the directory tree. Multiple
+  #  additional ignore files can be specified by using this flag repeatedly.
+  #  When specifying multiple ignore files, earlier files have lower
+  #  precedence than later files.
+  #
+  #  If you are looking for a way to include or exclude files and
+  #  directories directly on the command line, then use -g/--glob instead.
+  #  -., --hidden
+  #  Search hidden files and directories. By default, hidden files and
+  #  directories are skipped. Note that if a hidden file or a directory is
+  #  whitelisted in an ignore file, then it will be searched even if this
+  #  flag isn't provided. Similarly if a hidden file or directory is given
+  #  explicitly as an argument to ripgrep.
+  #
+  #  A file or directory is considered hidden if its base name starts with a
+  #  dot character (.). On operating systems which support a "hidden" file
+  #  attribute, like Windows, files with this attribute are also considered
+  #  hidden.
+  #
+  #  Note that -./--hidden will include files and folders like .git
+  #  regardless of --no-ignore-vcs. To exclude such paths when using
+  #  -./--hidden, you must explicitly ignore them using another flag or
+  #  ignore file.
+  #
+  #  This flag can be disabled with --no-hidden.
+  #
+  #  --null-data
+  #  Enabling this flag causes ripgrep to use NUL as a line terminator
+  #  instead of the default of \n.
+  #
+  #  This is useful when searching large binary files that would otherwise
+  #  have very long lines if \n were used as the line terminator. In
+  #  particular, ripgrep requires that, at a minimum, each line must fit
+  #  into memory. Using NUL instead can be a useful stopgap to keep memory
+  #  requirements low and avoid OOM (out of memory) conditions.
+  #
+  #  This is also useful for processing NUL delimited data, such as that
+  #  emitted when using ripgrep's -0/--null flag or find's --print0 flag.
+  #
+  #  Using this flag implies -a/--text. It also overrides --crlf.
+  #  -v, --invert-match
+  #  This flag inverts matching. That is, instead of printing lines that
+  #  match, ripgrep will print lines that don't match.
+  #
+  #  Note that this only inverts line-by-line matching. For example,
+  #  combining this flag with -l/--files-with-matches will emit files that
+  #  contain any lines that do not match the patterns given. That's not the
+  #  same as, for example, --files-without-match, which will emit files that
+  #  do not contain any matching lines.
+  #
+  #  This flag can be disabled with --no-invert-match.
+  #  -s, --case-sensitive
+  #  Execute the search case sensitively. This is the default mode.
+  #
+  #  This is a global option that applies to all patterns given to ripgrep.
+  #  Individual patterns can still be matched case insensitively by using
+  #  inline regex flags. For example, (?i)abc will match abc case
+  #  insensitively even when this flag is used.
+  #
+  #  This flag overrides the -i/--ignore-case and -S/--smart-case flags.
+  #
+  #  -0, --null
+  #  Whenever a file path is printed, follow it with a NUL byte. This
+  #  includes printing file paths before matches, and when printing a list
+  #  of matching files such as with -c/--count, -l/--files-with-matches and
+  #  --files. This option is useful for use with xargs.
+  #
+  #  -o, --only-matching
+  #  Print only the matched (non-empty) parts of a matching line, with each
+  #  such part on a separate output line.
+  #
+  #  --path-separator=SEPARATOR
+  #  Set the path separator to use when printing file paths. This defaults
+  #  to your platform's path separator, which is / on Unix and \ on Windows.
+  #  This flag is intended for overriding the default when the environment
+  #  demands it (e.g., cygwin). A path separator is limited to a single
+  #  byte.
+  #
+  #  Setting this flag to an empty string reverts it to its default
+  #  behavior. That is, the path separator is automatically chosen based on
+  #  the environment.
+  #
+  #  -l, --files-with-matches
+  #  Print only the paths with at least one match and suppress match
+  #  contents.
+  #
+  #  Note that it is possible for this flag to have results inconsistent
+  #  with the output of -c/--count. Notably, by default, ripgrep tries to
+  #  avoid searching files with binary data. With this flag, ripgrep might
+  #  stop searching before the binary data is observed. But with -c/--count,
+  #  ripgrep has to search the entire contents to determine the match count,
+  #  which means it might see binary data that causes it to skip searching
+  #  that file. To avoid this inconsistency without disabling binary
+  #  detection, use the --binary flag.
+  #
+  #  This overrides --files-without-match.
+  #
+  if [ $VERBOSE -eq 1 ] ; then
+  {
+    #  NOT Colored
+    if [[ -n "$COLORED" ]] ; then
+    {
+      echo " rg INSTALLED."
+    }
+    else
+    {
+      msg_echo " rg INSTALLED."
+    }
+    fi
+  }
+  fi
+  # rg is            case sensitive by default
+  #
+  # WHEN not PIPED then show line numbers
+          if [ -z "$PIPED" ] ; then
+          {
+              SEEKER=" rg --no-messages --no-ignore --line-number --hidden  "
+          }
+          fi
+          #  PIPED then hide line numbers
+          if [[ -n "$PIPED" ]] ; then
+          {
+              SEEKER=" rg --no-messages --no-ignore --line-buffered --hidden --no-line-number "
+          }
+          fi
+  # NOT Colored
+  if [[ -n "$COLORED" ]] ; then
+  {
+    SEEKER="${SEEKER} --no-ignore --color=never ";
+  }
+  fi
+  IGNORE_DIR="ignore-file";
+  IGNORE_FILE="ignore-file";
+  PRINTCOMMAND="-l --null";
+  XARGSCOMMAD="-0"; 
+}
+else # // sift not installed
+{
+  if command -v sift >/dev/null 2>&1; then
+  {
   if [ $VERBOSE -eq 1 ] ; then
   {
     #  NOT Colored
@@ -895,50 +1266,103 @@ if command -v "${DEFAULTSEEKER}" >/dev/null 2>&1; then
             fi
             #  NOT Colored
             if [[ -n "$COLORED" ]] ; then
-                {
-                    SEEKER="${SEEKER} --nocolor ";
-                }
+            {
+                SEEKER="${SEEKER} --nocolor ";
+            }
             fi
-    IGNORE_DIR="ignore";
-    IGNORE_FILE="ignore";
-    PRINTCOMMAND="-l --print0";
-  }
-  fi
-  # make case sentive for ag
-  if [[ "$DEFAULTSEEKER" == "ack" ]] ; then
-  {
-            # Ack DOES NOT SUPPORT HIDDING LINE NUMBERS
-            # WHEN PIPED then show line numbers
-              if [ -z "$PIPED" ] ; then
-              {
-    SEEKER="ack -Q "
-              }
-            fi
-            #  PIPED then hide line numbers
-            if [[ -n "$PIPED" ]] ; then
-              {
-                  SEEKER="ack  -Q ";
-              }
-            fi
-            # NOT Colored
-            if [[ -n "$COLORED" ]] ; then
-                {
-                    SEEKER="${SEEKER} --nocolor ";
-                }
-            fi
-    IGNORE_DIR="ignore-dir";
-    IGNORE_FILE="ignore-dir";
-    PRINTCOMMAND="-l --print0";
-  }
-  fi
-  # make case sentive for local ./ack
-  if [ -e "./ack" ] && [[ "$DEFAULTSEEKER" == "./ack" ]] ; then
-  {
+            IGNORE_DIR="ignore";
+            IGNORE_FILE="ignore";
+            PRINTCOMMAND="-l --print0";
+        }
+        fi
+        # make case sensitive for ack
+        if [[ "$DEFAULTSEEKER" == "ack" ]] ; then
+        {
             # Ack DOES NOT SUPPORT HIDDING LINE NUMBERS
             # WHEN PIPED then show line numbers
             if [ -z "$PIPED" ] ; then
             {
-    SEEKER="./ack -Q "
+                SEEKER="ack  -Q ";
+            }
+						fi
+            #  PIPED then hide line numbers
+            if [[ -n "$PIPED" ]] ; then
+            {
+                SEEKER="ack  -Q ";
+            }
+            fi
+            # NOT Colored
+            if [[ -n "$COLORED" ]] ; then
+            {
+                SEEKER="${SEEKER} --nocolor ";
+            }
+            fi
+            IGNORE_DIR="ignore-dir";
+            IGNORE_FILE="ignore-dir";
+            PRINTCOMMAND="-l --print0";
+        }
+        fi
+        #  rg made in rust is supposed to be shit for huge files
+        if [[ "$DEFAULTSEEKER" == "rg" ]] ; then
+        {
+            # WHEN not PIPED then show line numbers
+            if [ -z "$PIPED" ] ; then
+            {
+                SEEKER=" rg  --no-messages  --no-ignore --line-number --hidden   "
+            }
+            fi
+            #  PIPED then hide line numbers
+            if [[ -n "$PIPED" ]] ; then
+            {
+                SEEKER=" rg --no-messages  --no-ignore --line-buffered --hidden --no-line-number "
+            }
+            fi
+            # NOT Colored
+            if [[ -n "$COLORED" ]] ; then
+            {
+                SEEKER="${SEEKER} --no-ignore --color=never ";
+            }
+            fi
+            IGNORE_DIR="ignore-file";
+            IGNORE_FILE="ignore-file";
+            PRINTCOMMAND="-l --null";
+        }
+        fi
+        #  pt claims to be similar to ack
+        if [[ "$DEFAULTSEEKER" == "pt" ]] ; then
+        {
+            # WHEN not PIPED then show line numbers
+            # -N, --nonumbers           Omit Line number. (default: false)
+            if [ -z "$PIPED" ] ; then
+            {
+                SEEKER=" pt --skip-vcs-ignores --hidden  --numbers  "
+            }
+            fi
+            #  PIPED then hide line numbers
+            if [[ -n "$PIPED" ]] ; then
+            {
+                SEEKER=" pt --skip-vcs-ignores --hidden  --nonumbers "
+            }
+            fi
+            # NOT Colored
+            if [[ -n "$COLORED" ]] ; then
+            {
+                SEEKER="${SEEKER} --skip-vcs-ignores --nocolor ";
+            }
+            fi
+            IGNORE_DIR="ignore";
+            IGNORE_FILE="ignore";
+            PRINTCOMMAND="-l --null";
+        }
+        fi
+        # make case sensitive for local ./ack
+        if [ -e "./ack" ] && [[ "$DEFAULTSEEKER" == "./ack" ]] ; then
+        {
+            # Ack DOES NOT SUPPORT HIDING LINE NUMBERS
+            # WHEN PIPED then show line numbers
+            if [ -z "$PIPED" ] ; then
+            {
+                SEEKER="./ack -Q "
             }
             fi
             #  PIPED then hide line numbers
@@ -953,31 +1377,31 @@ if command -v "${DEFAULTSEEKER}" >/dev/null 2>&1; then
                     SEEKER="${SEEKER} --nocolor ";
                 }
             fi
-    IGNORE_DIR="ignore-dir";
-    IGNORE_FILE="ignore-file";
-    PRINTCOMMAND="-l --print0";
-  }
-  fi
-  # use extended expressions
-  if [[ "$DEFAULTSEEKER" == "grep" ]] ; then
-  {
+            IGNORE_DIR="ignore-dir";
+            IGNORE_FILE="ignore-file";
+            PRINTCOMMAND="-l --print0";
+        }
+        fi
+        # use extended expressions
+        if [[ "$DEFAULTSEEKER" == "grep" ]] ; then
+        {
             # WHEN PIPED then show line numbers
             if [ -z "$PIPED" ] ; then
-              {
-    SEEKER="grep -rnE "
-              }
+            {
+                SEEKER="grep -rnE "
+            }
             fi
             #  PIPED then hide line numbers
             if [[ -n "$PIPED" ]] ; then
-              {
-                  SEEKER="grep -rE "
-              }
+            {
+                SEEKER="grep -rE "
+            }
             fi
             # NOT Colored
             if [[ -n "$COLORED" ]] ; then
-                {
-                    SEEKER="${SEEKER} --color=never ";
-                }
+            {
+                SEEKER="${SEEKER} --color=never ";
+            }
             fi
     IGNORE_DIR="exclude-dir";
     IGNORE_FILE="exclude";
@@ -992,8 +1416,8 @@ else
   if [ $VERBOSE -eq 1 ] && [ -z "$PIPED" ] ; then
   {
     echo -e "${CYAN}  using ...${SEEKER}  "
-}
-fi
+  }
+  fi
 }
 fi
 
@@ -1083,14 +1507,18 @@ IGNORELIST=""
 
     # for ONE_FILENAME in ${FILESTOEXCLUDE}
     while read -r ONE_FILENAME; do
-      [[ -z "${ONE_FILENAME}" ]] && continue  # skip if zempty
-      [[ "${FILE}" ==  "${ONE_FILENAME}" ]] && continue # remove file from ignore if specifically named
-      IGNORELIST="${IGNORELIST} ${EXCLUDEFILE}${ONE_FILENAME}"
+      # if not empty
+      if [[ -n "${ONE_FILENAME}" ]] ; then
+        [[ "${FILE}" ==  "${ONE_FILENAME}" ]] && continue # remove file from ignore if specifically named
+        IGNORELIST="${IGNORELIST} ${EXCLUDEFILE}${ONE_FILENAME}"
+      fi
     done <<< "${FILESTOEXCLUDE}"
     while read -r ONE_DIRNAME; do
-      [[ -z "${ONE_DIRNAME}" ]] && continue  # skip if zempty
-      [[ ${FILE} == ${ONE_DIRNAME} ]] && continue # remove file from ignore if specifically named
-      IGNORELIST="${IGNORELIST} ${EXCLUDEDIR}${ONE_DIRNAME}"
+      # if not empty
+      if [[ -n "${ONE_DIRNAME}" ]] ; then
+        [[ ${FILE} == ${ONE_DIRNAME} ]] && continue # remove file from ignore if specifically named
+        IGNORELIST="${IGNORELIST} ${EXCLUDEDIR}${ONE_DIRNAME}"
+      fi
     done <<< "${DIRSTOEXCLUDE}"
     # echo "${IGNORELIST}"
     # exit 0
@@ -1314,13 +1742,13 @@ function escape_quotes() {
     sed 's/\"/\\\"/g'
 } # end escape_quotes
 function escape_single_quotes() {
-    sed "s/'/\\'/g"
+    sed "s/'/\\\'/g"
 } # end escape_single_quotes
 function escape_squared_open_brackets() {
-    sed "s/\[/\\[/g"
+    sed "s/\[/\\\[/g"
 } # end escape_squared_open_brackets
 function escape_squared_close_brackets() {
-    sed "s/\]/\\]/g"
+    sed "s/\]/\\\]/g"
 } # end escape_squared_close_brackets
 # DEBUG echo "SEEKING:$SEEKING"
 
@@ -1451,7 +1879,7 @@ fi
     }
     fi
     # not PIPED
-    if [[ -z "$PIPED" ]]; then
+jesu    if [[ -z "$PIPED" ]]; then
     {
       if [[ "${REPLACERGNU}" == "YES" ]] ; then
       # sed GNU

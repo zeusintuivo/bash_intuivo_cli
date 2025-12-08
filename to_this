@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 #!/bin/bash
 #
-DEBUG_VERB_READING_LOGIC=$DEBUG || 0
+set -xeu
+DEBUG_VERB_READING_LOGIC=${DEBUG-} || 0
 LIGHTPINK="\033[1;204m"
 YELLOW_OVER_DARKBLUE="\033[38;5;220m\033[48;5;20m"
 RESET="\033[0m"
@@ -65,7 +66,7 @@ function rename_to_this(){
 	# local ALLENTRIES=$(find . | ag -s --nocolor "/.*""${from}""[^/]*$" | sed 's/../  /')
 	local one two not_found_in_ignorelist
   # echo "ALLENTRIES: ${ALLENTRIES}"
-	[ -z "$ALLENTRIES" ] && echo Nothing found && exit 1
+	[ -z "$ALLENTRIES" ] && echo Nothing found && exit 0
 	while read -r two; do
 		if [ -n "${two}" ]  ; then # if not empty
 			ENTRIES="${ENTRIES}
@@ -120,5 +121,3 @@ ${ONE_FILE}"
 
 echo rename_to_this $*
 rename_to_this $*
-
-

@@ -135,7 +135,7 @@ if [[ "$1" == "-h" ]] && [[ -z "$PIPED" ]] ; then
   echo " "
   echo "Can be used:    - with three arguments "
   echo " "
-  echo "    ${THISSCRIPTNAME} seek_this replaced_it_with   [pt,rg, sift, ack, grep, ag]"
+  echo "    ${THISSCRIPTNAME} seek_this replaced_it_with   [pt, rg, sift, ack, grep, ag]"
   echo "    ";
   echo "    assuming order or use ag -> ack -> grep -> local ./ack"
   echo "    ";
@@ -317,6 +317,18 @@ NORMAL=$(tput sgr0)
 BLINK=$(tput blink)
 REVERSE=$(tput smso)
 UNDERLINE=$(tput smul)
+[[ -z "${BLACK}" ]] && BLACK="\\033[38;5;16m"
+[[ -z "${GREEN}" ]] && GREEN="\\033[38;5;22m"
+[[ -z "${CYAN}" ]] && CYAN="\\033[38;5;123m"
+[[ -z "${PURPLE}" ]] && PURPLE="\\033[01;35m"
+[[ -z "${PURPLE_BLUE}" ]] && PURPLE_BLUE="\\033[38;5;93m"
+[[ -z "${GRAY241}" ]] && GRAY241="\\033[38;5;241m"
+[[ -z "${YELLOW226}" ]] && YELLOW226="\\033[38;5;226m"
+[[ -z "${YELLOW}" ]] && YELLOW="\\033[01;33m"
+[[ -z "${RESET}" ]] && RESET="\\033[0m"
+[[ -z "${RESET_PROMPT}" ]] && RESET_PROMPT="[0m"
+[[ -z "${RED}" ]] && RED="\\033[38;5;1m"
+[[ -z "${BRIGHT_BLUE87}" ]] && BRIGHT_BLUE87="\\033[38;5;87m"
 
 #
 # COLORS - Output - end
@@ -824,7 +836,7 @@ elif command -v rg >/dev/null 2>&1; then
   IGNORE_DIR="ignore-file";
   IGNORE_FILE="ignore-file";
   PRINTCOMMAND="-l --null";
-  XARGSCOMMAD="-0"; 
+  XARGSCOMMAD="-0";
 }
 else # // sift not installed
 {
@@ -1150,7 +1162,7 @@ else # // sift not installed
             FILESCOMMAND=".";
             # PRINTCOMMAND="-l --print0";
             PRINTCOMMAND="-l --null";
-            XARGSCOMMAD="-0"; 
+            XARGSCOMMAD="-0";
           }
           else # // grep not installed
           {
@@ -1750,7 +1762,7 @@ else
   APPLIED_ENTER=0
   if [[ -n "${TESTENTERIMPLACING}" ]] ; then
   {
-    APPLIED_ENTER=1§
+    APPLIED_ENTER=1
     IMPLACING=$TESTENTERIMPLACING
   }
   elif [[ -n "${IMPLACING}" ]] ; then
@@ -1786,10 +1798,10 @@ fi
 # }
 # fi
 
-# DEBUG: 
-# 
+# DEBUG:
+#
 # DEBUG=1 ersetze "ALLOWED_HOSTS = [" "ALLOWED_HOSTS = ['0.0.0.0', 'localhost', '127.0.0.1',"
-# 
+#
 (( DEBUG )) && echo  "4          IMPLACING:${IMPLACING}"
 (( DEBUG )) && echo  "4 TESTENTERIMPLACING:${TESTENTERIMPLACING}"
 
@@ -2005,22 +2017,22 @@ fi
 (( DEBUG )) && echo -e "       REPLACER:$REPLACER"
 
 if [[ "${PROCESSOR_ERROR}" == *"INTEL"* ]] && (( err_buff != 0 )); then
-    { 
+    {
     msg_green "${green} REPLACED !"
     echo "    ";
     FOUND=1
     }
 elif [[ "${PROCESSOR_ERROR}" == *"MAC"* ]] ; then
-    { 
+    {
     if [[ "${REPLACER}" == "sed" &&  "${REPLACERGNU}" == "NO" ]] ; then
         {
         if [ $err_buff == 0 ] ; then
             {
             msg_green "${green} REPLACED !"
             echo "    ";
-            FOUND=1    
+            FOUND=1
             }
-        else 
+        else
             {
             msg_red "${red} SORRY NO REPLACEMENTS MADE !"
             echo "    ";
@@ -2029,15 +2041,15 @@ elif [[ "${PROCESSOR_ERROR}" == *"MAC"* ]] ; then
             }
         fi
         }
-    else 
+    else
         {
         if [ $err_buff == 0 ] ; then
             {
             msg_green "${green} REPLACED !"
             echo "    ";
-            FOUND=1    
+            FOUND=1
             }
-        else 
+        else
             {
             msg_red "${red} SORRY NO REPLACEMENTS MADE !"
             echo "    ";

@@ -319,6 +319,18 @@ NORMAL=$(tput sgr0)
 BLINK=$(tput blink)
 REVERSE=$(tput smso)
 UNDERLINE=$(tput smul)
+[[ -z "${BLACK}" ]] && BLACK="\\033[38;5;16m"
+[[ -z "${GREEN}" ]] && GREEN="\\033[38;5;22m"
+[[ -z "${CYAN}" ]] && CYAN="\\033[38;5;123m"
+[[ -z "${PURPLE}" ]] && PURPLE="\\033[01;35m"
+[[ -z "${PURPLE_BLUE}" ]] && PURPLE_BLUE="\\033[38;5;93m"
+[[ -z "${GRAY241}" ]] && GRAY241="\\033[38;5;241m"
+[[ -z "${YELLOW226}" ]] && YELLOW226="\\033[38;5;226m"
+[[ -z "${YELLOW}" ]] && YELLOW="\\033[01;33m"
+[[ -z "${RESET}" ]] && RESET="\\033[0m"
+[[ -z "${RESET_PROMPT}" ]] && RESET_PROMPT="[0m"
+[[ -z "${RED}" ]] && RED="\\033[38;5;1m"
+[[ -z "${BRIGHT_BLUE87}" ]] && BRIGHT_BLUE87="\\033[38;5;87m"
 
 #
 # COLORS - Output - end
@@ -1373,7 +1385,7 @@ if command -v "${DEFAULTSEEKER}" >/dev/null 2>&1; then
             # WHEN PIPED then show line numbers
             if [ -z "$PIPED" ] ; then
             {
-                SEEKER="grep -rE "
+                SEEKER="grep -rnE "
             }
             fi
             #  PIPED then hide line numbers
@@ -1497,6 +1509,7 @@ ${MOREIGNORE_DIRS}"
 
 IGNORELIST=""
 
+    # for ONE_FILENAME in ${FILESTOEXCLUDE}
     while read -r ONE_FILENAME; do
       # if not empty
       if [[ -n "${ONE_FILENAME}" ]] ; then
@@ -1509,8 +1522,8 @@ IGNORELIST=""
         IGNORELIST="${IGNORELIST} ${EXCLUDEDIR}${ONE_DIRNAME}"
       fi
     done <<< "${DIRSTOEXCLUDE}"
-# echo "IGNORELIST:${IGNORELIST}"
-# exit 0
+    # echo "${IGNORELIST}"
+    # exit 0
 #
 # COMPOSE IGNORE ONELINER - end
 #
@@ -1704,7 +1717,7 @@ then
     }
     fi
     # not PIPED
-    if [ -z "$PIPED" ]; then
+    if [[ -z "$PIPED" ]]; then
     {
       if [[ "${REPLACERGNU}" == "YES" ]] ; then
       # sed GNU
