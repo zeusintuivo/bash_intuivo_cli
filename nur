@@ -18,7 +18,7 @@ THISSCRIPTNAME=`basename "$0"`
 
 # Source: http://www.linuxquestions.org/questions/linux-software-2/bash-scripting-pipe-input-to-script-vs.-1-570945/
 PIPED="";
-COLORED="";
+COLORED="YES";
 COUNTER=0;
 # ag -i filefoo /bar/
 # ag [FILE-TYPE] [OPTIONS] PATTERN [PATH]
@@ -114,6 +114,11 @@ if [ -z "$1" ] && [ -z "$PIPED" ] ; then
   echo "Can be used:    - with two arguments   -optional "
   echo " "
   echo "    ${THISSCRIPTNAME}    seek_this      [rg, pt, ./pt, sift, ./sift, ag, ./ag, ack, ./ack, grep, ./grep]  -v  for verbose  -h for help"
+  echo "    ${THISSCRIPTNAME}    seek_this      [rg, pt, ./pt, sift, ./sift, ag, ./ag, ack, ./ack, grep, ./grep]  -f __file__ "
+  echo "    ${THISSCRIPTNAME}    seek_this      [rg, pt, ./pt, sift, ./sift, ag, ./ag, ack, ./ack, grep, ./grep]  --nocolor "
+  echo "    ${THISSCRIPTNAME}    seek_this      --nocolor "
+  echo "    ${THISSCRIPTNAME}    seek_this      -v --nocolor "
+  echo "    ${THISSCRIPTNAME}    seek_this      -v  "
   echo "    ";
   echo "    assuming faster to slower searcher  pt -> rg -> sift -> ag -> ack -> grep "
   echo "    ";
@@ -176,6 +181,13 @@ if [[ -n "$3" ]] ; then
       VERBOSE=1;
   }
   fi
+  if [[ "$3" == "--nocolor"  ]] ; then
+  {
+    COLORED=""; # "" is no "YES" is yes
+  }
+  fi
+
+
 }
 fi
 if [[ -n "$4" ]] ; then
@@ -196,6 +208,13 @@ if [[ -n "$4" ]] ; then
       FILENAMESONLY=1;
   }
   fi
+  if [[ "$4" == "--nocolor"  ]] ; then
+  {
+    COLORED=""; # "" is no "YES" is yes
+  }
+  fi
+
+
 }
 fi
 # TEST COLORED AND PIPED
@@ -236,30 +255,30 @@ fi
               # Override colored off when piped with not color
               #  Piped
               if [ -n "$PIPED" ] ; then
-                {
+              {
 
-                  WHAT=$(echo "$PIPED" | grep -E "\[")
+                  WHAT=$( grep -E "\[" <<< "$PIPED" )
                   #echo "$WHAT";
                   if [ -z "$WHAT" ] ; then
-                    {
+                  {
                       #  Colored
                       COLORED="YES";  # "" is no "YES" is yes
                       #echo "z"
-                    }
+                  }
                   else
-                    {
+                  {
                       # NOT Colored
                       COLORED="";   # "" is no "YES" is yes
                       #echo "!z"
-                    }
+                  }
                   fi
                   #}
                   #| sed 's@\@ESC@'
                   #exit
-                }
+              }
               fi
                #  NOT Colored
-#             if [ -n "$COLORED" ] ; then
+#             if [ -z "${COLORED-}" ] ; then
 #                {
 #                  echo "NOT COLORED"
 #                }
@@ -533,7 +552,11 @@ if [ ${PTFOUND-} -eq 0 ] ; then
 fi
 # echo "PTFOUND: ${PTFOUND-}"
 # echo "TKFOUND: ${TKFOUND-}"
-# echo "${SEEKER-}"
+# echo "SEEKER:${SEEKER-}"
+# echo "COLORED:<${COLORED-}>  empty is NO, YES is yes"
+# echo "1:${1-}"
+# echo "2:${2-}"
+# echo "3:${3-}"
 # exit 0
 if ( command -v pt >/dev/null 2>&1; ) &&  [[ "${SEEKER-}" == "pt" ]] ; then
 {
@@ -586,7 +609,7 @@ if ( command -v pt >/dev/null 2>&1; ) &&  [[ "${SEEKER-}" == "pt" ]] ; then
   if [ $VERBOSE -eq 1 ] ; then
   {
     #  NOT Colored
-    if [[ -n "$COLORED" ]] ; then
+    if [[ -z "${COLORED-}" ]] ; then
     {
       echo " pt INSTALLED."
     }
@@ -603,19 +626,19 @@ if ( command -v pt >/dev/null 2>&1; ) &&  [[ "${SEEKER-}" == "pt" ]] ; then
   #
   # WHEN not PIPED then show line numbers
   # -N, --nonumbers           Omit Line number. (default: false)
-          if [ -z "$PIPED" ] ; then
+          if [[ -z "${PIPED-}" ]] ; then
           {
               SEEKER=" pt --skip-vcs-ignores --hidden  --numbers  "
           }
           fi
           #  PIPED then hide line numbers
-          if [[ -n "$PIPED" ]] ; then
+          if [[ -n "${PIPED-}" ]] ; then
           {
               SEEKER=" pt --skip-vcs-ignores --hidden  --nonumbers "
           }
           fi
   # NOT Colored
-  if [[ -n "$COLORED" ]] ; then
+  if [[ -z "${COLORED-}" ]] ; then
   {
     SEEKER="${SEEKER} --skip-vcs-ignores --nocolor ";
   }
@@ -803,7 +826,7 @@ elif command -v rg >/dev/null 2>&1; then
   if [ $VERBOSE -eq 1 ] ; then
   {
     #  NOT Colored
-    if [[ -n "$COLORED" ]] ; then
+    if [[ -z "${COLORED-}" ]] ; then
     {
       echo " rg INSTALLED."
     }
@@ -829,7 +852,7 @@ elif command -v rg >/dev/null 2>&1; then
           }
           fi
   # NOT Colored
-  if [[ -n "$COLORED" ]] ; then
+  if [[ -z "${COLORED-}" ]] ; then
   {
     SEEKER="${SEEKER} --no-ignore --color=never ";
   }
@@ -837,7 +860,7 @@ elif command -v rg >/dev/null 2>&1; then
   IGNORE_DIR="ignore-file";
   IGNORE_FILE="ignore-file";
   PRINTCOMMAND="-l --null";
-  XARGSCOMMAD="-0"; 
+  XARGSCOMMAD="-0";
 }
 else # // sift not installed
 {
@@ -846,7 +869,7 @@ else # // sift not installed
     if [ $VERBOSE -eq 1 ] ; then
     {
       #  NOT Colored
-      if [[ -n "$COLORED" ]] ; then
+      if [[ -z "${COLORED-}" ]] ; then
       {
         echo " sift INSTALLED."
       }
@@ -884,7 +907,7 @@ else # // sift not installed
     }
     fi
     #  NOT Colored
-    if [[ -n "$COLORED" ]] ; then
+    if [[ -z "${COLORED-}" ]] ; then
     {
       SEEKER="${SEEKER} --no-color ";
     }
@@ -907,7 +930,7 @@ else # // sift not installed
       if [ $VERBOSE -eq 1 ] ; then
       {
         #  NOT Colored
-        if [[ -n "$COLORED" ]] ; then
+        if [[ -z "${COLORED-}" ]] ; then
         {
           echo " ag INSTALLED."
         }
@@ -935,7 +958,7 @@ else # // sift not installed
       }
       fi
       #  NOT Colored
-      if [[ -n "$COLORED" ]] ; then
+      if [[ -z "${COLORED-}" ]] ; then
       {
         SEEKER="${SEEKER} --nocolor ";
       }
@@ -956,7 +979,7 @@ else # // sift not installed
         if [ $VERBOSE -eq 1 ] ; then
         {
           #  NOT Colored
-          if [[ -n "$COLORED" ]] ; then
+          if [[ -z "${COLORED-}" ]] ; then
           {
             echo " ack INSTALLED."
           }
@@ -975,19 +998,19 @@ else # // sift not installed
         # Ack DOES NOT SUPPORT HIDING LINE NUMBERS
         # NOT PIPED then show line numbers
 
-        if [[ -z "$PIPED" ]] ; then
+        if [[ -z "${PIPED-}" ]] ; then
         {
           SEEKER="ack -Q ";
         }
         fi
         #  PIPED then hide line numbers
-        if [[ -n "$PIPED" ]] ; then
+        if [[ -n "${PIPED-}" ]] ; then
         {
           SEEKER="ack -Q ";
         }
         fi
         # NOT Colored
-        if [[ -n "$COLORED" ]] ; then
+        if [[ -z "${COLORED-}" ]] ; then
         {
           SEEKER="${SEEKER} --nocolor ";
         }
@@ -1010,7 +1033,7 @@ else # // sift not installed
             if [ $VERBOSE -eq 1 ] ; then
             {
                #  NOT Colored
-              if [[ -n "$COLORED" ]] ; then
+              if [[ -z "${COLORED-}" ]] ; then
               {
                 echo " ./ack INSTALLED."
               }
@@ -1023,7 +1046,7 @@ else # // sift not installed
             fi
             # Ack DOES NOT SUPPORT HIDING LINE NUMBERS
             # NOT PIPED then show line numbers
-            if [ -z "$PIPED" ] ; then
+            if [[ -z "${PIPED-}" ]] ; then
             {
                 SEEKER="./ack -Q ";
             }
@@ -1035,7 +1058,7 @@ else # // sift not installed
             }
             fi
             # NOT Colored
-            if [[ -n "$COLORED" ]] ; then
+            if [[ -z "${COLORED-}" ]] ; then
             {
                 SEEKER="${SEEKER} --nocolor ";
             }
@@ -1049,7 +1072,7 @@ else # // sift not installed
           if [ $VERBOSE -eq 1 ] ; then
           {
              #  NOT Colored
-            if [[ -n "$COLORED" ]] ; then
+            if [[ -z "${COLORED-}" ]] ; then
             {
               echo " ./ack INSTALLED."
             }
@@ -1062,19 +1085,19 @@ else # // sift not installed
           fi
           # Ack DOES NOT SUPPORT HIDING LINE NUMBERS
           # NOT PIPED then show line numbers
-          if [ -z "$PIPED" ] ; then
+          if [[ -z "${PIPED-}" ]] ; then
           {
               SEEKER="./ack -Q ";
           }
           fi
           #  PIPED then hide line numbers
-          if [[ -n "$PIPED" ]] ; then
+          if [[ -n "${PIPED-}" ]] ; then
           {
               SEEKER="./ack -Q ";
           }
           fi
           # NOT Colored
-          if [[ -n "$COLORED" ]] ; then
+          if [[ -z "${COLORED-}" ]] ; then
           {
               SEEKER="${SEEKER} --nocolor ";
           }
@@ -1129,7 +1152,7 @@ else # // sift not installed
             if [ $VERBOSE -eq 1 ] ; then
             {
               #  NOT Colored
-              if [[ -n "$COLORED" ]] ; then
+              if [[ -z "${COLORED-}" ]] ; then
               {
                 echo " grep INSTALLED."
               }
@@ -1141,7 +1164,7 @@ else # // sift not installed
             }
             fi
             # WHEN PIPED then show line numbers
-            if [ -z "$PIPED" ] ; then
+            if [[ -z "${PIPED-}" ]] ; then
             {
                 SEEKER="grep -nrE "
             }
@@ -1153,7 +1176,7 @@ else # // sift not installed
             }
             fi
             # NOT Colored
-            if [[ -n "$COLORED" ]] ; then
+            if [[ -z "${COLORED-}" ]] ; then
             {
               SEEKER="${SEEKER} --color=never ";
             }
@@ -1163,12 +1186,12 @@ else # // sift not installed
             FILESCOMMAND=".";
             # PRINTCOMMAND="-l --print0";
             PRINTCOMMAND="-l --null";
-            XARGSCOMMAD="-0"; 
+            XARGSCOMMAD="-0";
           }
           else # // grep not installed
           {
               # NOT Colored
-              if [[ -n "$COLORED" ]] ; then
+              if [[ -z "${COLORED-}" ]] ; then
               {
                   echo "CANNOT SEARCH ....MISSING SEARCHER SIFT, ACK, AG, ./ACK, ./AG, ./SIFT OR GREP  ";
                   exit 1;
@@ -1206,7 +1229,7 @@ if command -v "${DEFAULTSEEKER}" >/dev/null 2>&1; then
         if [ $VERBOSE -eq 1 ] ; then
         {
            # NOT Colored
-          if [[ -n "$COLORED" ]] ; then
+          if [[ -z "${COLORED-}" ]] ; then
           {
             echo "  using chosen option ... ${SEEKER}  ";
             echo "  INSTALLED."
@@ -1236,7 +1259,7 @@ if command -v "${DEFAULTSEEKER}" >/dev/null 2>&1; then
             }
             fi
             #  NOT Colored
-            if [[ -n "$COLORED" ]] ; then
+            if [[ -z "${COLORED-}" ]] ; then
             {
                 SEEKER="${SEEKER} --no-color ";
             }
@@ -1262,7 +1285,7 @@ if command -v "${DEFAULTSEEKER}" >/dev/null 2>&1; then
             }
             fi
             #  NOT Colored
-            if [[ -n "$COLORED" ]] ; then
+            if [[ -z "${COLORED-}" ]] ; then
             {
                 SEEKER="${SEEKER} --nocolor ";
             }
@@ -1289,7 +1312,7 @@ if command -v "${DEFAULTSEEKER}" >/dev/null 2>&1; then
             }
             fi
             # NOT Colored
-            if [[ -n "$COLORED" ]] ; then
+            if [[ -z "${COLORED-}" ]] ; then
             {
                 SEEKER="${SEEKER} --nocolor ";
             }
@@ -1315,7 +1338,7 @@ if command -v "${DEFAULTSEEKER}" >/dev/null 2>&1; then
             }
             fi
             # NOT Colored
-            if [[ -n "$COLORED" ]] ; then
+            if [[ -z "${COLORED-}" ]] ; then
             {
                 SEEKER="${SEEKER} --no-ignore --color=never ";
             }
@@ -1342,7 +1365,7 @@ if command -v "${DEFAULTSEEKER}" >/dev/null 2>&1; then
             }
             fi
             # NOT Colored
-            if [[ -n "$COLORED" ]] ; then
+            if [[ -z "${COLORED-}" ]] ; then
             {
                 SEEKER="${SEEKER} --skip-vcs-ignores --nocolor ";
             }
@@ -1369,7 +1392,7 @@ if command -v "${DEFAULTSEEKER}" >/dev/null 2>&1; then
               }
             fi
             # NOT Colored
-            if [[ -n "$COLORED" ]] ; then
+            if [[ -z "${COLORED-}" ]] ; then
                 {
                     SEEKER="${SEEKER} --nocolor ";
                 }
@@ -1395,7 +1418,7 @@ if command -v "${DEFAULTSEEKER}" >/dev/null 2>&1; then
             }
             fi
             # NOT Colored
-            if [[ -n "$COLORED" ]] ; then
+            if [[ -z "${COLORED-}" ]] ; then
             {
                 SEEKER="${SEEKER} --color=never ";
             }
@@ -1555,7 +1578,7 @@ IGNORELIST=""
 if [ $VERBOSE -eq 0 ] && [ -z "$PIPED" ] ; then
 {
   # NOT Colored
-  if [[ -n "$COLORED" ]] ; then
+  if [[ -z "${COLORED-}" ]] ; then
   {
     echo "    ";
     echo -e " $SEEKING "
@@ -1574,7 +1597,7 @@ fi
 if [ $VERBOSE -eq 1 ] && [ -z "$PIPED" ] ; then
   {
             # NOT Colored
-            if [[ -n "$COLORED" ]] ; then
+            if [[ -z "${COLORED-}" ]] ; then
             {
               echo "$Finding $SEEKING                  with  ${SEEKER} ."
               echo "   ";
@@ -1705,7 +1728,7 @@ then
     if [ $VERBOSE -eq 1 ] ; then
     {
       # NOT Colored
-      if [[ -n "$COLORED" ]] ; then
+      if [[ -z "${COLORED-}" ]] ; then
       {
         echo "   ${SEEKER} \"${SEEKING}\" ${FILESCOMMAND}  ${IGNORELIST}  "
       }
@@ -1758,7 +1781,7 @@ then
     else # YES PIPED
     {
       # NOT Colored
-      if [[ -n "$COLORED" ]] ; then
+      if [[ -z "${COLORED-}" ]] ; then
       {
         if [[ "${REPLACERGNU}" == "YES" ]] ; then
         # sed GNU
@@ -1833,7 +1856,7 @@ else # else SEEKING does not contain  *"/"*
     if [ $VERBOSE -eq 1 ] ; then
     {
       # NOT Colored
-      if [[ -n "$COLORED" ]] ; then
+      if [[ -z "${COLORED-}" ]] ; then
       {
             echo "   ${SEEKER} \"${SEEKING}\" ${FILESCOMMAND}  ${IGNORELIST}  "
       }
@@ -1900,7 +1923,7 @@ else # else SEEKING does not contain  *"/"*
     else # YES PIPED
     {
       # NOT Colored
-      if [[ -n "$COLORED" ]] ; then
+      if [[ -z "${COLORED-}" ]] ; then
       {
         if [[ "${REPLACERGNU}" == "YES" ]] ; then
         # sed GNU
@@ -2081,7 +2104,7 @@ if [[ "${FOUND}" == "YES" ]] ; then
       cut -f10 -d":" <<< "$RESULT" > /tmp/tmp18.txt
 
       # NOT Colored
-      if [[ -n "$COLORED" ]] ; then
+      if [[ -z "${COLORED-}" ]] ; then
       {
         # Filename
         awk '{print $0}' /tmp/tmp1.txt > /tmp/temp1.txt   # pink    #filename
@@ -2240,7 +2263,7 @@ if [[ "${FOUND}" == "YES" ]] ; then
         if [ $VERBOSE -eq 1 ] ; then
         {
           # NOT Colored
-          if [[ -n "$COLORED" ]] ; then
+          if [[ -z "${COLORED-}" ]] ; then
           {
             echo " FOUND !"
           }
@@ -2257,7 +2280,7 @@ else
   if [ -z "$PIPED" ] ; then    # not PIPED
   {
     # NOT Colored
-    if [[ -n "$COLORED" ]] ; then
+    if [[ -z "${COLORED-}" ]] ; then
     {
       echo " SORRY NO OCCURRENCES FOUND !"
       echo "    ";
