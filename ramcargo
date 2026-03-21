@@ -125,8 +125,9 @@ mkdir -p "$RAMDISK_PATH/$PROJECT_NAME/target"
 [[ -d target ]] && rm -rf target
 [[ -L target ]] && unlink target
 ln -s "$RAMDISK_PATH/$PROJECT_NAME/target"
+[[ -d crates ]] && cp -r crates  "$RAMDISK_PATH/$PROJECT_NAME/"
+[[ -d klirr ]] && cp -r klirr  "$RAMDISK_PATH/$PROJECT_NAME/"
 [[ -f build.rs ]] && cp build.rs "$RAMDISK_PATH/$PROJECT_NAME/"
-
 
 
 
