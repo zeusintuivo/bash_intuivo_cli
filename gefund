@@ -141,7 +141,6 @@ function do_gefund() {
   storage/logs
   target
   tmp
-  log
   ports
   app/Stubs
   var/cache

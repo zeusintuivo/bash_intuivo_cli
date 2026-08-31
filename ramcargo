@@ -83,7 +83,25 @@ done
 
 # === RAM CHECK ===
 echo "[INFO] Checking available memory..."
-AVAILABLE_RAM=$(grep MemAvailable /proc/meminfo | awk '{print $2}')
+
+# Linux only
+if [ -f  /proc/meminfo ] ; then
+{
+  AVAILABLE_RAM=$(grep MemAvailable /proc/meminfo | awk '{print $2}')
+}
+else
+{
+
+# Mac
+AVAILABLE_RAM=163840
+
+# Windows
+AVAILABLE_RAM=163840
+}
+fi
+
+
+
 RAM_MB=$((AVAILABLE_RAM / 1024))
 if (( RAM_MB < MIN_RAM_MB )); then
   echo "[WARN] Not enough RAM (${RAM_MB}MB available < ${MIN_RAM_MB}MB). Running on disk."

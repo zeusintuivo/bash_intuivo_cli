@@ -62,10 +62,13 @@ function _merge_files(){
   local one_line=""
   while read -r _extension ;  do
   {
+    [[ -z "${_extension}" ]] && continue
+
     ALLFILES="$(oe "\\.${_extension}$")"
     [[ -z "${ALLFILES}" ]] && continue
     while read -r FILE; do
     {
+      [[ -z "${FILE}" ]] && continue
       RELATIVE_PATH="${FILE}"
 
       # Add start marker
@@ -78,16 +81,24 @@ function _merge_files(){
       #  -e '/\/\*/,/\*\//d' \
       #  "${RELATIVE_PATH}" >> "${OUTPUT_FILE}"
 
+      if [[ "${_extension}" == "md" ]] || [[ "${_extension}" == "txt" ]] ; then
+      {
+        cat "${RELATIVE_PATH}" >> "${OUTPUT_FILE}"
+      }
+      else
+      {
+        delete_empty_lines >> "${OUTPUT_FILE}" <<< "$(sed -E \
+          -e '/\/\*/,/\*\//d' \
+          -e 's/(^|[^:])\/\/.*$/\1/' \
+          -e 's/#.*//' \
+          "${RELATIVE_PATH}")"
+      }
+      fi
 
-      delete_empty_lines >> "${OUTPUT_FILE}" <<< "$(sed -E \
-        -e '/\/\*/,/\*\//d' \
-        -e 's/(^|[^:])\/\/.*$/\1/' \
-        -e 's/#.*//' \
-        "${RELATIVE_PATH}")"
+      # Add end marker
+      echo "# file: ${RELATIVE_PATH}   // --- end" >> "${OUTPUT_FILE}"
+      echo "" >> "${OUTPUT_FILE}"
 
-        # Add end marker
-        echo "# file: ${RELATIVE_PATH}   // --- end" >> "${OUTPUT_FILE}"
-        echo "" >> "${OUTPUT_FILE}"
     }
     done <<< "${ALLFILES}"
   }
