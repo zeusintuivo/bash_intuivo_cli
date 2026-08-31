@@ -45,7 +45,7 @@ if [ -z "$4" ]
       echo " "
     echo "Can be used:    - with three arguments "
     echo " "
-    echo "    ${THISSCRIPTNAME} TARGETFILE      seek_this       replaced_it_with          [ack, sift, grep, ag]"
+    echo "    ${THISSCRIPTNAME} TARGETFILE      seek_this       replaced_it_with          [pt, rg, sift, ack, grep, ag]"
     echo "    ";
     echo "    assuming order or use ag -> ack -> grep -> local ./ack"
     echo "    ";
@@ -179,6 +179,7 @@ PROCESSOR_ERROR=$(test_positives)
 # C H E C K   R E P L A C E   F U N C T I O N S   I N S T A L L E D  --Start
 #
 check_replacer () {
+  local -i  _err
   local REPLACER="$1"
   if command -v "${REPLACER}" >/dev/null 2>&1; then
     # It looks installed
@@ -187,11 +188,13 @@ check_replacer () {
 
     #stdout UND stderr -capture  REF: https://www.thomas-krenn.com/de/wiki/Bash_stdout_und_stderr_umleiten
     ${REPLACER}  --version &> /tmp/ersetze_test_${REPLACER}.txt
+    _err=$?
     # shellcheck disable=SC2155
     local PROPERLYWORKING=$(cat /tmp/ersetze_test_${REPLACER}.txt)
 
     if [[ "$PROPERLYWORKING" == *"dyld:"* ]]; then { echo "error"; return;} fi
     if [[ "$PROPERLYWORKING" == *"GNU"* ]]; then { echo "GNU"; return;} else { echo "MAC";return;} fi
+    if  [ ${_err} -ne 0 ] ; then { echo "error"; return;} fi
     echo "checked";
     return;
   else
@@ -248,7 +251,9 @@ fi
 
 REPLACERGNU="NO"
 if [[ $VALIDREPLACER == "GNU" ]] ; then
+{
   REPLACERGNU="YES"
+}
 fi
 
 # Test
@@ -579,12 +584,16 @@ ${MOREIGNORE_DIRS}"
 IGNORELIST=""
 
     while read -r ONE_FILENAME; do
-      [[ -z "${ONE_FILENAME}" ]] && continue  # if not empty
-      IGNORELIST="${IGNORELIST} ${EXCLUDEFILE}${ONE_FILENAME}"
+      # if not empty
+      if [[ -n "${ONE_FILENAME}" ]] ; then
+        IGNORELIST="${IGNORELIST} ${EXCLUDEFILE}${ONE_FILENAME}"
+      fi
     done <<< "${FILESTOEXCLUDE}"
     while read -r ONE_DIRNAME; do
-      [[ -z "${ONE_DIRNAME}" ]] && continue  # if not empty
-      IGNORELIST="${IGNORELIST} ${EXCLUDEDIR}${ONE_DIRNAME}"
+      # if not empty
+      if [[ -n "${ONE_DIRNAME}" ]] ; then
+        IGNORELIST="${IGNORELIST} ${EXCLUDEDIR}${ONE_DIRNAME}"
+      fi
     done <<< "${DIRSTOEXCLUDE}"
 # echo "IGNORELIST:${IGNORELIST}"
 # exit 0
@@ -687,7 +696,7 @@ elif [[ "${PROCESSOR_ERROR}" == *"MAC"* ]] && [ $err_buff == 0 ]; then
 else
 {
     msg_red "${red} SORRY NO FOUND OCCURENCES !"
-    echo "    ";
+    echo -e "${RESET}    ";
     FOUND=0
     exit 1;
 }
@@ -748,7 +757,7 @@ NEW="$3";
 
 
 # echo "${reset} ${green} Replacing ${reset} $SEEKING ${green} for ${reset} $IMPLACING  ${green} with Sed."
-echo "${reset} ${green} Replacing ${reset} $SEEKING ${green} for ${reset} $IMPLACING  ${green} with  ${SEEKER}."
+echo -e "${reset} ${green} Replacing ${reset} $SEEKING ${green} for ${reset} $IMPLACING  ${green} with  ${SEEKER}."
 if [[ $REPLACER == "sed" ]] ; then
     {
     # check operation systems
@@ -797,8 +806,11 @@ function escape_slashes() {
 function escape_quotes() {
     sed 's/\"/\\\"/g'
 } # end escape_quotes
+function escape_double_quotes() {
+    sed 's/"/\\\"/g'
+} # end escape_double_quotes
 function escape_single_quotes() {
-    sed "s/'/\\'/g"
+    sed "s/'/\\\'/g"
 } # end escape_single_quotes
 function escape_squared_bracket_start() {
     sed "s/\[/\\\[/g"
@@ -832,8 +844,8 @@ function change_line() {
 # OLD_LINE_PATTERN=$SEEKING;
 # NEW_LINE=$2;
 # FILE=$3
-IMPLACING=$(echo -n "${NEW}"  | escape_slashes | escape_quotes| escape_single_quotes | escape_ampersands | escape_curly_bracket_end | escape_curly_bracket_start| escape_squared_bracket_end | escape_squared_bracket_start )
-TESTENTERIMPLACING=$(echo -n "${IMPLACING}" | enter_escape_for_sed)
+IMPLACING="$(echo -n "${NEW}"  | escape_slashes | escape_quotes| escape_single_quotes | escape_ampersands | escape_curly_bracket_end | escape_curly_bracket_start| escape_squared_bracket_end | escape_squared_bracket_start )"
+TESTENTERIMPLACING="$(echo -n "${IMPLACING}" | enter_escape_for_sed)"
 
 if [[ "${IMPLACING}" == "${TESTENTERIMPLACING}" ]] ; then
 {
@@ -846,6 +858,11 @@ else
   {
     APPLIED_ENTER=1
     IMPLACING=$TESTENTERIMPLACING
+  }
+  elif [[ -n "${IMPLACING}" ]] ; then
+  {
+    APPLIED_ENTER=1
+    IMPLACING="${IMPLACING}"
   }
   fi
 }
@@ -1103,7 +1120,7 @@ echo "${cyan}   ${SEEKER} \"${SEEKING}\" ${FILESCOMMAND} \"${IGNORELIST}\"  \"${
 fi
 # echo "Test CONFIRM";
 # exit 0
-########       #####     ###        ###   ##########  ###   ########       ###        ###   #########  ########
+ #######       #####     ###        ###   ##########  ###   ########       ###        ###   #########  ########
 #########      #####     ###        ###   ##########  ###   ########       ###        ###   #########  ########
 ##      ##   ##     ##   #####      ###   ###         ###   ###     ##     #####    #####   ##         ###     ##
 ##      ##   ##     ##   #####      ###   ###         ###   ###     ###    #####    #####   ##         ###     ##
@@ -1114,7 +1131,7 @@ fi
 ##      ##   ##     ##   ###      #####   ###         ###   ###   ##       ###        ###   ##         ###     ##
 ##      ##   ##     ##   ###      #####   ###         ###   ###   ###      ###        ###   ##         ###     ##
 #########     #######    ###        ###   ###         ###   ###     ###    ###        ###   #########  ########
-########       #####     ###        ###   ###         ###   ###     ###    ###        ###   #########  ########
+ #######       #####     ###        ###   ###         ###   ###     ###    ###        ###   #########  ########
 # INVERSE SWITCH If  | egrep "$SEEKING" &>/dev/null | returned an error....so it was... it was found/not found say it and stop execution for not found
 # if [ $? == 0 ]; then
 #    {
